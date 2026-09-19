@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Outlet, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { DomusSidebar } from '@/components/layout/DomusSidebar'
 import { DomusHeader } from '@/components/layout/DomusHeader'
 
@@ -12,7 +12,7 @@ interface AdminLayoutProps {
   children: React.ReactNode
 }
 
-export function AdminLayout({ user }: AdminLayoutProps) {
+export function AdminLayout({ user, children }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = React.useState(false)
   const location = useLocation()
 
@@ -29,9 +29,7 @@ export function AdminLayout({ user }: AdminLayoutProps) {
           user={user}
           onMenuClick={() => setSidebarOpen(true)}
         />
-        <main className="container-domus py-6">
-          <Outlet />
-        </main>
+        <main className="container-domus py-6">{children}</main>
       </div>
     </div>
   )
