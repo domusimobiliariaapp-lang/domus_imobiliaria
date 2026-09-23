@@ -14,7 +14,30 @@ export interface Profile {
   full_name: string
   phone?: string
   email?: string
+  cpf_cnpj_limpo?: string
+  telefone_e164?: string
+  client_id?: string
+  avatar_url?: string
   created_at: string
+  updated_at?: string
+}
+
+export interface Client {
+  id: string
+  role: UserRole
+  full_name: string
+  cpf_cnpj?: string
+  cpf_cnpj_limpo?: string
+  telefone?: string
+  telefone_e164?: string
+  email?: string
+  tipo_relacao?: 'locatario' | 'locador' | 'comprador' | 'vendedor' | 'fiador'
+  categoria?: 'pf' | 'pj'
+  endereco?: string
+  status?: 'ativo' | 'inativo'
+  observacoes?: string
+  created_at: string
+  updated_at?: string
 }
 
 export interface Property {
@@ -23,6 +46,8 @@ export interface Property {
   type: PropertyType
   status: PropertyStatus
   address: string
+  address_number?: string
+  address_complement?: string
   neighborhood: string
   city: string
   state: string
@@ -35,7 +60,14 @@ export interface Property {
   sale_price: number
   description: string
   images: string[]
+  videos?: string[]
   features: string[]
+  iptu?: number
+  condo_fee?: number
+  gas_fee?: number
+  water_fee?: number
+  electricity_fee?: number
+  other_fees?: number
   owner_id?: string
   created_at: string
   updated_at: string
@@ -77,6 +109,8 @@ export interface Payment {
   paid_date?: string
   status: 'pendente' | 'pago' | 'atrasado'
   description?: string
+  reported_paid_by_client?: boolean
+  reported_paid_at?: string
   created_at: string
 }
 
@@ -88,6 +122,7 @@ export interface Document {
   entity_type: 'property' | 'lease' | 'sale' | 'user'
   entity_id: string
   uploaded_by: string
+  notes?: string
   created_at: string
 }
 
@@ -100,6 +135,15 @@ export interface Notification {
   read: boolean
   entity_type?: string
   entity_id?: string
+  created_at: string
+}
+
+export interface LeaseHistory {
+  id: string
+  lease_id: string
+  type: 'created' | 'updated' | 'renewed' | 'cancelled' | 'closed'
+  detail?: string
+  created_by: string
   created_at: string
 }
 

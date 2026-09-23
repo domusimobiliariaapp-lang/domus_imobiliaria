@@ -1,0 +1,47 @@
+:root {
+  --background: #EEECE5;
+  --foreground: #17323D;
+  --primary: #17323D;
+  --primary-foreground: #FFFFFF;
+  --secondary: #AD7B3B;
+  --secondary-foreground: #FFFFFF;
+  --muted: #E0DED6;
+  --muted-foreground: #6B6375;
+  --accent: #AD7B3B;
+  --accent-foreground: #FFFFFF;
+  --destructive: #DC2626;
+  --destructive-foreground: #FFFFFF;
+  --border: #D4D0C8;
+  --input: #D4D0C8;
+  --ring: #AD7B3B;
+  --radius: 4px;
+  --modal-bg: #FFFFFF;
+  --modal-header-bg: #F7F5F0;
+  --modal-text: #17323D;
+  --modal-text-muted: #6B6375;
+  --modal-border: #D4D0C8;
+}
+
+.dark {
+  --background: #17323D;
+  --foreground: #EEECE5;
+  --primary: #AD7B3B;
+  --primary-foreground: #17323D;
+  --secondary: #2D4A51;
+  --secondary-foreground: #EEECE5;
+  --muted: #2D4A51;
+  --muted-foreground: #A3A098;
+  --accent: #AD7B3B;
+  --accent-foreground: #17323D;
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+  --border: #3D5A5F;
+  --input: #3D5A5F;
+  --ring: #AD7B3B;
+  --radius: 4px;
+  --modal-bg: #1a1a1a;
+  --modal-header-bg: #1e1e1e;
+  --modal-text: #EEECE5;
+  --modal-text-muted: #A3A098;
+  --modal-border: #3D5A5F;
+}

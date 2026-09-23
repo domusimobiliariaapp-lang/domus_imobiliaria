@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "tailwindcss-animate";
 
 @theme inline {
   --color-brand-primary: #17323D;
@@ -37,6 +36,11 @@
   --input: #D4D0C8;
   --ring: #AD7B3B;
   --radius: 4px;
+  --modal-bg: #FFFFFF;
+  --modal-header-bg: #F7F5F0;
+  --modal-text: #17323D;
+  --modal-text-muted: #6B6375;
+  --modal-border: #D4D0C8;
 }
 
 .dark {
@@ -55,23 +59,116 @@
   --border: #3D5A5F;
   --input: #3D5A5F;
   --ring: #AD7B3B;
+  --radius: 4px;
+  --modal-bg: #1a1a1a;
+  --modal-header-bg: #1e1e1e;
+  --modal-text: #EEECE5;
+  --modal-text-muted: #A3A098;
+  --modal-border: #3D5A5F;
 }
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: var(--border);
   }
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-serif font-medium tracking-tight;
+    font-family: var(--font-serif);
+    font-weight: 500;
+    letter-spacing: -0.02em;
   }
 }
 
 @layer utilities {
   .container-domus {
-    @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
+    margin-inline: auto;
+    max-width: 1280px;
+    padding-inline: 1rem;
   }
+  @media (min-width: 640px) {
+    .container-domus {
+      padding-inline: 1.5rem;
+    }
+  }
+  @media (min-width: 1024px) {
+    .container-domus {
+      padding-inline: 2rem;
+    }
+  }
+}
+
+/* Toast animations */
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes toastOut {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(16px) scale(0.95); }
+}
+
+/* Print styles */
+@media print {
+  /* Hide navigation and UI elements */
+  .print-hide,
+  nav,
+  header,
+  button,
+  .no-print {
+    display: none !important;
+  }
+
+  /* Ensure body has white background for print */
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Main content area */
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Cards and tables */
+  .card,
+  [class*="bg-"],
+  table {
+    border: 1px solid #ddd !important;
+  }
+
+  /* Show print header */
+  .print-header {
+    display: block !important;
+    text-align: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #333;
+  }
+
+  /* Page numbers */
+  .page-number::after {
+    content: counter(page);
+  }
+
+  /* Ensure tables don't break across pages */
+  table, tr, td, th {
+    page-break-inside: avoid;
+  }
+
+  h1, h2, h3 {
+    page-break-after: avoid;
+  }
+}
+
+/* Print header - hidden by default, shown in print */
+.print-header {
+  display: none;
 }
