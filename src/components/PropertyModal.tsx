@@ -1,13 +1,13 @@
 import * as React from 'react'
-import { useState } from 'react'
-import { X, UploadCloud, Play, Plus, Minus } from 'lucide-react'
-import { Button } from './button'
-import { Input } from './input'
-import { Label } from './label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './select'
-import { Textarea } from './textarea'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs'
-import { ImageGalleryUploader } from '../ImageGalleryUploader'
+import { useState, useEffect } from 'react'
+import { X, Plus, Minus } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { ImageGalleryUploader } from './ImageGalleryUploader'
 
 interface PropertyModalProps {
   open: boolean
@@ -52,7 +52,6 @@ export function PropertyModal({ open, onOpenChange, item, onSave, saving = false
     title: '',
     type: 'apartamento',
     status: 'disponivel',
-    purpose: 'ambos',
     address: '',
     address_number: '',
     address_complement: '',
@@ -80,13 +79,12 @@ export function PropertyModal({ open, onOpenChange, item, onSave, saving = false
     virtual_tour_url: '',
   })
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (item) {
       setFormData({
         title: item.title || '',
         type: item.type || 'apartamento',
         status: item.status || 'disponivel',
-        purpose: 'ambos',
         address: item.address || '',
         address_number: item.address_number || '',
         address_complement: item.address_complement || '',
@@ -166,7 +164,7 @@ export function PropertyModal({ open, onOpenChange, item, onSave, saving = false
     await onSave(data)
     if (!isEditing) {
       setFormData({
-        title: '', type: 'apartamento', status: 'disponivel', purpose: 'ambos',
+        title: '', type: 'apartamento', status: 'disponivel',
         address: '', address_number: '', address_complement: '', neighborhood: '',
         city: '', state: '', zip_code: '', area_m2: 0, area_util: 0,
         bedrooms: 0, suites: 0, bathrooms: 0, parking: 0, features: [],
@@ -245,7 +243,7 @@ export function PropertyModal({ open, onOpenChange, item, onSave, saving = false
                   <Label>Título do Anúncio</Label>
                   <Input
                     value={formData.title}
-                    onChange={(e) => updateField('title', e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField('title', e.target.value)}
                     placeholder="Ex: Edifício Costa do Sol"
                     className="bg-[#EEECE5] focus:bg-white"
                   />
@@ -253,7 +251,7 @@ export function PropertyModal({ open, onOpenChange, item, onSave, saving = false
 
                 <div className="space-y-2">
                   <Label>Tipo do Imóvel</Label>
-                  <Select value={formData.type} onValueChange={(v) => updateField('type', v)}>
+                  <Select value={formData.type} onValueChange={(v: string) => updateField('type', v)}>
                     <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                     <SelectContent>
                       {PROPERTY_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
@@ -263,7 +261,7 @@ export function PropertyModal({ open, onOpenChange, item, onSave, saving = false
 
                 <div className="space-y-2">
                   <Label>Status</Label>
-                  <Select value={formData.status} onValueChange={(v) => updateField('status', v)}>
+                  <Select value={formData.status} onValueChange={(v: string) => updateField('status', v)}>
                     <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                     <SelectContent>
                       {PROPERTY_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
@@ -275,7 +273,7 @@ export function PropertyModal({ open, onOpenChange, item, onSave, saving = false
                   <Label>Endereço</Label>
                   <Input
                     value={formData.address}
-                    onChange={(e) => updateField('address', e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField('address', e.target.value)}
                     placeholder="Rua"
                     className="bg-[#EEECE5] focus:bg-white"
                   />
@@ -285,7 +283,7 @@ export function PropertyModal({ open, onOpenChange, item, onSave, saving = false
                   <Label>Número</Label>
                   <Input
                     value={formData.address_number}
-                    onChange={(e) => updateField('address_number', e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField('address_number', e.target.value)}
                     placeholder="Nº"
                     className="bg-[#EEECE5] focus:bg-white"
                   />
@@ -295,7 +293,7 @@ export function PropertyModal({ open, onOpenChange, item, onSave, saving = false
                   <Label>Complemento</Label>
                   <Input
                     value={formData.address_complement}
-                    onChange={(e) => updateField('address_complement', e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField('address_complement', e.target.value)}
                     placeholder="Apto, Bloco, etc."
                     className="bg-[#EEECE5] focus:bg-white"
                   />
@@ -305,7 +303,7 @@ export function PropertyModal({ open, onOpenChange, item, onSave, saving = false
                   <Label>Bairro</Label>
                   <Input
                     value={formData.neighborhood}
-                    onChange={(e) => updateField('neighborhood', e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField('neighborhood', e.target.value)}
                     placeholder="Bairro"
                     className="bg-[#EEECE5] focus:bg-white"
                   />
@@ -315,7 +313,7 @@ export function PropertyModal({ open, onOpenChange, item, onSave, saving = false
                   <Label>Cidade</Label>
                   <Input
                     value={formData.city}
-                    onChange={(e) => updateField('city', e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField('city', e.target.value)}
                     placeholder="Cidade"
                     className="bg-[#EEECE5] focus:bg-white"
                   />
@@ -325,7 +323,7 @@ export function PropertyModal({ open, onOpenChange, item, onSave, saving = false
                   <Label>Estado (UF)</Label>
                   <Input
                     value={formData.state}
-                    onChange={(e) => updateField('state', e.target.value.toUpperCase().slice(0, 2))}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField('state', e.target.value.toUpperCase().slice(0, 2))}
                     placeholder="UF"
                     maxLength={2}
                     className="bg-[#EEECE5] focus:bg-white"
@@ -336,7 +334,7 @@ export function PropertyModal({ open, onOpenChange, item, onSave, saving = false
                   <Label>CEP</Label>
                   <Input
                     value={formData.zip_code}
-                    onChange={(e) => updateField('zip_code', e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField('zip_code', e.target.value)}
                     onBlur={() => handleCepBlur(formData.zip_code)}
                     placeholder="00000-000"
                     maxLength={9}
@@ -348,7 +346,7 @@ export function PropertyModal({ open, onOpenChange, item, onSave, saving = false
                   <Label>Descrição</Label>
                   <Textarea
                     value={formData.description}
-                    onChange={(e) => updateField('description', e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => updateField('description', e.target.value)}
                     placeholder="Descrição detalhada do imóvel"
                     rows={4}
                     className="bg-[#EEECE5] focus:bg-white"
@@ -367,7 +365,7 @@ export function PropertyModal({ open, onOpenChange, item, onSave, saving = false
                     <Input
                       type="number"
                       value={formData.area_m2 || ''}
-                      onChange={(e) => updateField('area_m2', parseFloat(e.target.value) || 0)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField('area_m2', parseFloat(e.target.value) || 0)}
                       placeholder="0.00"
                       min={0}
                       step={0.01}
@@ -379,7 +377,7 @@ export function PropertyModal({ open, onOpenChange, item, onSave, saving = false
                     <Input
                       type="number"
                       value={formData.area_util || ''}
-                      onChange={(e) => updateField('area_util', parseFloat(e.target.value) || 0)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField('area_util', parseFloat(e.target.value) || 0)}
                       placeholder="0.00"
                       min={0}
                       step={0.01}
@@ -392,28 +390,28 @@ export function PropertyModal({ open, onOpenChange, item, onSave, saving = false
               <div className="space-y-4">
                 <h3 className="font-serif font-medium text-lg text-primary">Ambientes</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {['bedrooms', 'suites', 'bathrooms', 'parking'].map((field) => (
-                    <div key={field} className="space-y-2">
-                      <Label>
-                        {field === 'bedrooms' && 'Quartos'}
-                        {field === 'suites' && 'Suítes'}
-                        {field === 'bathrooms' && 'Banheiros'}
-                        {field === 'parking' && 'Vagas'}
-                      </Label>
+                  {[
+                    { key: 'bedrooms', label: 'Quartos' },
+                    { key: 'suites', label: 'Suítes' },
+                    { key: 'bathrooms', label: 'Banheiros' },
+                    { key: 'parking', label: 'Vagas' },
+                  ].map(({ key, label }) => (
+                    <div key={key} className="space-y-2">
+                      <Label>{label}</Label>
                       <div className="flex items-center gap-2">
                         <Button
                           type="button"
                           variant="outline"
                           size="icon"
-                          onClick={() => updateField(field, Math.max(0, (formData as any)[field] - 1))}
+                          onClick={() => updateField(key, Math.max(0, (formData as any)[key] - 1))}
                           className="h-10 w-10"
                         >
                           <Minus className="h-4 w-4" />
                         </Button>
                         <Input
                           type="number"
-                          value={(formData as any)[field] || ''}
-                          onChange={(e) => updateField(field, parseInt(e.target.value) || 0)}
+                          value={(formData as any)[key] || ''}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField(key, parseInt(e.target.value) || 0)}
                           className="text-center bg-[#EEECE5] focus:bg-white h-10"
                           min={0}
                         />
@@ -421,7 +419,7 @@ export function PropertyModal({ open, onOpenChange, item, onSave, saving = false
                           type="button"
                           variant="outline"
                           size="icon"
-                          onClick={() => updateField(field, ((formData as any)[field] || 0) + 1)}
+                          onClick={() => updateField(key, ((formData as any)[key] || 0) + 1)}
                           className="h-10 w-10"
                         >
                           <Plus className="h-4 w-4" />
@@ -479,7 +477,7 @@ export function PropertyModal({ open, onOpenChange, item, onSave, saving = false
                       type="number"
                       step="0.01"
                       value={formData.rent_price || ''}
-                      onChange={(e) => updateField('rent_price', parseFloat(e.target.value) || 0)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField('rent_price', parseFloat(e.target.value) || 0)}
                       placeholder="0,00"
                       className="bg-[#EEECE5] focus:bg-white"
                     />
@@ -490,7 +488,7 @@ export function PropertyModal({ open, onOpenChange, item, onSave, saving = false
                       type="number"
                       step="0.01"
                       value={formData.sale_price || ''}
-                      onChange={(e) => updateField('sale_price', parseFloat(e.target.value) || 0)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField('sale_price', parseFloat(e.target.value) || 0)}
                       placeholder="0,00"
                       className="bg-[#EEECE5] focus:bg-white"
                     />
@@ -507,7 +505,7 @@ export function PropertyModal({ open, onOpenChange, item, onSave, saving = false
                       type="number"
                       step="0.01"
                       value={formData.condo_fee || ''}
-                      onChange={(e) => updateField('condo_fee', parseFloat(e.target.value) || 0)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField('condo_fee', parseFloat(e.target.value) || 0)}
                       placeholder="0,00"
                       className="bg-[#EEECE5] focus:bg-white"
                     />
@@ -518,7 +516,7 @@ export function PropertyModal({ open, onOpenChange, item, onSave, saving = false
                       type="number"
                       step="0.01"
                       value={formData.iptu || ''}
-                      onChange={(e) => updateField('iptu', parseFloat(e.target.value) || 0)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField('iptu', parseFloat(e.target.value) || 0)}
                       placeholder="0,00"
                       className="bg-[#EEECE5] focus:bg-white"
                     />
@@ -538,7 +536,7 @@ export function PropertyModal({ open, onOpenChange, item, onSave, saving = false
                       <input
                         type="checkbox"
                         checked={(formData as any)[key]}
-                        onChange={(e) => updateField(key, e.target.checked)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField(key, e.target.checked)}
                         className="w-5 h-5 rounded border-muted-foreground/40 text-[#AD7B3B] focus:ring-[#AD7B3B]"
                       />
                       <span className="text-sm font-medium">{label}</span>
@@ -555,8 +553,8 @@ export function PropertyModal({ open, onOpenChange, item, onSave, saving = false
                 <div className="p-6 border-2 border-dashed border-border/40 rounded-lg bg-[#EEECE5]">
                   <ImageGalleryUploader
                     existingImages={formData.images || []}
-                    onImagesChange={(urls) => updateField('images', urls)}
-                    onVideosChange={(urls) => updateField('videos', urls)}
+                    onImagesChange={(urls: string[]) => updateField('images', urls)}
+                    onVideosChange={(urls: string[]) => updateField('videos', urls)}
                     maxImages={10}
                     maxVideos={2}
                   />
@@ -569,7 +567,7 @@ export function PropertyModal({ open, onOpenChange, item, onSave, saving = false
                   <Label>URL do Vídeo ou Tour Virtual</Label>
                   <Input
                     value={formData.virtual_tour_url}
-                    onChange={(e) => updateField('virtual_tour_url', e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField('virtual_tour_url', e.target.value)}
                     placeholder="https://youtube.com/watch?v=..."
                     className="bg-[#EEECE5] focus:bg-white"
                   />
