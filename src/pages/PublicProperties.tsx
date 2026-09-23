@@ -45,7 +45,7 @@ const STATUS_COLORS: Record<PropertyStatus, string> = {
 }
 
 export function PublicProperties() {
-  const { data: properties, loading } = useProperties()
+  const { data: properties, loading, error } = useProperties()
   const [searchTerm, setSearchTerm] = useState('')
   const [typeFilter, setTypeFilter] = useState<PropertyType | 'todos'>('todos')
   const [showFilters, setShowFilters] = useState(false)
@@ -53,6 +53,11 @@ export function PublicProperties() {
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [])
+
+  // Log error if any
+  if (error) {
+    console.error('Erro ao carregar imóveis:', error)
+  }
 
   const filteredProperties = properties?.filter(property => {
     const matchesSearch = searchTerm === '' ||

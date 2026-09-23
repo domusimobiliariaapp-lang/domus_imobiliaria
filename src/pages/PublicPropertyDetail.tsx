@@ -35,16 +35,38 @@ const STATUS_COLORS: Record<PropertyStatus, string> = {
 
 export function PublicPropertyDetail() {
   const { id } = useParams<{ id: string }>()
-  const { data: property, loading } = useProperty(id ?? null)
+  const { data: property, loading, error } = useProperty(id ?? null)
 
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [])
 
+  // Log error if any
+  if (error) {
+    console.error('Erro ao carregar imóvel:', error)
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#EEECE5] flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#EEECE5] flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg font-medium text-red-600">Erro ao carregar imóvel</p>
+          <p className="text-sm text-muted-foreground mt-2">{error.message}</p>
+          <Link to="/imoveis" className="mt-6 inline-block">
+            <Button className="bg-[#AD7B3B] hover:bg-[#AD7B3B]/90 text-white">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar para imóveis
+            </Button>
+          </Link>
+        </div>
       </div>
     )
   }
