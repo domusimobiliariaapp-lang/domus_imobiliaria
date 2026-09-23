@@ -116,11 +116,6 @@ export function PropertiesAdmin() {
     }
   }
 
-  const openCreate = () => {
-    setEditingItem(null)
-    setModalOpen(true)
-  }
-
   const openEdit = (item: Property) => {
     setEditingItem(item)
     setModalOpen(true)
