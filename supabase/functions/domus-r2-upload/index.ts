@@ -2,7 +2,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2.116.0'
 import { AwsClient } from 'npm:aws4fetch@1.0.20'
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': import.meta.env.VITE_APP_URL ?? 'http://localhost:5173',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
@@ -24,6 +24,14 @@ Deno.serve(async (req) => {
     const { data: internal, error: roleError } = await supabase.rpc('is_internal_team')
     if (roleError || internal !== true) return json({ error: 'Apenas a equipe interna pode gerenciar arquivos.' }, 403)
 
+    // Recorte por organização. is_internal_team() sozinho deixaria um corretor
+    // da org A ler e apagar os arquivos da org B, já que os objetos ficam no
+    // mesmo bucket.
+    const { data: orgId, error: orgError } = await supabase.rpc('current_org_id')
+    if (orgError) return json({ error: 'Falha ao verificar a organização.' }, 500)
+    if (!orgId) return json({ error: 'Sua conta não está vinculada a uma imobiliária.' }, 403)
+    const orgPrefix = `orgs/${orgId}/`
+
     const names = ['R2_ACCOUNT_ID', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'R2_BUCKET_NAME', 'R2_PUBLIC_URL']
     const missing = names.filter(name => !Deno.env.get(name))
     if (missing.length) return json({ error: `Configure os secrets da função: ${missing.join(', ')}` }, 503)
@@ -41,7 +49,11 @@ Deno.serve(async (req) => {
     const endpoint = `https://${Deno.env.get('R2_ACCOUNT_ID')}.r2.cloudflarestorage.com/${Deno.env.get('R2_BUCKET_NAME')}`
     if (action === 'delete') {
       const key = body.key
-      if (typeof key !== 'string' || !/^(images|videos|documents)\/[a-zA-Z0-9._-]+$/.test(key) || key.includes('..')) {
+      if (typeof key !== 'string' || !key.startsWith(orgPrefix)) {
+        return json({ error: 'Arquivo não pertence à sua imobiliária.' }, 403)
+      }
+      const rest = key.slice(orgPrefix.length)
+      if (!/^(images|videos|documents)\/[a-zA-Z0-9._-]+$/.test(rest) || key.includes('..')) {
         return json({ error: 'Caminho de arquivo inválido.' }, 400)
       }
       const response = await aws.fetch(`${endpoint}/${key}`, { method: 'DELETE' })
@@ -59,7 +71,7 @@ Deno.serve(async (req) => {
     if (!types[folder].includes(fileType)) return json({ error: 'Tipo de arquivo não permitido para esta pasta.' }, 400)
     const limit = (folder === 'videos' ? 50 : 10) * 1024 * 1024
     if (!Number.isSafeInteger(fileSize) || fileSize <= 0 || fileSize > limit) return json({ error: `O arquivo deve ter entre 1 byte e ${limit / 1024 / 1024} MB.` }, 400)
-    const key = `${folder}/${crypto.randomUUID()}-${fileName.replace(/[^a-zA-Z0-9.-]/g, '_')}`
+    const key = `${orgPrefix}${folder}/${crypto.randomUUID()}-${fileName.replace(/[^a-zA-Z0-9.-]/g, '_')}`
     const url = new URL(`${endpoint}/${key}`)
     url.searchParams.set('X-Amz-Expires', '300')
     const signed = await aws.sign(url, {
