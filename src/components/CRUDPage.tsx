@@ -6,9 +6,10 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Plus, Search, Edit2, Trash2 } from 'lucide-react'
+import { Plus, Search, Edit2, Trash2, List, LayoutGrid, AlertCircle } from 'lucide-react'
 import { Modal } from '@/components/ui/modal'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useToast } from '@/components/ui/toast'
 // Type definitions for CRUD page
 export interface Column<T> {
   key: string
@@ -38,6 +39,9 @@ export interface CRUDPageProps<T> {
   }
   initialFilterValues?: Record<string, string>
   renderActions?: (item: T, handlers: { edit: (item: T) => void; delete: (item: T) => void }) => React.ReactNode
+  renderCard?: (item: T) => React.ReactNode
+  viewMode?: 'list' | 'cards'
+  onViewModeChange?: (mode: 'list' | 'cards') => void
   renderForm?: (props: {
     item: T | null
     formData: Partial<T>
@@ -48,8 +52,18 @@ export interface CRUDPageProps<T> {
   }) => React.ReactNode
   emptyStateIcon?: React.ReactNode
   emptyStateMessage?: string
+  /**
+   * Texto e rótulo da confirmação de exclusão. Ajudando quando a "exclusão"
+   * não apaga de verdade — desativar um cliente preserva o histórico, e dizer
+   * "esta ação não pode ser desfeita" seria mentira.
+   */
+  confirmDeleteTitle?: string
+  confirmDeleteMessage?: string
+  confirmDeleteLabel?: string
   formSize?: 'sm' | 'md' | 'lg' | 'xl' | '2xl'
   onEdit?: (item: T) => void
+  onCreate?: () => void
+  persistState?: boolean
   onDelete?: (id: string) => void
   tabs?: {
     value: string
@@ -70,16 +84,25 @@ export function CRUDPage<T extends Record<string, any>>({
   filters,
   initialFilterValues = {},
   renderActions,
+  renderCard,
+  viewMode,
+  onViewModeChange,
   renderForm,
   emptyStateIcon,
   emptyStateMessage = 'Nenhum registro encontrado',
+  confirmDeleteTitle,
+  confirmDeleteMessage,
+  confirmDeleteLabel,
   formSize = 'lg',
   tabs,
+  onCreate,
+  persistState = true,
 }: CRUDPageProps<T>) {
   // Use localStorage to persist modal state across page refreshes
   const STORAGE_KEY = `crudpage_${title.toLowerCase().replace(/\s+/g, '_')}_state`
 
   const getInitialState = () => {
+    if (!persistState) return null
     try {
       const saved = localStorage.getItem(STORAGE_KEY)
       if (saved) {
@@ -111,6 +134,7 @@ export function CRUDPage<T extends Record<string, any>>({
     typeFilter: string
     categoryFilter: string
   }) => {
+    if (!persistState) return
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
     } catch {
@@ -122,23 +146,37 @@ export function CRUDPage<T extends Record<string, any>>({
 
   const [data, setData] = useState<T[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [search, setSearch] = useState(initialState?.search || '')
   const [statusFilter, setStatusFilter] = useState(initialState?.statusFilter || initialFilterValues.status || '')
   const [typeFilter, setTypeFilter] = useState(initialState?.typeFilter || initialFilterValues.type || '')
   const [categoryFilter, setCategoryFilter] = useState(initialState?.categoryFilter || initialFilterValues.category || '')
-  const [dialogOpen, setDialogOpen] = useState(initialState?.dialogOpen || false)
+  const [dialogOpen, setDialogOpen] = useState(onCreate ? false : (initialState?.dialogOpen || false))
   const [editingItem, setEditingItem] = useState<T | null>(initialState?.editingItem || null)
   const [deleteConfirm, setDeleteConfirm] = useState<T | null>(initialState?.deleteConfirm || null)
   const [formData, setFormData] = useState<Partial<T>>(initialState?.formData || {})
   const [saving, setSaving] = useState(false)
+  // Falha de gravação precisa aparecer. Antes o erro ia só para o console e o
+  // modal fechava do mesmo jeito, então uma coluna que não existe no banco
+  // parecia exatamente um clique que não fez nada.
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const { addToast } = useToast()
+  const [localViewMode, setLocalViewMode] = useState<'list' | 'cards'>('list')
+  const currentViewMode = viewMode ?? localViewMode
+  const changeViewMode = (mode: 'list' | 'cards') => {
+    setLocalViewMode(mode)
+    onViewModeChange?.(mode)
+  }
 
   const loadData = async () => {
     setLoading(true)
     try {
       const result = await fetchData()
       setData(result)
+      setLoadError(null)
     } catch (err) {
       console.error('Erro ao carregar dados:', err)
+      setLoadError(err instanceof Error ? err.message : 'Não foi possível carregar os registros.')
     } finally {
       setLoading(false)
     }
@@ -153,8 +191,8 @@ export function CRUDPage<T extends Record<string, any>>({
       (val) => val && String(val).toLowerCase().includes(search.toLowerCase())
     )
     const matchesStatus = !statusFilter || (item as any).status === statusFilter
-    const matchesType = !typeFilter || (item as any).tipo_relacao === typeFilter || (item as any).tipo === typeFilter
-    const matchesCategory = !categoryFilter || (item as any).categoria === categoryFilter
+    const matchesType = !typeFilter || [item.type, item.tipo_relacao, item.tipo].includes(typeFilter)
+    const matchesCategory = !categoryFilter || [item.purpose, item.categoria, item.category].includes(categoryFilter)
     return matchesSearch && matchesStatus && matchesType && matchesCategory
   })
 
@@ -173,6 +211,10 @@ export function CRUDPage<T extends Record<string, any>>({
   }, [dialogOpen, editingItem, formData, deleteConfirm, search, statusFilter, typeFilter, categoryFilter])
 
   const handleOpenCreate = () => {
+    if (onCreate) {
+      onCreate()
+      return
+    }
     setEditingItem(null)
     setFormData({})
     setDialogOpen(true)
@@ -185,6 +227,7 @@ export function CRUDPage<T extends Record<string, any>>({
   }
 
   const handleCloseModal = () => {
+    setSaveError(null)
     setDialogOpen(false)
     setEditingItem(null)
     setFormData({})
@@ -208,6 +251,7 @@ export function CRUDPage<T extends Record<string, any>>({
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
+    setSaveError(null)
     try {
       if (editingItem) {
         await updateItem(getItemId(editingItem), formData)
@@ -222,9 +266,23 @@ export function CRUDPage<T extends Record<string, any>>({
       handleCloseModal()
     } catch (err) {
       console.error('Erro ao salvar:', err)
+      // Modal continua aberto: fechar aqui fazia o usuario acreditar que salvou.
+      setSaveError(mensagemDeErro(err))
+      addToast(mensagemDeErro(err), 'error')
     } finally {
       setSaving(false)
     }
+  }
+
+  /**
+   * Normaliza o erro para exibição segura ao usuário.
+   *
+   * Nunca expor mensagens brutas do Postgres/PostgREST (nomes de
+   * coluna, tabela, política RLS): elas mapeiam o schema e ajudam
+   * um atacante a encontrar falhas de injeção ou permissão.
+   */
+  function mensagemDeErro(_err: unknown): string {
+    return 'Falha ao salvar. Verifique os dados e tente novamente.'
   }
 
   const handleCancel = () => {
@@ -239,10 +297,16 @@ export function CRUDPage<T extends Record<string, any>>({
           <h1 className="text-3xl font-serif font-medium text-primary">{title}</h1>
           {subtitle && <p className="text-muted-foreground mt-1">{subtitle}</p>}
         </div>
-        <Button onClick={handleOpenCreate} className="bg-[#AD7B3B] hover:bg-[#AD7B3B]/90 text-white">
-          <Plus className="h-4 w-4 mr-2" />
-          Novo
-        </Button>
+        <div className="flex items-center gap-2">
+          {renderCard && <div role="group" aria-label="Modo de visualização" className="flex rounded-md border border-border bg-background p-1">
+            <button type="button" onClick={() => changeViewMode('list')} aria-label="Exibir lista" aria-pressed={currentViewMode === 'list'} className={`flex items-center gap-1.5 rounded px-2.5 py-1.5 text-sm ${currentViewMode === 'list' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}><List className="h-4 w-4" /><span className="hidden sm:inline">Lista</span></button>
+            <button type="button" onClick={() => changeViewMode('cards')} aria-label="Exibir cards" aria-pressed={currentViewMode === 'cards'} className={`flex items-center gap-1.5 rounded px-2.5 py-1.5 text-sm ${currentViewMode === 'cards' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}><LayoutGrid className="h-4 w-4" /><span className="hidden sm:inline">Cards</span></button>
+          </div>}
+          <Button onClick={handleOpenCreate} className="bg-[#AD7B3B] hover:bg-[#AD7B3B]/90 text-white">
+            <Plus className="h-4 w-4 mr-2" />
+            Novo
+          </Button>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -322,11 +386,16 @@ export function CRUDPage<T extends Record<string, any>>({
       </Card>
 
       {/* Table */}
-      <Card>
+      <Card className={renderCard && currentViewMode === 'cards' ? 'border-0 bg-transparent shadow-none' : ''}>
         <CardContent className="p-0">
           {loading ? (
             <div className="flex items-center justify-center h-64">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+            </div>
+          ) : loadError ? (
+            <div className="flex flex-col items-center gap-3 p-12 text-center">
+              <p className="text-destructive">Não foi possível carregar os registros: {loadError}</p>
+              <Button variant="outline" onClick={() => void loadData()}>Tentar novamente</Button>
             </div>
           ) : filteredData.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-12 text-center">
@@ -336,6 +405,10 @@ export function CRUDPage<T extends Record<string, any>>({
                 </div>
               )}
               <p className="text-muted-foreground">{emptyStateMessage}</p>
+            </div>
+          ) : renderCard && currentViewMode === 'cards' ? (
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {filteredData.map(item => <React.Fragment key={getItemId(item)}>{renderCard(item)}</React.Fragment>)}
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -408,6 +481,12 @@ export function CRUDPage<T extends Record<string, any>>({
           saveDisabled: saving,
         }}
       >
+        {saveError && (
+          <div className="mx-6 mt-4 p-3 rounded-md bg-destructive/10 border border-destructive/30 flex items-start gap-2 text-sm text-destructive">
+            <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+            <span>{saveError}</span>
+          </div>
+        )}
         <form onSubmit={handleSave} className="space-y-4">
           {renderForm ? (
             renderForm({
@@ -442,17 +521,18 @@ export function CRUDPage<T extends Record<string, any>>({
       <Modal
         open={!!deleteConfirm}
         onOpenChange={(open) => !open && setDeleteConfirm(null)}
-        title="Confirmar exclusão"
+        title={confirmDeleteTitle || 'Confirmar exclusão'}
         size="sm"
         footer={{
           onCancel: () => setDeleteConfirm(null),
           onSave: confirmDelete,
-          saveLabel: 'Excluir',
+          saveLabel: confirmDeleteLabel || 'Excluir',
           showCancel: true,
         }}
       >
-        <p className="text-gray-600">
-          Tem certeza que deseja excluir este registro? Esta ação não pode ser desfeita.
+        <p className="text-muted-foreground">
+          {confirmDeleteMessage ||
+            'Tem certeza que deseja excluir este registro? Esta ação não pode ser desfeita.'}
         </p>
       </Modal>
     </div>

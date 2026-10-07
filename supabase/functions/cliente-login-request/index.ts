@@ -38,7 +38,7 @@ serve(async (req) => {
     // Admin client for reading configs
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
 
-    const { cpf_cnpj, telefone } = await req.json()
+    const { cpf_cnpj, telefone, slug } = await req.json()
 
     if (!cpf_cnpj || !telefone) {
       return new Response(JSON.stringify({ error: 'CPF/CNPJ e telefone são obrigatórios' }), {
@@ -56,42 +56,63 @@ serve(async (req) => {
       telefoneE164 = '55' + telefoneE164
     }
 
-    // Find profile by cpf_cnpj_limpo and telefone_e164
-    const { data: profile, error: profileError } = await supabaseAdmin
-      .from('profiles')
-      .select('id, email, full_name')
-      .eq('cpf_cnpj_limpo', cpfCnpjLimpo)
-      .eq('telefone_e164', telefoneE164)
-      .eq('role', 'cliente')
-      .single()
+    // O slug é obrigatório: sem ele, um mesmo CPF/CNPJ cadastrado em duas
+    // imobiliárias seria ambíguo e o código cairia na carteira errada.
+    if (!slug || typeof slug !== 'string') {
+      return new Response(JSON.stringify({ error: 'Imobiliária não informada. Acesse o link recebido da sua imobiliária.' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
 
-    if (profileError || !profile) {
-      return new Response(JSON.stringify({ error: 'Cliente não encontrado. Verifique os dados informados.' }), {
+    const { data: org, error: orgError } = await supabaseAdmin
+      .from('organizations')
+      .select('id, slug, name, active')
+      .eq('slug', slug)
+      .maybeSingle()
+
+    if (orgError || !org || !org.active) {
+      return new Response(JSON.stringify({ error: 'Imobiliária não encontrada.' }), {
         status: 404,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
+    // Find profile by cpf_cnpj_limpo and telefone_e164 within this organization
+    const { data: profiles, error: profileError } = await supabaseAdmin
+      .from('profiles')
+      .select('id, email, full_name')
+      .eq('org_id', org.id)
+      .eq('cpf_cnpj_limpo', cpfCnpjLimpo)
+      .eq('telefone_e164', telefoneE164)
+      .eq('role', 'cliente')
+      .limit(2)
+
+    if (profileError || !profiles || profiles.length === 0) {
+      // Mensagem uniforme: não revela se o CPF/telefone existem.
+      return new Response(JSON.stringify({ error: 'Se os dados forem válidos, enviaremos um código. Verifique seu e-mail.' }), {
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    // Ainda ambíguo dentro da mesma imobiliária: duas contas com o mesmo CPF e
+    // telefone. Escolher uma delas enviaria o código para a pessoa errada.
+    if (profiles.length > 1) {
+      return new Response(JSON.stringify({ error: 'Se os dados forem válidos, enviaremos um código. Verifique seu e-mail.' }), {
+        status: 409,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    const profile = profiles[0]
+
     // Check if client has email
     if (!profile.email) {
-      // Get contact phone from configuracoes
-      const { data: config } = await supabaseAdmin
-        .from('configuracoes')
-        .select('telefone_contato')
-        .single()
-
-      const telefoneContato = config?.telefone_contato || '(11) 99999-9999'
-
-      return new Response(
-        JSON.stringify({
-          error: 'sem_email',
-          message: `Este cliente não possui e-mail cadastrado. Por favor, entre em contato com a imobiliária pelo telefone ${telefoneContato} para atualizar seu cadastro.`,
-        }),
-        {
-          status: 422,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      )
+      return new Response(JSON.stringify({ error: 'Se os dados forem válidos, enviaremos um código. Verifique seu e-mail.' }), {
+        status: 422,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     }
 
     // Send OTP via email
