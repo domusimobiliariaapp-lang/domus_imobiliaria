@@ -139,7 +139,7 @@ export function InspectionsAdmin() {
 
       if (error || !created) throw error || new Error('Falha ao criar vistoria')
 
-      // Insere os itens de checklist preenchidos
+      // Insere os itens de checklist preenchidos (se houver)
       const itemsPayload = checklistItems.map((item) => ({
         inspection_id: (created as any).id,
         room: item.room,
@@ -149,13 +149,19 @@ export function InspectionsAdmin() {
         photos: item.photoUrl ? [item.photoUrl] : [],
       }))
 
-      await supabase.from('inspection_items').insert(itemsPayload)
+      if (itemsPayload.length > 0) {
+        const { error: itemsError } = await supabase.from('inspection_items').insert(itemsPayload)
+        if (itemsError) {
+          console.error('Erro ao inserir itens da vistoria:', itemsError)
+        }
+      }
 
       addToast('Vistoria registrada com sucesso!', 'success')
       setNewModalOpen(false)
       setChecklistItems([])
       void refetch()
     } catch (err) {
+      console.error('Erro ao salvar vistoria:', err)
       addToast('Erro ao salvar vistoria.', 'error')
     }
   }

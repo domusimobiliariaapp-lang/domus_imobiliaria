@@ -50,7 +50,7 @@ export function RenewalsAdmin() {
   const { data: profiles } = useProfiles()
   const { update } = useUpdateEntity('leases')
   const { create } = useCreateEntity('lease_history')
-  const { profile } = useAuth()
+  const { user, profile } = useAuth()
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [actionType, setActionType] = useState<'renew' | 'close'>('renew')
@@ -127,13 +127,14 @@ export function RenewalsAdmin() {
       })
 
       // Create history record
-      await create({
-        lease_id: selectedLease.id,
-        tipo: 'Renovação',
-        descricao: `Contrato renovado: aluguel de ${formatCurrency(Number(selectedLease.monthly_rent))} para ${formatCurrency(novoAluguel)}, índice ${formData.index_type}, nova data fim ${format(new Date(formData.new_end_date), 'dd/MM/yyyy', { locale: ptBR })}`,
-        observacoes: formData.observations,
-        created_by: 'current_user',
-      })
+      if (user?.id) {
+        await create({
+          lease_id: selectedLease.id,
+          type: 'renewed',
+          detail: `Contrato renovado: aluguel de ${formatCurrency(Number(selectedLease.monthly_rent))} para ${formatCurrency(novoAluguel)}, índice ${formData.index_type}, nova data fim ${format(new Date(formData.new_end_date), 'dd/MM/yyyy', { locale: ptBR })}. Obs: ${formData.observations || 'Nenhuma'}`,
+          created_by: user.id,
+        })
+      }
 
       await refetchLeases()
       setDialogOpen(false)
@@ -165,13 +166,14 @@ export function RenewalsAdmin() {
       }
 
       // Create history record
-      await create({
-        lease_id: selectedLease.id,
-        tipo: 'Encerramento',
-        descricao: `Contrato encerrado antecipadamente. Aluguel: ${formatCurrency(Number(selectedLease.monthly_rent))}`,
-        observacoes: formData.observations,
-        created_by: 'current_user',
-      })
+      if (user?.id) {
+        await create({
+          lease_id: selectedLease.id,
+          type: 'closed',
+          detail: `Contrato encerrado antecipadamente. Aluguel: ${formatCurrency(Number(selectedLease.monthly_rent))}. Obs: ${formData.observations || 'Nenhuma'}`,
+          created_by: user.id,
+        })
+      }
 
       await refetchLeases()
       setDialogOpen(false)

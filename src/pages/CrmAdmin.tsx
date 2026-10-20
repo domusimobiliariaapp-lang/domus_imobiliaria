@@ -10,6 +10,7 @@ import {
   Filter,
 } from 'lucide-react'
 import { useCrmLeads, useProperties, useCreateEntity, useUpdateEntity } from '@/hooks/useSupabase'
+import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/integrations/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -135,6 +136,9 @@ export function CrmAdmin() {
     }
   }
 
+  const { organization } = useAuth()
+  const companyName = organization?.name || 'Domus Imobiliária'
+
   // Enviar WhatsApp
   const handleSendWhatsApp = (lead: CrmLead, propertyTitle?: string) => {
     const digits = onlyDigits(lead.phone || '')
@@ -144,8 +148,8 @@ export function CrmAdmin() {
     }
     const phone = digits.startsWith('55') ? digits : `55${digits}`
     const text = propertyTitle
-      ? `Olá ${lead.name}! Sou da Domus Imobiliária e selecionei uma ótima opção de imóvel que combina com o que você procura: ${propertyTitle}. Podemos conversar?`
-      : `Olá ${lead.name}! Sou da Domus Imobiliária. Estou acompanhando seu interesse em imóveis e gostaria de apresentar algumas opções exclusivas.`
+      ? `Olá ${lead.name}! Sou da ${companyName} e selecionei uma ótima opção de imóvel que combina com o que você procura: ${propertyTitle}. Podemos conversar?`
+      : `Olá ${lead.name}! Sou da ${companyName}. Estou acompanhando seu interesse em imóveis e gostaria de apresentar algumas opções exclusivas.`
 
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank')
   }
