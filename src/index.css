@@ -14,6 +14,30 @@
   --radius-lg: 6px;
   --radius-xl: 8px;
 
+  /* Tokens semânticos do shadcn/ui. No Tailwind v4 só o bloco @theme gera
+     utilitário de cor: uma custom property declarada em :root não cria
+     bg-card nem text-muted-foreground. O `inline` faz a utilitário resolver
+     para var(--card), então a troca de valor em .dark continua funcionando. */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
@@ -41,6 +65,13 @@
   --modal-text: #17323D;
   --modal-text-muted: #6B6375;
   --modal-border: #D4D0C8;
+  /* Superfícies. O shadcn/ui usa bg-card e bg-popover em Card, Dialog,
+     DropdownMenu e Tooltip; sem estas variáveis o card fica transparente e
+     o conteúdo da página aparece por baixo. */
+  --card: #FFFFFF;
+  --card-foreground: #17323D;
+  --popover: #FFFFFF;
+  --popover-foreground: #17323D;
 }
 
 .dark {
@@ -65,6 +96,10 @@
   --modal-text: #EEECE5;
   --modal-text-muted: #A3A098;
   --modal-border: #3D5A5F;
+  --card: #1E2A2F;
+  --card-foreground: #EEECE5;
+  --popover: #1E2A2F;
+  --popover-foreground: #EEECE5;
 }
 
 @layer base {

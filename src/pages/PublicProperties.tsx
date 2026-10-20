@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { Home, MapPin, Bed, Bath, Car, Search, Filter } from 'lucide-react'
-import { useProperties } from '@/hooks/useSupabase'
+import { usePublicProperties } from '@/hooks/useSupabase'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,21 +11,31 @@ import { useState } from 'react'
 const TYPE_LABELS: Record<PropertyType, string> = {
   apartamento: 'Apartamento',
   casa: 'Casa',
+  cobertura: 'Cobertura',
+  studio: 'Kitnet / Studio',
+  sobrado: 'Sobrado',
   comercial: 'Comercial',
   terreno: 'Terreno',
   sala: 'Sala',
   galpao: 'Galpão',
   loja: 'Loja',
+  chacara: 'Chácara',
+  sitio: 'Sítio',
 }
 
 const TYPE_FILTERS: { value: PropertyType | 'todos'; label: string }[] = [
   { value: 'todos', label: 'Todos' },
   { value: 'casa', label: 'Casa' },
+  { value: 'cobertura', label: 'Cobertura' },
+  { value: 'studio', label: 'Kitnet / Studio' },
+  { value: 'sobrado', label: 'Sobrado' },
   { value: 'apartamento', label: 'Apartamento' },
   { value: 'comercial', label: 'Comercial' },
   { value: 'terreno', label: 'Terreno' },
   { value: 'sala', label: 'Sala' },
   { value: 'loja', label: 'Loja' },
+  { value: 'chacara', label: 'Chácara' },
+  { value: 'sitio', label: 'Sítio' },
 ]
 
 const STATUS_LABELS: Record<PropertyStatus, string> = {
@@ -45,7 +55,8 @@ const STATUS_COLORS: Record<PropertyStatus, string> = {
 }
 
 export function PublicProperties() {
-  const { data: properties, loading, error } = useProperties()
+  const { slug } = useParams<{ slug: string }>()
+  const { data: properties, loading, error } = usePublicProperties(slug ?? null)
   const [searchTerm, setSearchTerm] = useState('')
   const [typeFilter, setTypeFilter] = useState<PropertyType | 'todos'>('todos')
   const [showFilters, setShowFilters] = useState(false)
@@ -171,7 +182,7 @@ export function PublicProperties() {
               {filteredProperties.map((property) => (
                 <Link
                   key={property.id}
-                  to={`/imovel/${property.id}`}
+                  to={`/${slug}/imovel/${property.id}`}
                   className="group block bg-white rounded-lg overflow-hidden border border-border/40 hover:shadow-lg transition-all duration-300"
                 >
                   {/* Imagem de Capa */}

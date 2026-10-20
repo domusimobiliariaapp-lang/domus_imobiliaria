@@ -48,12 +48,30 @@ export function PortalLeases() {
             <Card key={lease.id}>
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
-                  <CardTitle className="text-base">
-                    {lease.property?.title || 'Imóvel não encontrado'}
-                  </CardTitle>
-                  <Badge variant={lease.status === 'ativo' ? 'default' : lease.status === 'cancelado' ? 'destructive' : 'secondary'}>
-                    {STATUS_LABELS[lease.status]}
-                  </Badge>
+                  <div>
+                    <CardTitle className="text-base">
+                      {lease.property?.title || 'Imóvel não encontrado'}
+                    </CardTitle>
+                    {lease.signature_status === 'aguardando_assinaturas' && (
+                      <span className="text-xs text-amber-700 font-medium block mt-0.5">
+                        ✍️ Contrato aguardando sua assinatura eletrônica
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {lease.signature_status && (
+                      <Badge variant="outline" className="text-xs">
+                        {lease.signature_status === 'assinado'
+                          ? 'Assinado'
+                          : lease.signature_status === 'aguardando_assinaturas'
+                          ? 'Aguardando Assinatura'
+                          : 'Rascunho'}
+                      </Badge>
+                    )}
+                    <Badge variant={lease.status === 'ativo' ? 'default' : lease.status === 'cancelado' ? 'destructive' : 'secondary'}>
+                      {STATUS_LABELS[lease.status]}
+                    </Badge>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>

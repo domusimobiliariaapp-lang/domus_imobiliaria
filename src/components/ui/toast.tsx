@@ -46,24 +46,31 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 }
 
 function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
-  const bgColor =
+  // Cores fixas em vez dos tokens --destructive: o token é vermelho para o
+  // tema claro, mas a variable --destructive-foreground pode não resolver
+  // dentro de um elemento com animação, e o texto branco acabava sobre fundo
+  // claro em tema escuro.
+  const style =
     toast.type === 'success'
-      ? 'bg-emerald-600'
+      ? { background: '#0F766E', color: '#FFFFFF' }
       : toast.type === 'error'
-      ? 'bg-destructive'
-      : 'bg-[#17323D]'
+      ? { background: '#B91C1C', color: '#FFFFFF' }
+      : { background: '#17323D', color: '#FFFFFF' }
 
   return (
     <div
-      className={`${bgColor} text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 min-w-[280px] max-w-[400px] animate-[toastIn_0.2s_ease-out]`}
+      className="px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 min-w-[280px] max-w-[400px] border border-black/20"
       style={{
+        ...style,
         animation: 'toastIn 0.2s ease-out, toastOut 0.3s ease-in 2.7s forwards',
       }}
+      role={toast.type === 'error' ? 'alert' : 'status'}
     >
       <span className="flex-1 text-sm font-medium">{toast.message}</span>
       <button
         onClick={onClose}
-        className="text-white/70 hover:text-white transition-colors"
+        className="opacity-70 hover:opacity-100 transition-opacity"
+        aria-label="Fechar"
       >
         <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
           <path d="M18 6L6 18M6 6l12 12" />

@@ -1,12 +1,13 @@
 import * as React from 'react'
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { AlertCircle } from 'lucide-react'
+import { formatCpfCnpj, formatBrazilianPhone, toBrazilianE164 } from '@/lib/inputMasks'
 
 export function LoginPortal() {
   const [cpfCnpj, setCpfCnpj] = useState('')
@@ -19,22 +20,9 @@ export function LoginPortal() {
   const [emailReal, setEmailReal] = useState('')
   const [contactMessage, setContactMessage] = useState('')
   const navigate = useNavigate()
-
-  const formatCpfCnpj = (value: string) => {
-    const numbers = value.replace(/\D/g, '')
-    if (numbers.length <= 11) {
-      return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
-    }
-    return numbers.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
-  }
-
-  const formatPhone = (value: string) => {
-    const numbers = value.replace(/\D/g, '')
-    if (numbers.length <= 10) {
-      return numbers.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3')
-    }
-    return numbers.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3')
-  }
+  // A tela do portal recebe o slug da imobiliária. "/portal/login" sem slug
+  // continua valendo, assumindo a Domus, para não quebrar links já enviados.
+  const { slug = 'domus' } = useParams<{ slug?: string }>()
 
   const handleRequestCode = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -48,7 +36,14 @@ export function LoginPortal() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
-        body: JSON.stringify({ cpf_cnpj: cpfCnpj, telefone: phone }),
+        body: JSON.stringify({
+          cpf_cnpj: cpfCnpj,
+          telefone: toBrazilianE164(phone),
+          // O slug diz qual imobiliária está chamando. Sem ele, um mesmo
+          // CPF/CNPJ cadastrado em duas carteiras seria ambíguo e o código
+          // poderia ir para a pessoa errada.
+          slug: slug,
+        }),
       })
 
       const data = await response.json()
@@ -58,7 +53,9 @@ export function LoginPortal() {
           setStep('sem_email')
           setContactMessage(data.message)
         } else {
-          setError(data.error || 'Erro ao enviar código')
+          // 'ambiguo' traz uma mensagem já pronta para o cliente, escrita pela
+          // função com o nome da imobiliária em questão.
+          setError(data.message || data.error || 'Erro ao enviar código')
         }
       } else {
         setEmailMasked(data.email_masked)
@@ -159,19 +156,21 @@ export function LoginPortal() {
                     required
                     disabled={loading}
                     maxLength={18}
+                    inputMode="numeric"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Telefone</Label>
+                  <Label htmlFor="telefonePortal">Telefone</Label>
                   <Input
-                    id="phone"
-                    type="tel"
+                    id="telefonePortal"
+                    type="text"
                     placeholder="(00) 00000-0000"
                     value={phone}
-                    onChange={(e) => setPhone(formatPhone(e.target.value))}
+                    onChange={(e) => setPhone(formatBrazilianPhone(e.target.value))}
                     required
                     disabled={loading}
                     maxLength={15}
+                    inputMode="tel"
                   />
                 </div>
                 <Button type="submit" className="w-full bg-[#17323D] text-white hover:bg-[#17323D]/90 h-10 px-4 py-2 rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#AD7B3B] focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none" disabled={loading}>

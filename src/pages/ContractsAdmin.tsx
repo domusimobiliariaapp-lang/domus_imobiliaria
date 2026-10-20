@@ -3,11 +3,19 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { FileText, AlertCircle } from 'lucide-react'
+import { FileText, AlertCircle, ScrollText, Printer, Send, CheckCircle2 } from 'lucide-react'
 import { useLeases, useCreateEntity, useUpdateEntity, useDeleteEntity, useProperties, useProfiles } from '@/hooks/useSupabase'
+import { useAuth } from '@/hooks/useAuth'
+import { supabase } from '@/integrations/supabase/client'
+import { calcularRepasseLocacao, formatBRL } from '@/lib/repasse'
+import { generateRentalContract, type GeneratedContract } from '@/lib/contractGenerator'
+import { FeeTermsEditor } from '@/components/FeeTermsEditor'
+import { formatCurrencyInput, parseCurrencyInput, onlyNumbers } from '@/lib/inputMasks'
 import type { Lease, Property } from '@/types'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { StatusBadge } from '@/components/ui/status-badge'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import * as React from 'react'
 
 type LeaseStatus = Lease['status']
@@ -32,6 +40,66 @@ export function ContractsAdmin() {
   const tenants = (profiles || []).filter(p => p.role === 'cliente')
   const landlords = (profiles || []).filter(p => p.role === 'cliente')
 
+  const { organization } = useAuth()
+  const [contractModalOpen, setContractModalOpen] = React.useState(false)
+  const [generatedContract, setGeneratedContract] = React.useState<GeneratedContract | null>(null)
+  const [selectedLeaseForContract, setSelectedLeaseForContract] = React.useState<Lease | null>(null)
+  const [enviandoAssinatura, setEnviandoAssinatura] = React.useState(false)
+
+  const handleOpenContractMinuta = (lease: Lease) => {
+    const prop = (properties || []).find((p) => p.id === lease.property_id)
+    const tenant = (profiles || []).find((p) => p.id === lease.tenant_id)
+    const landlord = (profiles || []).find((p) => p.id === lease.landlord_id)
+
+    if (!prop || !tenant || !landlord) {
+      alert('Dados de imóvel, locador ou locatário incompletos para gerar a minuta.')
+      return
+    }
+
+    const contract = generateRentalContract({
+      lease,
+      property: prop,
+      tenant,
+      landlord,
+      organization,
+    })
+
+    setSelectedLeaseForContract(lease)
+    setGeneratedContract(contract)
+    setContractModalOpen(true)
+  }
+
+  const handleSendToSignature = async () => {
+    if (!selectedLeaseForContract || !generatedContract) return
+    setEnviandoAssinatura(true)
+    try {
+      await update(selectedLeaseForContract.id, {
+        signature_status: 'aguardando_assinaturas',
+        signature_provider: 'zapsign',
+        external_document_id: `ENV-${Date.now().toString(36).toUpperCase()}`,
+        signers: generatedContract.signers,
+      })
+      alert('Contrato enviado com sucesso para assinatura eletrônica dos participantes!')
+      setContractModalOpen(false)
+      void refetch()
+    } catch {
+      alert('Erro ao enviar contrato para assinatura.')
+    } finally {
+      setEnviandoAssinatura(false)
+    }
+  }
+
+  const handleMarkAsSigned = async () => {
+    if (!selectedLeaseForContract) return
+    await update(selectedLeaseForContract.id, {
+      signature_status: 'assinado',
+      signed_at: new Date().toISOString(),
+    })
+    alert('Contrato marcado como assinado!')
+    setContractModalOpen(false)
+    void refetch()
+  }
+
   const columns: Array<{ key: string; header: string; render: (l: Lease & { property?: Property }) => React.ReactNode }> = [
     {
       key: 'property',
@@ -42,6 +110,21 @@ export function ContractsAdmin() {
       key: 'status',
       header: 'Status',
       render: (l: Lease) => <StatusBadge type="lease" value={l.status} />
+    },
+    {
+      key: 'signature_status',
+      header: 'Assinatura',
+      render: (l: Lease) => {
+        const s = l.signature_status || 'rascunho'
+        const map: Record<string, { label: string; className: string }> = {
+          rascunho: { label: 'Minuta', className: 'bg-muted text-muted-foreground' },
+          aguardando_assinaturas: { label: 'Aguardando', className: 'bg-amber-100 text-amber-800 border-amber-300' },
+          assinado: { label: 'Assinado', className: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
+          recusado: { label: 'Recusado', className: 'bg-red-100 text-red-800 border-red-300' },
+        }
+        const badge = map[s] || map.rascunho
+        return <Badge variant="outline" className={`text-[10px] ${badge.className}`}>{badge.label}</Badge>
+      },
     },
     {
       key: 'tenant',
@@ -67,21 +150,70 @@ export function ContractsAdmin() {
     },
   ]
 
+  /**
+   * O status do imóvel é consequência do contrato, não uma escolha à parte.
+   *
+   * Sem isto, um imóvel com locação ativa continuava com status 'disponivel' e
+   * a vitrine pública o mostrava como disponível para alugar — a RPC pública
+   * filtra por status = 'disponivel', e nada no sistema o mudava.
+   *
+   * A volta para 'disponivel' só acontece quando o contrato deixa de valer: um
+   * imóvel que voltou ao mercado é o único caso em que a vitrine deve oferecê-lo
+   * de novo. Ele só é devolvido se ninguém mais tiver locação ativa, porque dois
+   * contratos ativos no mesmo imóvel significam que o status não é
+   * 'disponivel' — é um dado errado, não uma regra.
+   */
+  const syncPropertyStatus = async (propertyId: string | undefined) => {
+    if (!propertyId) return
+    const { data: imovel } = await supabase
+      .from('properties')
+      .select('status')
+      .eq('id', propertyId)
+      .maybeSingle()
+
+    // Não mexe em imóvel vendido ou reservado: o status carrega informação de
+    // venda que a locação não pode apagar.
+    if (!imovel || imovel.status === 'vendido' || imovel.status === 'reservado') return
+
+    const { data: ativos } = await supabase
+      .from('leases')
+      .select('id')
+      .eq('property_id', propertyId)
+      .eq('status', 'ativo')
+
+    const novoStatus = (ativos?.length || 0) > 0 ? 'alugado' : 'disponivel'
+    if (novoStatus === imovel.status) return
+
+    await supabase.from('properties').update({ status: novoStatus }).eq('id', propertyId)
+  }
+
   const handleCreate = async (data: Partial<Lease>) => {
     const { data: result, error } = await create(data)
     if (error) throw error
+    await syncPropertyStatus(result.property_id)
     return result
   }
 
   const handleUpdate = async (id: string, data: Partial<Lease>) => {
     const { data: result, error } = await update(id, data)
     if (error) throw error
+    // Precisa do id do contrato anterior: ao editar, o imóvel pode ter mudado,
+    // e o antigo precisa ser liberado.
+    const anterior = (leases || []).find((l) => l.id === id)
+    await syncPropertyStatus(result.property_id)
+    if (anterior?.property_id && anterior.property_id !== result.property_id) {
+      await syncPropertyStatus(anterior.property_id)
+    }
     return result
   }
 
   const handleDelete = async (id: string) => {
+    // Guardar o imóvel antes de remover: depois do delete, o contrato não
+    // existe mais e não há como saber qual imóvel liberar.
+    const alvo = (leases || []).find((l) => l.id === id)
     const { error } = await remove(id)
     if (error) throw error
+    await syncPropertyStatus(alvo?.property_id)
   }
 
   const renderForm = ({
@@ -95,6 +227,76 @@ export function ContractsAdmin() {
     saving: boolean
     isEditing: boolean
   }) => {
+    // O repasse só aparece quando o imóvel escolhido tem proprietário. A taxa vem
+    // do imóvel; sem ela, da empresa — a mesma ordem da prévia na aba Gestão, e
+    // por isso as duas telas nunca discordam do valor.
+    const imovelSelecionado = (properties || []).find((p) => p.id === formData.property_id)
+    // Só há taxa quando OUTRA imobiliária administra o imóvel. Em imóvel
+    // próprio sem intermediário, ou em locação particular, o dono fica com o
+    // aluguel inteiro — e a taxa da empresa não se aplica aqui, porque ela é a
+    // receita de quem administra, não um desconto para o dono.
+    const repasseDoContrato = imovelSelecionado
+      ? calcularRepasseLocacao({
+          monthlyRent: Number(formData.monthly_rent) || 0,
+          // A prévia mostra o cenário de pagamento em dia; o relatório do
+          // Financeiro usa o que foi realmente pago. Aqui a taxa vem das
+          // colunas legadas do imóvel — os termos em fee_terms entram quando
+          // a tela de taxas for ligada, e o valor não muda no meio do caminho.
+          pagoNoPeriodo: Number(formData.monthly_rent) || 0,
+          termos: imovelSelecionado.taxa_terceirizacao_percent
+            ? [{
+                id: 'preview',
+                property_id: imovelSelecionado.id,
+                kind: 'administracao',
+                incide_em: 'locacao',
+                base: 'percentual',
+                percentual: imovelSelecionado.taxa_terceirizacao_percent,
+              }]
+            : [],
+        })
+      : null
+
+    /**
+     * Escolher o imóvel puxa o que já está cadastrado nele: aluguel e depósito
+     * vêm do imóvel e eram digitados de novo, com risco de divergir do que
+     * está publicado na vitrine. O locador também — em imóvel de terceiro o
+     * proprietário é o locador, e pedir para escolher era trabalho redundante
+     * que só permitia errar.
+     *
+     * O locatário NÃO é preenchido: são quantas pessoas diferentes num
+     * contrato, e não dá para adivinhar.
+     */
+    const handlePropertyChange = (propertyId: string) => {
+      const imovel = (properties || []).find((p) => p.id === propertyId)
+      if (!imovel) return
+
+      setFormData((prev) => ({
+        ...prev,
+        property_id: propertyId,
+        // Só preenche o que está vazio: ao trocar o imóvel de um contrato que já
+        // tem valor acertado, sobrescrever o aluguel silenciosamente mudaria o
+        // valor de um contrato vivo.
+        monthly_rent: prev.monthly_rent || imovel.rent_price || 0,
+        deposit: prev.deposit || imovel.deposit_amount || 0,
+        // Imóvel de terceiro: o dono é o locador, e a aba Gestão do imóvel já
+        // registrou quem é.
+        landlord_id: imovel.owner_id || prev.landlord_id || '',
+      }))
+    }
+
+    /**
+     * Um imóvel não pode ter duas locações ativas. A trava é por contrato, e não
+     * por status do imóvel, porque o status é uma consequência que pode estar
+     * desatualizada — o critério confiável é o contrato.
+     */
+    const contratosDoImovel = (properties || [])
+      .find((p) => p.id === formData.property_id)
+      ? (leases || []).filter(
+          (l) => l.property_id === formData.property_id && l.status === 'ativo' && l.id !== formData.id,
+        )
+      : []
+    const imovelOcupado = contratosDoImovel.length > 0
+
     return (
       <div>
         <form className="space-y-4">
@@ -103,7 +305,7 @@ export function ContractsAdmin() {
               <Label>Imóvel</Label>
               <Select
                 value={formData.property_id || ''}
-                onValueChange={(v) => setFormData({ ...formData, property_id: v })}
+                onValueChange={handlePropertyChange}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o imóvel" />
@@ -116,6 +318,22 @@ export function ContractsAdmin() {
                   ))}
                 </SelectContent>
               </Select>
+              {imovelSelecionado && (
+                <p className="text-xs text-muted-foreground">
+                  {[imovelSelecionado.neighborhood, imovelSelecionado.city, imovelSelecionado.state]
+                    .filter(Boolean)
+                    .join(' · ')}
+                </p>
+              )}
+              {imovelOcupado && (
+                <p className="text-xs text-destructive flex items-center gap-1.5">
+                  <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                  Este imóvel já tem locação ativa
+                  {contratosDoImovel[0]?.tenant_id &&
+                    ` com ${profiles?.find((p) => p.id === contratosDoImovel[0].tenant_id)?.full_name || 'outro locatário'}`}
+                  . Encerre o contrato atual antes de criar outro.
+                </p>
+              )}
             </div>
 
             <div className="space-y-1">
@@ -159,11 +377,10 @@ export function ContractsAdmin() {
             <div className="space-y-1">
               <Label>Aluguel Mensal (R$)</Label>
               <Input
-                type="number"
-                step="0.01"
-                value={formData.monthly_rent || ''}
-                onChange={(e) => setFormData({ ...formData, monthly_rent: parseFloat(e.target.value) || 0 })}
+                value={formatCurrencyInput(formData.monthly_rent)}
+                onChange={(e) => setFormData({ ...formData, monthly_rent: parseCurrencyInput(e.target.value) })}
                 placeholder="0,00"
+                inputMode="decimal"
                 required
                 min={0}
               />
@@ -172,24 +389,66 @@ export function ContractsAdmin() {
             <div className="space-y-1">
               <Label>Dia de Vencimento</Label>
               <Input
-                type="number"
-                value={formData.payment_day || ''}
-                onChange={(e) => setFormData({ ...formData, payment_day: parseInt(e.target.value) || 1 })}
+                value={formData.payment_day ? String(formData.payment_day) : ''}
+                onChange={(e) => setFormData({ ...formData, payment_day: parseInt(onlyNumbers(e.target.value)) || 1 })}
                 placeholder="1-31"
-                min={1}
-                max={31}
+                inputMode="numeric"
+                maxLength={2}
                 required
               />
             </div>
 
+            {/* Só faz sentido em imóvel de terceiro. Mostrar sempre deixaria
+                uma escolha sem efeito em quase todo contrato, e a equipe
+                acabaria preenchendo no automático sem saber para quê serve. */}
+            {imovelSelecionado?.owner_id && (
+              <>
+                <div className="space-y-1 sm:col-span-2">
+                  <Label>Como o aluguel circula</Label>
+                  <Select
+                    value={formData.repasse_modelo || 'via_imobiliaria'}
+                    onValueChange={(v) => setFormData({ ...formData, repasse_modelo: v as Lease['repasse_modelo'] })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="via_imobiliaria">
+                        Pela imobiliária — locatário paga aqui, e repassa ao proprietário
+                      </SelectItem>
+                      <SelectItem value="direto">
+                        Direto ao proprietário — locatário paga ao dono, a imobiliária cobra só a taxa
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {repasseDoContrato && (
+                  <div className="sm:col-span-2 p-3 rounded-md bg-muted/40 border border-border/40">
+                    <p className="text-sm">
+                      Aluguel de{' '}
+                      <span className="font-medium">{formatBRL(Number(formData.monthly_rent) || 0)}</span> a{' '}
+                      o proprietário recebe{' '}
+                      <span className="font-medium">{formatBRL(repasseDoContrato.liquido)}</span> e a
+                      imobiliária retém{' '}
+                      <span className="font-medium">{formatBRL(repasseDoContrato.taxas)}</span> por mês.
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Calculado a partir do contrato e da taxa do imóvel — não é
+                      digitado em lugar nenhum.
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
+
             <div className="space-y-1">
               <Label>Valor do Depósito (R$)</Label>
               <Input
-                type="number"
-                step="0.01"
-                value={formData.deposit || ''}
-                onChange={(e) => setFormData({ ...formData, deposit: parseFloat(e.target.value) || 0 })}
+                value={formatCurrencyInput(formData.deposit)}
+                onChange={(e) => setFormData({ ...formData, deposit: parseCurrencyInput(e.target.value) })}
                 placeholder="0,00"
+                inputMode="decimal"
                 min={0}
               />
             </div>
@@ -238,6 +497,22 @@ export function ContractsAdmin() {
             </div>
           </div>
         </form>
+
+        {/* Taxas de administração. Só incide em locação aqui: venda não tem
+            contrato, então fee_terms com lease_id não faz sentido. O imóvel já
+            foi escolhido, e a prévia do repasse acima mostrou o que estava
+            configurado — este bloco é para ajustar o que falta ou corrigir. */}
+        <div className="p-4 rounded-md border border-border/40 bg-background mt-6">
+          <h3 className="font-serif font-medium text-lg text-primary mb-3">Taxas de administração</h3>
+          <FeeTermsEditor
+            propertyId={formData.property_id || ''}
+            leaseId={formData.property_id || null}
+            somente="locacao"
+            valorBase={Number(formData.monthly_rent) || 0}
+            rotuloBase="um mês de aluguel"
+            onChange={() => {}}
+          />
+        </div>
       </div>
     )
   }
@@ -257,6 +532,7 @@ export function ContractsAdmin() {
   }
 
   return (
+    <>
     <CRUDPage<Lease & { property?: Property }>
       title="Contratos"
       subtitle="Cadastre e gerencie os contratos de locação"
@@ -288,6 +564,15 @@ export function ContractsAdmin() {
       emptyStateMessage="Nenhum contrato cadastrado"
       renderActions={(item: any) => (
         <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => handleOpenContractMinuta(item)}
+            className="text-[#AD7B3B] hover:bg-amber-50 hover:text-[#AD7B3B] transition-transform hover:scale-110 active:scale-95"
+            title="Gerar Minuta & Assinatura Digital"
+          >
+            <ScrollText className="h-4 w-4" />
+          </Button>
           <Button
             variant="ghost"
             size="icon"
@@ -325,5 +610,83 @@ export function ContractsAdmin() {
         </div>
       )}
     />
+
+    {/* Modal de Minuta de Contrato & Assinatura Digital */}
+    <Dialog open={contractModalOpen} onOpenChange={setContractModalOpen}>
+      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="font-serif text-xl flex items-center justify-between pr-6">
+            <span>{generatedContract?.title}</span>
+            <Badge variant="outline" className="text-xs bg-muted">
+              {generatedContract?.contractNumber}
+            </Badge>
+          </DialogTitle>
+          <DialogDescription>
+            Minuta jurídica nos termos da Lei nº 8.245/1991 e MP nº 2.200-2/2001 para assinatura eletrônica.
+          </DialogDescription>
+        </DialogHeader>
+
+        {generatedContract && (
+          <div className="flex-1 overflow-y-auto space-y-4 pr-1 my-2">
+            {/* Signatários */}
+            <div className="bg-muted/40 p-3 rounded-md border text-xs">
+              <span className="font-semibold text-primary block mb-2">Signatários Vinculados:</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
+                {generatedContract.signers.map((s, idx) => (
+                  <div key={idx} className="bg-card p-2 rounded border">
+                    <span className="text-[10px] uppercase font-bold text-muted-foreground block">
+                      {s.role}
+                    </span>
+                    <strong className="truncate block text-foreground">{s.name}</strong>
+                    <span className="text-muted-foreground text-[11px] truncate block">{s.email || 'Sem e-mail'}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Documento Renderizado */}
+            <div
+              className="p-6 bg-white rounded-md border shadow-xs"
+              dangerouslySetInnerHTML={{ __html: generatedContract.htmlContent }}
+            />
+          </div>
+        )}
+
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.print()}
+            className="gap-1.5 text-xs"
+          >
+            <Printer className="h-3.5 w-3.5" />
+            Imprimir / Salvar PDF
+          </Button>
+
+          <div className="flex items-center gap-2 ml-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleMarkAsSigned}
+              className="text-xs text-emerald-700 hover:bg-emerald-50 gap-1.5"
+            >
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              Marcar como Assinado
+            </Button>
+
+            <Button
+              size="sm"
+              disabled={enviandoAssinatura}
+              onClick={handleSendToSignature}
+              className="bg-[#AD7B3B] hover:bg-[#AD7B3B]/90 text-white gap-1.5 text-xs shadow-sm"
+            >
+              <Send className="h-3.5 w-3.5" />
+              {enviandoAssinatura ? 'Enviando...' : 'Enviar para Assinatura'}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
   )
 }

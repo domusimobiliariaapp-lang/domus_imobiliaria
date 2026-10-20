@@ -217,7 +217,14 @@ web3 = 30
 
 [auth.email]
 # Allow/disallow new user signups via email to your project.
-enable_signup = true
+# Desligado na conversão multi-tenant: as contas passam a ser criadas só pela
+# edge function dev-create-organization (conta DEV criando a imobiliária e o
+# admin) ou pelo admin da própria imobiliária. Com o signup público ligado, o
+# handle_new_user() aceitaria o role do cadastro — e um cliente se cadastrando
+# poderia se passar por admin.
+# O login do portal por OTP continua funcionando: ele usa shouldCreateUser:false
+# e só envia código para um e-mail que já existe.
+enable_signup = false
 # If enabled, a user will be required to confirm any email change on both the old, and new email
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true

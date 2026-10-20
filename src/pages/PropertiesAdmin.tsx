@@ -10,6 +10,7 @@ import { useToast } from '@/components/ui/toast'
 import { PropertyModal } from '@/components/PropertyModal'
 import * as React from 'react'
 import { useState } from 'react'
+import { supabase } from '@/integrations/supabase/client'
 
 type PropertyType = Property['type']
 type PropertyStatus = Property['status']
@@ -17,11 +18,16 @@ type PropertyStatus = Property['status']
 const PROPERTY_TYPES: { value: PropertyType; label: string }[] = [
   { value: 'apartamento', label: 'Apartamento' },
   { value: 'casa', label: 'Casa' },
+  { value: 'cobertura', label: 'Cobertura' },
+  { value: 'studio', label: 'Kitnet / Studio' },
+  { value: 'sobrado', label: 'Sobrado' },
   { value: 'comercial', label: 'Comercial' },
   { value: 'terreno', label: 'Terreno' },
   { value: 'sala', label: 'Sala' },
   { value: 'galpao', label: 'Galpão' },
   { value: 'loja', label: 'Loja' },
+  { value: 'chacara', label: 'Chácara' },
+  { value: 'sitio', label: 'Sítio' },
 ]
 
 const PROPERTY_STATUSES: { value: PropertyStatus; label: string }[] = [
@@ -37,6 +43,7 @@ const FILTER_TYPE = PROPERTY_TYPES
 const FILTER_PURPOSE = [
   { value: 'aluguel', label: 'Aluguel' },
   { value: 'venda', label: 'Venda' },
+  { value: 'temporada', label: 'Temporada' },
   { value: 'ambos', label: 'Ambos' },
 ]
 
@@ -49,6 +56,10 @@ export function PropertiesAdmin() {
   const [modalOpen, setModalOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<Property | null>(null)
   const [saving, setSaving] = useState(false)
+  const [listVersion, setListVersion] = useState(0)
+  const [viewMode, setViewMode] = useState<'list' | 'cards'>(() =>
+    localStorage.getItem('domus-properties-view') === 'cards' ? 'cards' : 'list'
+  )
   const { addToast } = useToast()
 
   const columns: Array<{ key: string; header: string; render: (p: Property) => React.ReactNode }> = [
@@ -69,6 +80,8 @@ export function PropertiesAdmin() {
   const handleCreate = async (data: Partial<Property>) => {
     const result = await create({
       ...data,
+      reference_code: data.reference_code?.trim() || null,
+      available_from: data.available_from || null,
       images: data.images || [],
       videos: data.videos || [],
       features: data.features || [],
@@ -86,7 +99,11 @@ export function PropertiesAdmin() {
   }
 
   const handleUpdate = async (id: string, data: Partial<Property>) => {
-    const result = await update(id, data)
+    const result = await update(id, {
+      ...data,
+      reference_code: data.reference_code?.trim() || null,
+      available_from: data.available_from || null,
+    })
     if (result.error) throw result.error
     return result.data
   }
@@ -96,7 +113,19 @@ export function PropertiesAdmin() {
     if (result.error) throw result.error
   }
 
-  const handleSave = async (data: any) => {
+  const handleDeleteClick = async (property: Property) => {
+    if (!window.confirm(`Excluir o imóvel "${property.title}"? Esta ação não pode ser desfeita.`)) return
+    try {
+      await handleDelete(property.id)
+      addToast('Imóvel excluído com sucesso!', 'success')
+      await refetch()
+      setListVersion(version => version + 1)
+    } catch (error) {
+      addToast(error instanceof Error ? error.message : 'Erro ao excluir imóvel', 'error')
+    }
+  }
+
+  const handleSave = async (data: Partial<Property>): Promise<boolean> => {
     setSaving(true)
     try {
       if (editingItem) {
@@ -109,8 +138,11 @@ export function PropertiesAdmin() {
       setModalOpen(false)
       setEditingItem(null)
       await refetch()
+      setListVersion(version => version + 1)
+      return true
     } catch (error) {
       addToast(error instanceof Error ? error.message : 'Erro ao salvar imóvel', 'error')
+      return false
     } finally {
       setSaving(false)
     }
@@ -130,6 +162,38 @@ export function PropertiesAdmin() {
       window.open(shareUrl, '_blank')
     }
   }
+
+  const changeViewMode = (mode: 'list' | 'cards') => {
+    setViewMode(mode)
+    localStorage.setItem('domus-properties-view', mode)
+  }
+
+  const propertyActions = (item: Property) => (
+    <div className="flex items-center gap-1">
+      <Button variant="ghost" size="icon" onClick={() => openEdit(item)} title="Editar imóvel" aria-label={`Editar ${item.title}`}><Edit2 className="h-4 w-4" /></Button>
+      <Button variant="ghost" size="icon" onClick={() => void handleDeleteClick(item)} title="Excluir imóvel" aria-label={`Excluir ${item.title}`}><Trash2 className="h-4 w-4" /></Button>
+      <Button variant="ghost" size="icon" onClick={() => void handleShare(item)} title="Copiar link público" aria-label={`Compartilhar ${item.title}`}><Share2 className="h-4 w-4" /></Button>
+    </div>
+  )
+
+  const propertyCard = (item: Property) => (
+    <article className="overflow-hidden rounded-md border border-border bg-background">
+      <a href={`/imovel/${item.id}`} target="_blank" rel="noreferrer" aria-label={`Ver página pública de ${item.title}`} className="block aspect-[16/10] bg-muted">
+        {item.images?.[0] ? <img src={item.images[0]} alt={`Foto principal de ${item.title}`} loading="lazy" className="h-full w-full object-contain" /> : <div className="flex h-full items-center justify-center"><Home className="h-12 w-12 text-muted-foreground/50" /><span className="sr-only">Sem foto</span></div>}
+      </a>
+      <div className="space-y-3 p-4">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0"><h3 className="truncate font-serif text-lg text-primary">{item.title}</h3><p className="text-sm text-muted-foreground">{PROPERTY_TYPES.find(type => type.value === item.type)?.label || item.type} · {item.city} - {item.state}</p></div>
+          <StatusBadge type="property" value={item.status} />
+        </div>
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+          {item.rent_price > 0 && <span><span className="text-muted-foreground">Aluguel </span><strong>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.rent_price)}</strong></span>}
+          {item.sale_price > 0 && <span><span className="text-muted-foreground">Venda </span><strong>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.sale_price)}</strong></span>}
+        </div>
+        <div className="flex justify-between border-t border-border pt-2"><a href={`/imovel/${item.id}`} target="_blank" rel="noreferrer" className="self-center text-sm font-medium text-primary underline-offset-2 hover:underline">Ver página</a>{propertyActions(item)}</div>
+      </div>
+    </article>
+  )
 
   // Error state
   if (error) {
@@ -158,11 +222,16 @@ export function PropertiesAdmin() {
       {tab === 'lista' ? (
         <div className="space-y-6">
           <CRUDPage<Property>
+            key={listVersion}
+            persistState={false}
+            viewMode={viewMode}
+            onViewModeChange={changeViewMode}
+            renderCard={propertyCard}
             title=""
             subtitle=""
             columns={columns}
             fetchData={async () => {
-              const { data, error } = await (globalThis as any).__supabase
+              const { data, error } = await supabase
                 .from('properties')
                 .select('*')
                 .order('created_at', { ascending: false })
@@ -173,6 +242,7 @@ export function PropertiesAdmin() {
             updateItem={handleUpdate}
             deleteItem={handleDelete}
             getItemId={(p) => p.id}
+            onCreate={() => { setEditingItem(null); setModalOpen(true) }}
             filters={{
               status: FILTER_STATUS,
               type: FILTER_TYPE,
@@ -184,37 +254,7 @@ export function PropertiesAdmin() {
               </div>
             }
             emptyStateMessage="Nenhum imóvel cadastrado"
-            renderActions={(item: Property) => (
-              <div className="flex items-center gap-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => openEdit(item)}
-                  className="text-muted-foreground hover:text-primary transition-transform hover:scale-110 active:scale-95"
-                  title="Editar"
-                >
-                  <Edit2 className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleDelete(item.id)}
-                  className="text-muted-foreground hover:text-destructive transition-transform hover:scale-110 active:scale-95"
-                  title="Excluir"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleShare(item)}
-                  className="text-muted-foreground hover:text-primary transition-transform hover:scale-110 active:scale-95"
-                  title="Compartilhar"
-                >
-                  <Share2 className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
+            renderActions={propertyActions}
           />
         </div>
       ) : (

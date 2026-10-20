@@ -5,7 +5,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea'
 import { Briefcase, AlertCircle, Printer } from 'lucide-react'
 import { useSales, useCreateEntity, useUpdateEntity, useDeleteEntity, useProperties, useProfiles } from '@/hooks/useSupabase'
+import { formatCurrencyInput, parseCurrencyInput } from '@/lib/inputMasks'
 import type { Sale, Property } from '@/types'
+import { FeeTermsEditor } from '@/components/FeeTermsEditor'
 import { Button } from '@/components/ui/button'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -161,11 +163,10 @@ export function SalesAdmin() {
             <div className="space-y-1">
               <Label>Valor da Venda (R$)</Label>
               <Input
-                type="number"
-                step="0.01"
-                value={formData.price || ''}
-                onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                value={formatCurrencyInput(formData.price)}
+                onChange={(e) => setFormData({ ...formData, price: parseCurrencyInput(e.target.value) })}
                 placeholder="0,00"
+                inputMode="decimal"
                 required
                 min={0}
               />
@@ -204,6 +205,22 @@ export function SalesAdmin() {
             </div>
           </div>
         </form>
+
+        {/* Comissões de venda. Só incide em venda aqui, e o imóvel é que foi
+            escolhido: sem property_id não faz sentido cadastrar comissão. A
+            comissão de venda é um evento único — diferente da locação, não há
+            recorrente. */}
+        <div className="p-4 rounded-md border border-border/40 bg-background mt-6">
+          <h3 className="font-serif font-medium text-lg text-primary mb-3">Comissão de venda</h3>
+          <FeeTermsEditor
+            propertyId={formData.property_id || ''}
+            saleId={formData.property_id || null}
+            somente="venda"
+            valorBase={Number(formData.price) || 0}
+            rotuloBase="o preço de venda"
+            onChange={() => {}}
+          />
+        </div>
       </div>
     )
   }

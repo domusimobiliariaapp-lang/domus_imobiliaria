@@ -1,0 +1,6 @@
+name = "domus-imobiliaria"
+compatibility_date = "2024-10-01"
+
+[pages_build]
+build_command = "npm run build"
+pages_build_output_dir = "dist"

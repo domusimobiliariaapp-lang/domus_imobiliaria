@@ -80,6 +80,20 @@ serve(async (req) => {
 
     const { cpf_cnpj, telefone, slug } = await req.json()
 
+    // Rate limiting por IP e identificador
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
+                     req.headers.get('x-real-ip') ||
+                     'unknown'
+    const cleanId = typeof cpf_cnpj === 'string' ? cpf_cnpj.replace(/\D/g, '') : 'unknown'
+    const rateLimitKey = `${clientIp}:${cleanId}`
+
+    if (isRateLimited(rateLimitKey)) {
+      return new Response(JSON.stringify({ error: 'Muitas tentativas. Aguarde 1 minuto antes de tentar novamente.' }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
     if (!cpf_cnpj || !telefone) {
       return new Response(JSON.stringify({ error: 'CPF/CNPJ e telefone são obrigatórios' }), {
         status: 400,

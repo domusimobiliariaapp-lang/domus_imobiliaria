@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useR2Upload } from '@/hooks/useR2Upload'
 import { ImagePlus, Video, X, Loader2 } from 'lucide-react'
 import { Label } from '@/components/ui/label'
@@ -15,6 +15,7 @@ interface Props {
   existingVideos?: string[]
   onImagesChange: (urls: string[]) => void
   onVideosChange: (urls: string[]) => void
+  onUploadingChange?: (uploading: boolean) => void
   maxImages?: number
   maxVideos?: number
 }
@@ -27,12 +28,15 @@ export function ImageGalleryUploader({
   existingVideos = [],
   onImagesChange,
   onVideosChange,
+  onUploadingChange,
   maxImages = 10,
   maxVideos = 2,
 }: Props) {
   const { uploadFile, uploading: globalUploading } = useR2Upload()
   const [imageUploading, setImageUploading] = useState<Record<string, boolean>>({})
   const [videoUploading, setVideoUploading] = useState<Record<string, boolean>>({})
+  const [uploadStatus, setUploadStatus] = useState<{ kind: string; name: string; current: number; total: number } | null>(null)
+  useEffect(() => { onUploadingChange?.(globalUploading) }, [globalUploading, onUploadingChange])
   const [images, setImages] = useState<MediaItem[]>(
     existingImages.map((url, i) => ({ id: `img-${i}`, url, type: 'image' as const }))
   )
@@ -47,13 +51,14 @@ export function ImageGalleryUploader({
 
     const toUpload = files.slice(0, remaining)
     const uploadedUrls: string[] = []
-    for (const file of toUpload) {
+    for (const [index, file] of toUpload.entries()) {
       if (file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
         alert(`Arquivo "${file.name}" excede ${MAX_IMAGE_SIZE_MB}MB`)
         continue
       }
       const id = `img-${Date.now()}-${Math.random().toString(36).slice(2)}`
       setImageUploading(prev => ({ ...prev, [id]: true }))
+      setUploadStatus({ kind: 'foto', name: file.name, current: index + 1, total: toUpload.length })
       try {
         const result = await uploadFile(file, 'images')
         setImages(prev => [...prev, { id, url: result.url, type: 'image' }])
@@ -65,6 +70,7 @@ export function ImageGalleryUploader({
         setImageUploading(prev => ({ ...prev, [id]: false }))
       }
     }
+    setUploadStatus(null)
     e.target.value = ''
   }, [images, maxImages, uploadFile, onImagesChange])
 
@@ -75,13 +81,14 @@ export function ImageGalleryUploader({
 
     const toUpload = files.slice(0, remaining)
     const uploadedUrls: string[] = []
-    for (const file of toUpload) {
+    for (const [index, file] of toUpload.entries()) {
       if (file.size > MAX_VIDEO_SIZE_MB * 1024 * 1024) {
         alert(`Arquivo "${file.name}" excede ${MAX_VIDEO_SIZE_MB}MB`)
         continue
       }
       const id = `vid-${Date.now()}-${Math.random().toString(36).slice(2)}`
       setVideoUploading(prev => ({ ...prev, [id]: true }))
+      setUploadStatus({ kind: 'vídeo', name: file.name, current: index + 1, total: toUpload.length })
       try {
         const result = await uploadFile(file, 'videos')
         setVideos(prev => [...prev, { id, url: result.url, type: 'video' }])
@@ -93,6 +100,7 @@ export function ImageGalleryUploader({
         setVideoUploading(prev => ({ ...prev, [id]: false }))
       }
     }
+    setUploadStatus(null)
     e.target.value = ''
   }, [videos, maxVideos, uploadFile, onVideosChange])
 
@@ -107,23 +115,28 @@ export function ImageGalleryUploader({
   }, [videos, onVideosChange])
 
   const moveImage = useCallback((fromIndex: number, toIndex: number) => {
-    setImages(prev => {
-      const next = [...prev]
-      const [moved] = next.splice(fromIndex, 1)
-      next.splice(toIndex, 0, moved)
-      return next
-    })
-  }, [])
+    if (fromIndex < 0 || fromIndex >= images.length || toIndex < 0 || toIndex >= images.length || fromIndex === toIndex) return
+    const next = [...images]
+    const [moved] = next.splice(fromIndex, 1)
+    next.splice(toIndex, 0, moved)
+    setImages(next)
+    onImagesChange(next.map(image => image.url))
+  }, [images, onImagesChange])
 
   return (
     <div className="space-y-6">
+      {uploadStatus && <div role="status" aria-live="polite" className="rounded-md border border-[#AD7B3B]/40 bg-[#AD7B3B]/10 p-3 text-sm text-primary">
+        <div className="flex items-center gap-3"><Loader2 className="h-5 w-5 shrink-0 animate-spin text-[#AD7B3B]" /><span className="min-w-0 truncate">Enviando {uploadStatus.kind} {uploadStatus.current} de {uploadStatus.total}: {uploadStatus.name}</span></div>
+        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#AD7B3B]/20"><div className="h-full w-1/3 animate-pulse rounded-full bg-[#AD7B3B]" /></div>
+        <p className="mt-1 text-xs text-muted-foreground">Aguarde o envio terminar antes de salvar o cadastro.</p>
+      </div>}
       {/* Imagens */}
       <div>
         <div className="flex items-center justify-between mb-2">
           <Label>Fotos do Imóvel ({images.length}/{maxImages})</Label>
           {images.length > 0 && (
             <span className="text-xs text-muted-foreground">
-              Arraste para reorder
+              Arraste para ordenar. A primeira foto é a capa.
             </span>
           )}
         </div>
@@ -183,8 +196,9 @@ export function ImageGalleryUploader({
                   <X className="h-3 w-3" />
                 </button>
                 <div className="absolute bottom-1 left-1 bg-black/60 text-white text-xs px-1 rounded">
-                  {idx + 1}
+                  {idx === 0 ? 'Capa' : idx + 1}
                 </div>
+                {idx > 0 && <button type="button" onClick={() => moveImage(idx, 0)} className="absolute bottom-1 right-1 rounded bg-black/70 px-1.5 py-0.5 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100" aria-label={`Definir foto ${idx + 1} como capa`}>Definir capa</button>}
               </div>
             ))}
             {images.length < maxImages && (

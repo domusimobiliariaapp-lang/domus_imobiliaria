@@ -5,18 +5,23 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
+  // active:scale dá o feedback de que o clique foi registrado. Sem ele, um botão
+  // de ícone só com hover é indistinguível de um elemento decorativo — a única
+  // pista de que é clicável é o cursor, que some no toque.
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-[color,background-color,border-color,transform,box-shadow] duration-150 cursor-pointer active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 disabled:active:scale-100 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
   {
     variants: {
       variant: {
         default: 'bg-primary text-primary-foreground hover:bg-primary/90',
         destructive:
           'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+        // hover:bg-accent/10 era quase invisível em fundo claro: o botão de
+        // ícone do painel parecia texto solto.
         outline:
-          'border border-input bg-background hover:bg-accent/10 hover:text-accent',
+          'border border-input bg-background hover:bg-accent/20 hover:text-accent hover:border-accent/40',
         secondary:
           'bg-secondary text-secondary-foreground hover:bg-secondary/80',
-        ghost: 'hover:bg-accent/10 hover:text-accent',
+        ghost: 'hover:bg-accent/20 hover:text-accent',
         link: 'text-primary underline-offset-4 hover:underline',
       },
       size: {

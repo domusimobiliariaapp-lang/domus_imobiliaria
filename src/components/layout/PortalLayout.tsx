@@ -1,5 +1,4 @@
-import * as React from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -29,19 +28,22 @@ export function PortalLayout({ children }: PortalLayoutProps) {
             </div>
             <nav className="flex items-center gap-4">
               <Button variant="ghost" size="sm" asChild>
-                <a href="/portal/dashboard">Dashboard</a>
+                <Link to="/portal/dashboard">Dashboard</Link>
               </Button>
               <Button variant="ghost" size="sm" asChild>
-                <a href="/portal/properties">Meus Imóveis</a>
+                <Link to="/portal/properties">Meus Imóveis</Link>
               </Button>
               <Button variant="ghost" size="sm" asChild>
-                <a href="/portal/leases">Minhas Locações</a>
+                <Link to="/portal/leases">Minhas Locações</Link>
               </Button>
               <Button variant="ghost" size="sm" asChild>
-                <a href="/portal/payments">Pagamentos</a>
+                <Link to="/portal/payments">Pagamentos</Link>
               </Button>
               <Button variant="ghost" size="sm" asChild>
-                <a href="/portal/documents">Documentos</a>
+                <Link to="/portal/repasses">Repasses</Link>
+              </Button>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/portal/documents">Documentos</Link>
               </Button>
               <Separator orientation="vertical" className="h-6" />
               <Button variant="ghost" size="sm" onClick={handleLogout}>

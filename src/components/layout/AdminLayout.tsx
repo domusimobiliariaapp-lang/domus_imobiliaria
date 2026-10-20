@@ -1,5 +1,6 @@
 import * as React from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
+import { LifeBuoy } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { DomusSidebar } from '@/components/layout/DomusSidebar'
 import { Button } from '@/components/ui/button'
@@ -12,7 +13,7 @@ interface AdminLayoutProps {
 export function AdminLayout({ children }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = React.useState(false)
   const [darkMode, setDarkMode] = React.useState(false)
-  const { signOut, profile } = useAuth()
+  const { signOut, profile, organization } = useAuth()
   const navigate = useNavigate()
 
   React.useEffect(() => {
@@ -46,6 +47,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         user={{ name: userName, role: userRole }}
+        orgName={organization?.name}
         onLogout={handleLogout}
       />
       <div className="lg:pl-64">
@@ -69,6 +71,17 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 </Button>
               </div>
               <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  asChild
+                  aria-label="Abrir chamado com o suporte"
+                  title="Abrir chamado com o suporte"
+                >
+                  <Link to="/admin/chamados">
+                    <LifeBuoy className="h-5 w-5" />
+                  </Link>
+                </Button>
                 <Button
                   variant="ghost"
                   size="icon"

@@ -11,9 +11,12 @@ import { Textarea } from '@/components/ui/textarea'
 import { AlertCircle, Calendar, Clock, Loader2, AlertTriangle } from 'lucide-react'
 import { useLeases } from '@/hooks/useSupabase'
 import { useProperties } from '@/hooks/useSupabase'
-import { useClients } from '@/hooks/useSupabase'
+
+import { useProfiles } from '@/hooks/useSupabase'
+import { useAuth } from '@/hooks/useAuth'
 import { useCreateEntity, useUpdateEntity } from '@/hooks/useSupabase'
 import type { Lease } from '@/types'
+import { formatCurrencyInput, parseCurrencyInput } from '@/lib/inputMasks'
 import { format, differenceInDays, addMonths } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { supabase } from '@/integrations/supabase/client'
@@ -41,9 +44,13 @@ const INDEX_OPTIONS = [
 export function RenewalsAdmin() {
   const { data: leases, loading: leasesLoading, refetch: refetchLeases } = useLeases()
   const { data: properties } = useProperties()
-  const { data: clients } = useClients()
+  // O locatário vem de profiles, e não de clients: leases.tenant_id referencia
+  // profiles.id. Buscando em clients, que ficou sem uso, a tela de renovações
+  // mostrava o locatário em branco em toda linha.
+  const { data: profiles } = useProfiles()
   const { update } = useUpdateEntity('leases')
   const { create } = useCreateEntity('lease_history')
+  const { profile } = useAuth()
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [actionType, setActionType] = useState<'renew' | 'close'>('renew')
@@ -58,19 +65,25 @@ export function RenewalsAdmin() {
   const [alertDays, setAlertDays] = useState(60)
 
   // Load renewal alert days from company settings
+  //
+  // Busca por org_id, e não pelo id fixo da Domus original: a linha em
+  // company_settings é uma por imobiliária, e o id fixo é recusado pelo RLS em
+  // qualquer outra org — o alerta de renovação caía no padrão de 60 dias sem
+  // nenhum aviso.
   useEffect(() => {
     async function loadSettings() {
+      if (!profile?.org_id) return
       const { data } = await supabase
         .from('company_settings')
         .select('renewal_alert_days')
-        .eq('id', '00000000-0000-0000-0000-000000000001')
-        .single()
+        .eq('org_id', profile.org_id)
+        .maybeSingle()
       if (data?.renewal_alert_days) {
         setAlertDays(data.renewal_alert_days)
       }
     }
     loadSettings()
-  }, [])
+  }, [profile?.org_id])
 
   // Today for renewal calculations (recomputed when alertDays changes)
   const today = useMemo(() => {
@@ -91,7 +104,7 @@ export function RenewalsAdmin() {
       const daysLeft = differenceInDays(endDate, today)
       const renewalStatus = getRenewalStatus(daysLeft)
       const property = properties?.find(p => p.id === lease.property_id)
-      const tenant = clients?.find(c => c.id === lease.tenant_id)
+      const tenant = profiles?.find(c => c.id === lease.tenant_id)
       return { ...lease, daysLeft, renewalStatus, property, tenant }
     })
     .sort((a, b) => a.daysLeft - b.daysLeft) || []
@@ -100,9 +113,15 @@ export function RenewalsAdmin() {
     if (!selectedLease) return
     setSaving(true)
     try {
+      // Number("2.500,00") dá NaN, não 2500: o ponto é separador de milhar e a
+      // vírgula é o decimal. Com a máscara o usuário digita "2.500,00", então a
+      // conversão tem de passar por parseCurrencyInput — antes, uma renovação
+      // podia gravar o aluguel como NaN.
+      const novoAluguel = parseCurrencyInput(formData.new_rent)
+
       // Update lease with new values
       await update(selectedLease.id, {
-        monthly_rent: Number(formData.new_rent),
+        monthly_rent: novoAluguel,
         end_date: formData.new_end_date,
         // Store index type in notes or a separate field
       })
@@ -111,7 +130,7 @@ export function RenewalsAdmin() {
       await create({
         lease_id: selectedLease.id,
         tipo: 'Renovação',
-        descricao: `Contrato renovado: aluguel de ${formatCurrency(Number(selectedLease.monthly_rent))} para ${formatCurrency(Number(formData.new_rent))}, índice ${formData.index_type}, nova data fim ${format(new Date(formData.new_end_date), 'dd/MM/yyyy', { locale: ptBR })}`,
+        descricao: `Contrato renovado: aluguel de ${formatCurrency(Number(selectedLease.monthly_rent))} para ${formatCurrency(novoAluguel)}, índice ${formData.index_type}, nova data fim ${format(new Date(formData.new_end_date), 'dd/MM/yyyy', { locale: ptBR })}`,
         observacoes: formData.observations,
         created_by: 'current_user',
       })
@@ -129,12 +148,20 @@ export function RenewalsAdmin() {
     if (!selectedLease) return
     setSaving(true)
     try {
-      // Update lease status
-      await update(selectedLease.id, { status: 'encerrado' })
+      // 'vencido', e não 'encerrado': o enum lease_status é
+      // ('ativo','pendente','cancelado','vencido'). Mandar 'encerrado' era
+      // recusado pelo Postgres, então encerrar um contrato nunca salvava — e o
+      // imóvel continuava marcado como alugado.
+      await update(selectedLease.id, { status: 'vencido' })
 
-      // Update property status to available
+      // O imóvel volta para a vitrine. Precisa ser o hook de properties: o
+      // 'update' desta tela aponta para leases, e usar ele aqui tentava
+      // atualizar um id de imóvel na tabela de contratos.
       if (selectedLease.property_id) {
-        await update(selectedLease.property_id, { status: 'disponivel' })
+        await supabase
+          .from('properties')
+          .update({ status: 'disponivel' })
+          .eq('id', selectedLease.property_id)
       }
 
       // Create history record
@@ -161,7 +188,9 @@ export function RenewalsAdmin() {
     if (type === 'renew') {
       const suggestedEndDate = addMonths(new Date(lease.end_date!), 12)
       setFormData({
-        new_rent: String(lease.monthly_rent),
+        // Já com a máscara aplicada: o campo mostra o valor formatado, então
+        // "2500" viraria "2.500" e o usuário veria um "2" que não digitou.
+        new_rent: formatCurrencyInput(lease.monthly_rent),
         index_type: 'IGPM',
         new_end_date: format(suggestedEndDate, 'yyyy-MM-dd'),
         observations: '',
@@ -290,17 +319,26 @@ export function RenewalsAdmin() {
               }
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={(e) => { e.preventDefault(); actionType === 'renew' ? handleRenew() : handleClose() }} className="space-y-4">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              if (actionType === 'renew') {
+                handleRenew()
+              } else {
+                handleClose()
+              }
+            }}
+            className="space-y-4"
+          >
             {actionType === 'renew' && (
               <>
                 <div className="space-y-1">
                   <Label>Novo Valor do Aluguel</Label>
                   <Input
-                    type="number"
-                    step="0.01"
-                    value={formData.new_rent}
+                    value={formatCurrencyInput(formData.new_rent)}
                     onChange={(e) => setFormData({ ...formData, new_rent: e.target.value })}
                     placeholder="0,00"
+                    inputMode="decimal"
                     required
                   />
                 </div>

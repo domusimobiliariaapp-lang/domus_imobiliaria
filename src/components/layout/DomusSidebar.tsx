@@ -2,11 +2,6 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Link, useLocation } from 'react-router-dom'
 
-interface NavGroup {
-  label: string
-  items: { href: string; label: string }[]
-}
-
 const navGroups: NavGroup[] = [
   {
     label: 'Visão Geral',
@@ -16,10 +11,11 @@ const navGroups: NavGroup[] = [
     label: 'Operação',
     items: [
       { href: '/admin/properties', label: 'Imóveis' },
-      { href: '/admin/leases', label: 'Locações' },
+      { href: '/admin/crm', label: 'CRM & Radar' },
+      { href: '/admin/contracts', label: 'Locações' },
       { href: '/admin/sales', label: 'Vendas' },
       { href: '/admin/clients', label: 'Clientes' },
-      { href: '/admin/contracts', label: 'Contratos' },
+      { href: '/admin/inspections', label: 'Vistorias' },
       { href: '/admin/renewals', label: 'Renovações' },
     ],
   },
@@ -29,18 +25,30 @@ const navGroups: NavGroup[] = [
       { href: '/admin/financial', label: 'Financeiro' },
       { href: '/admin/legal', label: 'Jurídico' },
       { href: '/admin/administrative', label: 'Administrativo' },
+      { href: '/admin/chamados', label: 'Chamados' },
+      // Só o admin cria acessos. Isso é conveniência, não segurança: quem
+      // tentar digitar /admin/equipe sem ser admin recebe a tela de "apenas o
+      // administrador", e a edge function barra de todo modo.
+      { href: '/admin/equipe', label: 'Equipe', onlyAdmin: true },
     ],
   },
 ]
+
+interface NavGroup {
+  label: string
+  items: { href: string; label: string; onlyAdmin?: boolean }[]
+}
 
 interface DomusSidebarProps {
   isOpen: boolean
   onClose: () => void
   user: { name: string; role: string }
   onLogout: () => void
+  /** Imobiliária do usuário. Sem ela, mostra a marca padrão do Domus. */
+  orgName?: string
 }
 
-export function DomusSidebar({ isOpen, onClose, user, onLogout }: DomusSidebarProps) {
+export function DomusSidebar({ isOpen, onClose, user, onLogout, orgName }: DomusSidebarProps) {
   const location = useLocation()
   const initials = user.name
     .split(' ')
@@ -72,8 +80,9 @@ export function DomusSidebar({ isOpen, onClose, user, onLogout }: DomusSidebarPr
         <div className="flex flex-col h-full">
           {/* Brand header */}
           <div className="flex h-16 items-center justify-between px-6 border-b border-white/10">
-            <span className="font-serif text-2xl font-medium tracking-tight text-white">
-              Domus<span className="text-[#AD7B3B]">.</span>
+            <span className="font-serif text-2xl font-medium tracking-tight text-white truncate">
+              {orgName || 'Domus'}
+              {orgName && <span className="text-[#AD7B3B]">.</span>}
             </span>
             <button
               className="lg:hidden p-2 rounded-md hover:bg-white/10 transition-colors"
@@ -89,12 +98,17 @@ export function DomusSidebar({ isOpen, onClose, user, onLogout }: DomusSidebarPr
 
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-6" aria-label="Navegação principal">
-            {navGroups.map((group) => (
+            {navGroups.map((group) => {
+              // Um grupo inteiro pode sumir se sobrar só item restrito: um
+              // "Gestão" com uma linha só seria pior que nada.
+              const visibleItems = group.items.filter((i) => !i.onlyAdmin || user.role === 'admin')
+              if (visibleItems.length === 0) return null
+              return (
               <div key={group.label} className="space-y-1">
                 <h3 className="px-3 text-xs font-semibold uppercase tracking-wider text-white/50 mb-2">
                   {group.label}
                 </h3>
-                {group.items.map((item) => {
+                {visibleItems.map((item) => {
                   const isActive = location.pathname === item.href || location.pathname.startsWith(item.href + '/')
                   return (
                     <Button
@@ -114,7 +128,8 @@ export function DomusSidebar({ isOpen, onClose, user, onLogout }: DomusSidebarPr
                   )
                 })}
               </div>
-            ))}
+              )
+            })}
           </nav>
 
           {/* Footer - User info + logout */}

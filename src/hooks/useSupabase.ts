@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 import { logQueryError } from '@/lib/errorLogger'
 import { useAuth } from './useAuth'
-import type { DashboardStats, Property, Lease, Sale, Payment, Notification, Document, Profile, LeaseHistory, Organization } from '@/types'
+import type { DashboardStats, Property, Lease, Sale, Payment, Notification, Document, Profile, LeaseHistory, Organization, CrmLead, CrmInteraction, PropertyInspection } from '@/types'
 
 interface UseQueryResult<T> {
   data: T | null
@@ -258,6 +258,50 @@ export function useLeaseHistory(): UseQueryResult<LeaseHistory[]> {
       .order('created_at', { ascending: false })
     return { data, error: error ? new Error(error.message) : null }
   })
+}
+
+export function useCrmLeads(): UseQueryResult<CrmLead[]> {
+  const { profile } = useAuth()
+  const orgId = profile?.org_id ?? null
+
+  return useQuery(async () => {
+    const { data, error } = await supabase
+      .from('crm_leads')
+      .select('*')
+      .eq('org_id', orgId)
+      .order('created_at', { ascending: false })
+    return { data: (data as CrmLead[]) ?? [], error: error ? new Error(error.message) : null }
+  }, [orgId])
+}
+
+export function useCrmInteractions(leadId?: string | null): UseQueryResult<CrmInteraction[]> {
+  const { profile } = useAuth()
+  const orgId = profile?.org_id ?? null
+
+  return useQuery(async () => {
+    if (!leadId) return { data: [], error: null }
+    const { data, error } = await supabase
+      .from('crm_interactions')
+      .select('*')
+      .eq('org_id', orgId)
+      .eq('lead_id', leadId)
+      .order('created_at', { ascending: false })
+    return { data: (data as CrmInteraction[]) ?? [], error: error ? new Error(error.message) : null }
+  }, [orgId, leadId])
+}
+
+export function usePropertyInspections(): UseQueryResult<PropertyInspection[]> {
+  const { profile } = useAuth()
+  const orgId = profile?.org_id ?? null
+
+  return useQuery(async () => {
+    const { data, error } = await supabase
+      .from('property_inspections')
+      .select('*')
+      .eq('org_id', orgId)
+      .order('created_at', { ascending: false })
+    return { data: (data as PropertyInspection[]) ?? [], error: error ? new Error(error.message) : null }
+  }, [orgId])
 }
 
 /**

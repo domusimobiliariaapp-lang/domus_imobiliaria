@@ -1,322 +1,92 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import gsap from "gsap";
-import { Play } from "lucide-react";
+import { useEffect, useState } from 'react'
+import { ChevronLeft, ChevronRight, Loader2, Play, X } from 'lucide-react'
 
-interface CardItem {
-  imgUrl: string;
-  alt?: string;
-  linkUrl?: string;
-  isVideo?: boolean;
+interface MediaItem {
+  url: string
+  type: 'image' | 'video'
 }
 
 interface Props {
-  images: string[];
-  videos?: string[];
+  images: string[]
+  videos?: string[]
 }
-
-const MAX_VISIBLE = 7;
-const HALF = 3;
-
-const FAN_POSITIONS = [
-  { rot: -21, scale: 0.7756, x: -30, y: 7.3, zIndex: 1 },
-  { rot: -14, scale: 0.8498, x: -22, y: 4.0, zIndex: 2 },
-  { rot: -7,  scale: 0.9346, x: -11, y: 1.3, zIndex: 3 },
-  { rot: 0,   scale: 1.0,    x: 0,   y: 0.0, zIndex: 10 },
-  { rot: 7,   scale: 0.9346, x: 11,  y: 1.3, zIndex: 3 },
-  { rot: 14,  scale: 0.8498, x: 22,  y: 4.0, zIndex: 2 },
-  { rot: 21,  scale: 0.7756, x: 30,  y: 7.3, zIndex: 1 },
-];
-
-function getResponsiveMultiplier(width: number) {
-  if (width < 480) return 0.28;
-  if (width < 640) return 0.38;
-  if (width < 768) return 0.5;
-  if (width < 1024) return 0.75;
-  return 1.0;
-}
-
-function getHeightMultiplier(width: number) {
-  let idealPx: number;
-  if (width < 480) idealPx = 22 * 16;
-  else if (width < 640) idealPx = 26 * 16;
-  else if (width < 768) idealPx = 28 * 16;
-  else if (width < 1024) idealPx = 34 * 16;
-  else idealPx = 38 * 16;
-
-  const available = window.innerHeight * 0.65;
-  if (available >= idealPx) return 1;
-  return available / idealPx;
-}
-
-function getSlotConfig(totalCards: number, slot: number) {
-  if (totalCards >= MAX_VISIBLE) return FAN_POSITIONS[slot];
-  const center = totalCards >> 1;
-  const distance = totalCards > 1 ? (slot - center) / center : 0;
-  const absDistance = Math.abs(distance);
-  return {
-    rot: distance * 21,
-    scale: 1.0 - 0.2244 * absDistance * absDistance,
-    x: distance * 30,
-    y: absDistance * absDistance * 7.3,
-    zIndex: 10 - Math.abs(slot - center),
-  };
-}
-
-const ARROW_CLASSES =
-  "relative flex items-center justify-center rounded-full border-[1.5px] border-primary/20 bg-white/80 backdrop-blur-[16px] text-primary/60 cursor-pointer shrink-0 z-30 outline-none shadow-sm hover:border-primary/40 hover:text-primary active:opacity-70 transition-all duration-300 w-10 h-10 md:w-12 md:h-12";
 
 export function PropertyGallery({ images, videos = [] }: Props) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const isAnimating = useRef(false);
-  const hasEntered = useRef(false);
-  const directionRef = useRef<"left" | "right" | null>(null);
-  const prevVisible = useRef<Set<number>>(new Set());
-
-  const allMedia: CardItem[] = [
-    ...images.map((url, i) => ({ imgUrl: url, alt: `Foto ${i + 1}`, isVideo: false })),
-    ...videos.map((url, i) => ({ imgUrl: url, alt: `Vídeo ${i + 1}`, isVideo: true, linkUrl: url })),
-  ];
-
-  const totalCards = allMedia.length;
-  const needsPagination = totalCards > MAX_VISIBLE;
-  const [centerIndex, setCenterIndex] = useState(needsPagination ? HALF : totalCards >> 1);
-
-  const getVisibleMap = useCallback((center: number) => {
-    const map = new Map<number, number>();
-    if (!needsPagination) {
-      allMedia.forEach((_, i) => map.set(i, i));
-      return map;
-    }
-    for (let slot = 0; slot < MAX_VISIBLE; slot++) {
-      map.set(((center + slot - HALF) % totalCards + totalCards) % totalCards, slot);
-    }
-    return map;
-  }, [totalCards, needsPagination, allMedia]);
-
-  const cycle = useCallback((direction: "left" | "right") => {
-    if (isAnimating.current || !needsPagination) return;
-    isAnimating.current = true;
-    directionRef.current = direction;
-    setCenterIndex(prev =>
-      direction === "right" ? (prev + 1) % totalCards : (prev - 1 + totalCards) % totalCards
-    );
-  }, [totalCards, needsPagination]);
+  const media: MediaItem[] = [
+    ...images.filter(Boolean).map(url => ({ url, type: 'image' as const })),
+    ...videos.filter(Boolean).map(url => ({ url, type: 'video' as const })),
+  ]
+  const [selected, setSelected] = useState(0)
+  const [expanded, setExpanded] = useState(false)
+  const [loadedImages, setLoadedImages] = useState<string[]>([])
+  const [loadedVideos, setLoadedVideos] = useState<string[]>([])
+  const activeIndex = Math.min(selected, Math.max(media.length - 1, 0))
+  const active = media[activeIndex]
 
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container || !totalCards) return;
+    if (!expanded || !media.length) return
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setExpanded(false)
+      if (event.key === 'ArrowRight') setSelected(index => (index + 1) % media.length)
+      if (event.key === 'ArrowLeft') setSelected(index => (index - 1 + media.length) % media.length)
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [expanded, media.length])
 
-    const cardElements = Array.from(container.querySelectorAll<HTMLElement>(".fan-card"));
-    if (!cardElements.length) return;
-
-    const visibleMap = getVisibleMap(centerIndex);
-    const previouslyVisible = prevVisible.current;
-    const direction = directionRef.current;
-    const isFirstMount = !hasEntered.current;
-    const multiplier = getResponsiveMultiplier(window.innerWidth);
-    const hMult = getHeightMultiplier(window.innerWidth);
-    const slotCount = needsPagination ? MAX_VISIBLE : totalCards;
-    const config = (slot: number) => getSlotConfig(slotCount, slot);
-
-    if (isFirstMount) isAnimating.current = true;
-
-    let completedCount = 0;
-    const visibleCount = visibleMap.size;
-    const onCardDone = () => {
-      if (++completedCount >= visibleCount) {
-        isAnimating.current = false;
-        if (isFirstMount) hasEntered.current = true;
-      }
-    };
-
-    cardElements.forEach((card, cardIndex) => {
-      const slot = visibleMap.get(cardIndex);
-      const wasVisible = previouslyVisible.has(cardIndex);
-
-      if (slot !== undefined) {
-        const { x, y, rot, scale, zIndex } = config(slot);
-        const target = {
-          x: `${x * multiplier}rem`,
-          y: `${y * hMult}rem`,
-          rotation: rot,
-          scale,
-          opacity: 1,
-          zIndex,
-        };
-
-        if (isFirstMount) {
-          gsap.set(card, { x: 0, y: `${12 * hMult}rem`, rotation: 0, scale: 0.5, opacity: 0 });
-          gsap.to(card, { ...target, duration: 1.2, ease: "elastic.out(1.05,.78)", delay: 0.2 + slot * 0.06, onComplete: onCardDone });
-        } else if (!wasVisible) {
-          const enterX = direction === "right" ? 40 : -40;
-          gsap.set(card, { x: `${enterX}rem`, y: `${y * hMult}rem`, rotation: direction === "right" ? 30 : -30, scale: 0.5, opacity: 0 });
-          gsap.to(card, { ...target, duration: 0.6, ease: "power2.out", onComplete: onCardDone });
-        } else {
-          gsap.to(card, { ...target, duration: 0.5, ease: "power2.out", onComplete: onCardDone });
-        }
-      } else if (wasVisible) {
-        const exitX = direction === "right" ? -40 : 40;
-        gsap.to(card, { x: `${exitX}rem`, opacity: 0, scale: 0.5, rotation: direction === "right" ? -30 : 30, duration: 0.4, ease: "power2.in", zIndex: 0 });
-      } else if (isFirstMount) {
-        gsap.set(card, { opacity: 0, scale: 0.3, x: 0, y: 0, zIndex: 0 });
-      }
-    });
-
-    prevVisible.current = new Set(visibleMap.keys());
-
-    // Hover interactions
-    const visibleEntries: { el: HTMLElement; slot: number }[] = [];
-    cardElements.forEach((el, i) => {
-      const slot = visibleMap.get(i);
-      if (slot !== undefined) visibleEntries.push({ el, slot });
-    });
-    visibleEntries.sort((a, b) => a.slot - b.slot);
-
-    let activeSlot: number | null = null;
-    let leaveTimer: number | null = null;
-    const centerSlot = visibleEntries.length >> 1;
-
-    const updateHoverLayout = (hoveredSlot: number | null) => {
-      const mult = getResponsiveMultiplier(window.innerWidth);
-      const hM = getHeightMultiplier(window.innerWidth);
-
-      visibleEntries.forEach(({ el, slot }) => {
-        const base = config(slot);
-        let targetX = base.x * mult;
-        let targetY = base.y * hM;
-        let targetRot = base.rot;
-        let targetScale = base.scale;
-        let delay = 0;
-
-        if (hoveredSlot !== null) {
-          const distance = Math.abs(slot - hoveredSlot);
-          delay = distance * 0.02;
-
-          if (slot === hoveredSlot) {
-            targetY -= 2.5 * hM;
-            targetScale *= 1.08;
-          } else {
-            const normalized = centerSlot > 0 ? (slot - centerSlot) / centerSlot : 0;
-            const pushStrength = 8 * (1 - Math.abs(normalized)) * (1 + 0.2 * Math.max(0, 3 - distance));
-
-            if (slot < hoveredSlot) {
-              targetX -= pushStrength * mult;
-              targetRot -= 3 / (distance + 1);
-            } else {
-              targetX += pushStrength * mult;
-              targetRot += 3 / (distance + 1);
-            }
-
-            if (slot === visibleEntries.length - 1 && hoveredSlot < centerSlot) targetY -= 1 * hM;
-            if (slot === 0 && hoveredSlot > centerSlot) targetY -= 1 * hM;
-          }
-        } else {
-          delay = Math.abs(slot - centerSlot) * 0.02;
-        }
-
-        gsap.to(el, {
-          x: `${targetX}rem`, y: `${targetY}rem`, rotation: targetRot, scale: targetScale,
-          duration: 0.5, delay, ease: "elastic.out(1,.75)", overwrite: "auto",
-        });
-        gsap.set(el, { zIndex: base.zIndex });
-      });
-    };
-
-    const enterHandlers = visibleEntries.map(({ el, slot }) => {
-      const handler = () => {
-        if (isAnimating.current) return;
-        if (leaveTimer) { clearTimeout(leaveTimer); leaveTimer = null; }
-        if (activeSlot !== slot) { activeSlot = slot; updateHoverLayout(slot); }
-      };
-      el.addEventListener("mouseenter", handler);
-      return { el, handler };
-    });
-
-    const onMouseLeave = () => {
-      if (isAnimating.current) return;
-      if (leaveTimer) clearTimeout(leaveTimer);
-      leaveTimer = setTimeout(() => { activeSlot = null; updateHoverLayout(null); }, 50);
-    };
-    container.addEventListener("mouseleave", onMouseLeave);
-
-    const onResize = () => { if (!isAnimating.current) updateHoverLayout(activeSlot); };
-    window.addEventListener("resize", onResize);
-
-    return () => {
-      enterHandlers.forEach(({ el, handler }) => el.removeEventListener("mouseenter", handler));
-      container.removeEventListener("mouseleave", onMouseLeave);
-      window.removeEventListener("resize", onResize);
-      if (leaveTimer) clearTimeout(leaveTimer);
-    };
-  }, [centerIndex, totalCards, getVisibleMap, needsPagination]);
-
-  const chevron = (direction: "left" | "right") => (
-    <svg className="relative z-[2] w-4 h-4 md:w-5 md:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points={direction === "left" ? "15 18 9 12 15 6" : "9 18 15 12 9 6"} />
-    </svg>
-  );
-
-  if (!totalCards) {
-    return (
-      <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
-        <span className="text-muted-foreground text-sm">Nenhuma foto disponível</span>
-      </div>
-    );
+  if (!media.length) {
+    return <div className="flex aspect-video items-center justify-center rounded-md border border-border bg-muted text-sm text-muted-foreground">Nenhuma mídia disponível</div>
   }
 
-  return (
-    <section className="flex flex-col items-center w-full py-4 px-4">
-      <div className="flex items-center justify-center w-full max-w-[90rem]">
-        <div ref={containerRef} className="fan-layout flex relative justify-center items-center w-full max-w-[80rem]">
-          {allMedia.map((media, index) => (
-            <div key={index} className="fan-card relative" style={{ width: "22rem", height: "14rem" }}>
-              {media.isVideo ? (
-                <video
-                  src={media.imgUrl}
-                  className="w-full h-full object-cover rounded-lg shadow-lg"
-                  controls
-                  playsInline
-                />
-              ) : (
-                <img
-                  src={media.imgUrl}
-                  alt={media.alt || `Imagem ${index + 1}`}
-                  loading="lazy"
-                  className="w-full h-full object-cover rounded-lg shadow-lg"
-                />
-              )}
-              {media.isVideo && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="bg-white/80 rounded-full p-3 shadow-lg">
-                    <Play className="h-6 w-6 text-primary fill-primary" />
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
+  const openViewer = (index: number) => {
+    setSelected(index)
+    setExpanded(true)
+  }
 
-      {needsPagination && (
-        <div className="flex items-center justify-center gap-4 mt-4 md:mt-6 z-30">
-          <button className={ARROW_CLASSES} onClick={() => cycle("left")} aria-label="Anterior">
-            {chevron("left")}
-          </button>
-          <div className="flex items-center gap-2">
-            {allMedia.map((_, i) => (
-              <span
-                key={i}
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                  i === centerIndex ? "bg-primary scale-[1.3]" : "bg-primary/20"
-                }`}
-              />
-            ))}
-          </div>
-          <button className={ARROW_CLASSES} onClick={() => cycle("right")} aria-label="Próximo">
-            {chevron("right")}
-          </button>
+  const markImageLoaded = (url: string) => setLoadedImages(current => current.includes(url) ? current : [...current, url])
+  const markVideoLoaded = (url: string) => setLoadedVideos(current => current.includes(url) ? current : [...current, url])
+
+  const tile = (item: MediaItem, index: number, className: string, showMore = false) => (
+    <button
+      key={`${item.url}-${index}`}
+      type="button"
+      onClick={() => openViewer(index)}
+      aria-label={showMore ? `Abrir galeria com ${media.length} mídias, começando pela mídia ${index + 1}` : `Ampliar ${item.type === 'video' ? 'vídeo' : 'foto'} ${index + 1}`}
+      className={`group relative block overflow-hidden rounded-md bg-[#E4E1D8] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#AD7B3B] ${className}`}
+    >
+      {item.type === 'image' ? <>
+        {!loadedImages.includes(item.url) && <span className="absolute inset-0 flex items-center justify-center bg-[#E4E1D8]" role="status" aria-label={`Carregando foto ${index + 1}`}><Loader2 className="h-7 w-7 animate-spin text-[#AD7B3B]" /></span>}
+        <img src={item.url} alt={`Foto ${index + 1} do imóvel`} onLoad={() => markImageLoaded(item.url)} className={`h-full w-full object-cover transition-all duration-300 group-hover:scale-[1.03] ${loadedImages.includes(item.url) ? 'opacity-100' : 'opacity-0'}`} loading={index === 0 ? 'eager' : 'lazy'} />
+      </> : <div className="flex h-full w-full items-center justify-center bg-[#17323D] text-white"><Play className="h-10 w-10" /><span className="sr-only">Vídeo {index + 1}</span></div>}
+      {showMore && <span className="absolute inset-0 flex flex-col items-end justify-end bg-[#17323D]/55 p-4 text-right font-semibold uppercase text-white sm:p-5"><span className="text-2xl">+ {media.length - 2}</span><span className="text-sm tracking-wide">{videos.length ? (media.length - 2 === 1 ? 'mídia' : 'mídias') : (media.length - 2 === 1 ? 'foto' : 'fotos')}</span></span>}
+    </button>
+  )
+
+  return (
+    <>
+      <section aria-label="Fotos e vídeos do imóvel">
+        <div className={`grid gap-2 overflow-hidden rounded-md ${media.length > 1 ? 'md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]' : ''}`}>
+          {tile(media[0], 0, 'aspect-[4/3] w-full md:aspect-[16/10]')}
+          {media.length > 1 && <div className={`grid min-h-0 grid-cols-2 gap-2 md:grid-cols-1 ${media.length > 2 ? 'md:grid-rows-2' : ''}`}>
+            {tile(media[1], 1, 'aspect-[4/3] w-full md:aspect-auto md:h-full md:min-h-0')}
+            {media.length > 2 && tile(media[2], 2, 'aspect-[4/3] w-full md:aspect-auto md:h-full md:min-h-0', true)}
+          </div>}
         </div>
-      )}
-    </section>
-  );
+      </section>
+
+      {expanded && <div role="dialog" aria-modal="true" aria-label="Visualização ampliada da mídia" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-4 sm:p-10" onClick={() => setExpanded(false)}>
+        <button type="button" aria-label="Fechar visualização" onClick={() => setExpanded(false)} className="absolute right-4 top-4 z-10 rounded-full p-2 text-white hover:bg-white/20"><X className="h-6 w-6" /></button>
+        {media.length > 1 && <button type="button" aria-label="Mídia anterior" onClick={(event) => { event.stopPropagation(); setSelected(index => (index - 1 + media.length) % media.length) }} className="absolute left-2 z-10 rounded-full bg-black/60 p-2 text-white hover:bg-white/20 sm:left-5"><ChevronLeft className="h-6 w-6" /></button>}
+        {active.type === 'image' ? <>
+          {!loadedImages.includes(active.url) && <Loader2 className="absolute h-9 w-9 animate-spin text-white" aria-label="Carregando foto" />}
+          <img src={active.url} alt={`Foto ${activeIndex + 1} do imóvel ampliada`} onLoad={() => markImageLoaded(active.url)} onClick={event => event.stopPropagation()} className={`max-h-full max-w-full object-contain ${loadedImages.includes(active.url) ? 'opacity-100' : 'opacity-0'}`} />
+        </> : <>
+          {!loadedVideos.includes(active.url) && <Loader2 className="absolute h-9 w-9 animate-spin text-white" aria-label="Carregando vídeo" />}
+          <video key={active.url} src={active.url} controls autoPlay playsInline onLoadedData={() => markVideoLoaded(active.url)} onClick={event => event.stopPropagation()} className="max-h-full max-w-full" />
+        </>}
+        {media.length > 1 && <button type="button" aria-label="Próxima mídia" onClick={(event) => { event.stopPropagation(); setSelected(index => (index + 1) % media.length) }} className="absolute right-2 z-10 rounded-full bg-black/60 p-2 text-white hover:bg-white/20 sm:right-5"><ChevronRight className="h-6 w-6" /></button>}
+        <span className="absolute bottom-4 text-xs text-white/80">{activeIndex + 1} de {media.length}</span>
+      </div>}
+    </>
+  )
 }

@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
+import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/hooks/useAuth'
 
 export function LoginAdmin() {
@@ -26,7 +27,13 @@ export function LoginAdmin() {
       setError(error.message)
       setLoading(false)
     } else {
-      navigate('/admin', { replace: true })
+      // Recupera a role do perfil recém-criado/atualizado pra
+      // redirecionar cada tipo de usuário pro destino correto.
+      const { data: { user } } = await supabase.auth.getUser()
+      const role = (user?.app_metadata as Record<string, unknown> | undefined)?.role as string | undefined
+      if (role === 'dev') navigate('/dev', { replace: true })
+      else if (role === 'cliente') navigate('/portal/dashboard', { replace: true })
+      else navigate('/admin', { replace: true })
     }
   }
 
