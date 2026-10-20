@@ -239,13 +239,13 @@ export function CrmAdmin() {
       </div>
 
       {/* Funil Visual Kanban */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 overflow-x-auto pb-4">
+      <div className="flex gap-4 overflow-x-auto pb-4">
         {STAGES.map((col) => {
           const colLeads = filteredLeads.filter((l) => l.stage === col.id)
           return (
             <div
               key={col.id}
-              className={`flex flex-col rounded-lg border bg-card/60 p-3 shadow-xs border-t-4 ${col.color} min-w-[220px]`}
+              className={`flex flex-col rounded-lg border bg-card/60 p-3 shadow-xs border-t-4 ${col.color} w-[280px] min-w-[280px] shrink-0`}
             >
               <div className="flex items-center justify-between mb-3">
                 <span className="text-sm font-semibold text-foreground tracking-tight">

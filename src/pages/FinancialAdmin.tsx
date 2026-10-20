@@ -42,7 +42,7 @@ export function FinancialAdmin() {
   const { data: profiles } = useProfiles()
   const { update } = useUpdateEntity('payments')
 
-  const [activeTab, setActiveTab] = React.useState('pagamentos')
+  const [activeTab, setActiveTab] = React.useState('lancamentos')
 
   // Calculate stats for payments tab
   const stats = React.useMemo(() => {
@@ -302,21 +302,21 @@ export function FinancialAdmin() {
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList>
-          <TabsTrigger value="pagamentos">
-            <DollarSign className="h-4 w-4 mr-2" />
-            Pagamentos
-          </TabsTrigger>
-          <TabsTrigger value="repasse">
-            <Calculator className="h-4 w-4 mr-2" />
-            Relatório de Repasse
-          </TabsTrigger>
           <TabsTrigger value="lancamentos">
             <FileText className="h-4 w-4 mr-2" />
             Lançamentos
           </TabsTrigger>
+          <TabsTrigger value="pagamentos">
+            <DollarSign className="h-4 w-4 mr-2" />
+            Pagamentos
+          </TabsTrigger>
           <TabsTrigger value="caixa">
             <Wallet className="h-4 w-4 mr-2" />
             Fluxo de Caixa
+          </TabsTrigger>
+          <TabsTrigger value="repasse">
+            <Calculator className="h-4 w-4 mr-2" />
+            Relatório de Repasse
           </TabsTrigger>
         </TabsList>
 

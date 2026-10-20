@@ -55,24 +55,41 @@ function RequireAuth({ children, allowedRoles }: { children: ReactNode; allowedR
   }
 
   if (!profile) {
-    return <Navigate to="/login" replace />
+    // Redireciona para o login correto: cliente vai para o login do portal; equipe interna para /login
+    const isPortalRoute = location.pathname.startsWith('/portal')
+    return <Navigate to={isPortalRoute ? '/portal/login' : '/login'} replace />
   }
 
-  // A troca de senha vem ANTES do teste de papel, e não depois. Quem entra com
-  // a senha provisória não deve ver uma linha sequer da área interna — nem
-  // "só por um segundo" antes de a troca ser exigida. Como o gate está aqui, e
-  // não dentro de cada tela, nenhuma rota nova pode esquecer dele.
-  // IMPORTANTE: evitar loop se já estivermos na tela de primeiro acesso.
-  if (requiresPasswordChange && profile.role !== 'dev' && location.pathname !== '/admin/primeiro-acesso') {
+  // A troca de senha obrigatória só se aplica à equipe interna (admin, corretor, financeiro, juridico).
+  // O DEV fica fora do admin e clientes acessam via código OTP sem senha — mandá-los para /admin/primeiro-acesso
+  // geraria um loop infinito porque AdminRoutes recusa clientes e os devolve ao portal.
+  if (
+    requiresPasswordChange &&
+    profile.role !== 'dev' &&
+    profile.role !== 'cliente' &&
+    location.pathname !== '/admin/primeiro-acesso'
+  ) {
     return <Navigate to="/admin/primeiro-acesso" replace />
   }
 
   if (!allowedRoles.includes(profile.role)) {
-    // Cada papel tem um destino só. O DEV não pertence a /admin nem a /portal;
-    // mandá-lo para /login criaria um ciclo de redirecionamento, porque o
-    // RequireAuth de lá o devolveria para /dev.
-    if (profile.role === 'cliente') return <Navigate to="/portal/dashboard" replace />
-    if (profile.role === 'dev') return <Navigate to="/dev" replace />
+    // Cada papel tem seu ambiente de destino sem loops circulares
+    if (profile.role === 'cliente') {
+      if (location.pathname !== '/portal/dashboard') {
+        return <Navigate to="/portal/dashboard" replace />
+      }
+      return <Navigate to="/portal/login" replace />
+    }
+    if (profile.role === 'dev') {
+      if (location.pathname !== '/dev') {
+        return <Navigate to="/dev" replace />
+      }
+      return <Navigate to="/login" replace />
+    }
+    // Equipe interna tentando acessar área de cliente ou outra não permitida:
+    if (!location.pathname.startsWith('/admin')) {
+      return <Navigate to="/admin/dashboard" replace />
+    }
     return <Navigate to="/login" replace />
   }
 

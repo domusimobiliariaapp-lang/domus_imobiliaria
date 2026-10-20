@@ -1,9 +1,12 @@
+import { Link } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Building2, Home, Key, FileText } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
 import { useProperties } from '@/hooks/useSupabase'
 import { useLeases } from '@/hooks/useSupabase'
 
 export function PortalDashboard() {
+  const { profile } = useAuth()
   const { data: properties } = useProperties()
   const { data: leases } = useLeases()
 
@@ -12,11 +15,13 @@ export function PortalDashboard() {
   const totalProperties = properties?.length || 0
   const activeLeases = leases?.filter(l => l.status === 'ativo').length || 0
 
+  const clientName = profile?.full_name ? profile.full_name.split(' ')[0] : 'Cliente'
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-serif font-medium text-primary">Olá, Bem-vindo!</h1>
-        <p className="text-muted-foreground mt-1">Veja o resumo da sua conta</p>
+        <h1 className="text-3xl font-serif font-medium text-primary">Olá, {clientName}!</h1>
+        <p className="text-muted-foreground mt-1">Veja o resumo do seu ambiente no portal</p>
       </div>
 
       {/* Stats Cards */}
@@ -82,47 +87,53 @@ export function PortalDashboard() {
 
       {/* Quick Actions */}
       <div className="grid gap-4 md:grid-cols-3">
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Home className="h-5 w-5 text-primary" />
-              Ver Imóveis
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Explore os imóveis disponíveis para locação e venda
-            </p>
-          </CardContent>
-        </Card>
+        <Link to="/portal/properties" className="block group">
+          <Card className="cursor-pointer hover:shadow-md transition-shadow group-hover:border-primary/50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Home className="h-5 w-5 text-primary" />
+                Ver Imóveis
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Explore os imóveis disponíveis para locação e venda
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Key className="h-5 w-5 text-primary" />
-              Minhas Locações
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Acompanhe o status dos seus contratos de locação
-            </p>
-          </CardContent>
-        </Card>
+        <Link to="/portal/leases" className="block group">
+          <Card className="cursor-pointer hover:shadow-md transition-shadow group-hover:border-primary/50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Key className="h-5 w-5 text-primary" />
+                Minhas Locações
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Acompanhe o status dos seus contratos de locação
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-primary" />
-              Documentos
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Acesse seus documentos e contratos
-            </p>
-          </CardContent>
-        </Card>
+        <Link to="/portal/documents" className="block group">
+          <Card className="cursor-pointer hover:shadow-md transition-shadow group-hover:border-primary/50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                Documentos
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Acesse seus documentos e contratos
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
     </div>
   )

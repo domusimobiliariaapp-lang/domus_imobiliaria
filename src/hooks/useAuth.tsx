@@ -86,15 +86,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      lerFlagSenha(session?.user ?? null)
-      if (session?.user) {
-        fetchProfile(session.user.id)
+    let isMounted = true
+
+    const initAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!isMounted) return
+        setSession(session)
+        setUser(session?.user ?? null)
+        lerFlagSenha(session?.user ?? null)
+        if (session?.user) {
+          await fetchProfile(session.user.id)
+        }
+      } catch (err) {
+        console.error('Error initializing auth:', err)
+      } finally {
+        if (isMounted) setLoading(false)
       }
-      setLoading(false)
-    })
+    }
+
+    void initAuth()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event: string, session: Session | null) => {
@@ -118,7 +129,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     )
 
-    return () => subscription.unsubscribe()
+    return () => {
+      isMounted = false
+      subscription.unsubscribe()
+    }
   }, [])
 
   const signIn = async (email: string, password: string) => {

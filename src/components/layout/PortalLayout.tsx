@@ -8,7 +8,7 @@ interface PortalLayoutProps {
 }
 
 export function PortalLayout({ children }: PortalLayoutProps) {
-  const { signOut } = useAuth()
+  const { signOut, organization } = useAuth()
   const navigate = useNavigate()
 
   const handleLogout = async () => {
@@ -20,13 +20,13 @@ export function PortalLayout({ children }: PortalLayoutProps) {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container-domus">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center gap-4">
+          <div className="flex h-16 items-center justify-between gap-4">
+            <div className="flex items-center gap-4 shrink-0">
               <span className="font-serif text-2xl font-medium text-primary">
-                Domus<span className="text-[#AD7B3B]">.</span>
+                {organization?.name || 'Domus'}<span className="text-[#AD7B3B]">.</span>
               </span>
             </div>
-            <nav className="flex items-center gap-4">
+            <nav className="flex items-center gap-2 sm:gap-4 overflow-x-auto py-1">
               <Button variant="ghost" size="sm" asChild>
                 <Link to="/portal/dashboard">Dashboard</Link>
               </Button>

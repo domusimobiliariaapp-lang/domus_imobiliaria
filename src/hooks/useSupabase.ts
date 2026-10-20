@@ -127,7 +127,7 @@ export function useProperties(): UseQueryResult<Property[]> {
       .eq('org_id', orgId)
       .order('created_at', { ascending: false })
     return { data, error: error ? new Error(error.message) : null }
-  })
+  }, [orgId])
 }
 
 export function useProperty(id: string | null): UseQueryResult<Property> {
@@ -156,7 +156,7 @@ export function useLeases(): UseQueryResult<Lease[]> {
       .eq('org_id', orgId)
       .order('created_at', { ascending: false })
     return { data, error: error ? new Error(error.message) : null }
-  })
+  }, [orgId])
 }
 
 export function useSales(): UseQueryResult<Sale[]> {
@@ -170,7 +170,7 @@ export function useSales(): UseQueryResult<Sale[]> {
       .eq('org_id', orgId)
       .order('created_at', { ascending: false })
     return { data, error: error ? new Error(error.message) : null }
-  })
+  }, [orgId])
 }
 
 export function usePayments(): UseQueryResult<Payment[]> {
@@ -184,7 +184,7 @@ export function usePayments(): UseQueryResult<Payment[]> {
       .eq('org_id', orgId)
       .order('due_date', { ascending: false })
     return { data, error: error ? new Error(error.message) : null }
-  })
+  }, [orgId])
 }
 
 export function useNotifications(): UseQueryResult<Notification[]> {
@@ -209,7 +209,7 @@ export function useDocuments(): UseQueryResult<Document[]> {
       .eq('org_id', orgId)
       .order('created_at', { ascending: false })
     return { data, error: error ? new Error(error.message) : null }
-  })
+  }, [orgId])
 }
 
 export function useProfiles(): UseQueryResult<Profile[]> {
@@ -223,7 +223,7 @@ export function useProfiles(): UseQueryResult<Profile[]> {
       .eq('org_id', orgId)
       .order('created_at', { ascending: false })
     return { data, error: error ? new Error(error.message) : null }
-  })
+  }, [orgId])
 }
 
 /**
@@ -257,7 +257,7 @@ export function useLeaseHistory(): UseQueryResult<LeaseHistory[]> {
       .eq('org_id', orgId)
       .order('created_at', { ascending: false })
     return { data, error: error ? new Error(error.message) : null }
-  })
+  }, [orgId])
 }
 
 export function useCrmLeads(): UseQueryResult<CrmLead[]> {
