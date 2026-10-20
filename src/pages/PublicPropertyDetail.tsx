@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { Home, MapPin, Bed, Bath, Car, ArrowLeft, Calendar, Square, FileImage } from 'lucide-react'
+import { Home, MapPin, Bed, Bath, Car, ArrowLeft, Calendar, Square, FileImage, Share2, Check, ShieldCheck } from 'lucide-react'
 import { usePublicProperty } from '@/hooks/useSupabase'
+import { useSEO } from '@/hooks/useSEO'
 import { PropertyGallery } from '@/components/PropertyGallery'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -44,13 +45,13 @@ export function PublicPropertyDetail() {
   const { slug, id } = useParams<{ slug: string; id: string }>()
   const { data: property, loading, error } = usePublicProperty(slug ?? null, id ?? null)
   const [contact, setContact] = useState<{ whatsapp: string; email: string }>({ whatsapp: '', email: '' })
+  const [copiedLink, setCopiedLink] = useState(false)
 
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [])
 
-  // O contato é o da imobiliária dona do imóvel: a função global devolveria o
-  // número de outra imobiliária para quem está na vitrine desta.
+  // O contato é o da imobiliária dona do imóvel
   useEffect(() => {
     if (!slug) return
     supabase.rpc('public_contact_settings', { p_slug: slug }).maybeSingle().then(({ data }) => {
@@ -58,6 +59,83 @@ export function PublicPropertyDetail() {
       if (values) setContact({ whatsapp: values.whatsapp || '', email: values.email || '' })
     })
   }, [slug])
+
+  const hasRent = property ? property.rent_price > 0 : false
+  const hasSale = property ? property.sale_price > 0 : false
+  const hasMapPoint = property?.latitude != null && property?.longitude != null && Number.isFinite(Number(property.latitude)) && Number.isFinite(Number(property.longitude))
+
+  // Integração Open-SEO: meta tags, OpenGraph e Schema.org JSON-LD para compartilhamento e buscadores
+  useSEO({
+    title: property ? `${property.title} | Imóveis em ${property.city} - ${property.state}` : 'Detalhes do Imóvel | Domus',
+    description: property?.description
+      ? property.description.slice(0, 160)
+      : property
+      ? `${TYPE_LABELS[property.type]} com ${property.bedrooms || 0} quartos em ${property.neighborhood}, ${property.city}. Saiba mais!`
+      : undefined,
+    canonical: window.location.href,
+    og: {
+      title: property?.title,
+      description: property?.description?.slice(0, 160),
+      image: property?.images?.[0],
+      type: 'article',
+      url: window.location.href,
+    },
+    jsonLd: property
+      ? {
+          '@context': 'https://schema.org',
+          '@type': 'RealEstateListing',
+          name: property.title,
+          description: property.description,
+          image: property.images || [],
+          url: window.location.href,
+          datePosted: property.created_at,
+          offers: {
+            '@type': 'Offer',
+            price: property.sale_price || property.rent_price,
+            priceCurrency: 'BRL',
+            businessFunction: hasRent
+              ? 'http://purl.org/goodrelations/v1#LeaseOut'
+              : 'http://purl.org/goodrelations/v1#Sell',
+          },
+          address: {
+            '@type': 'PostalAddress',
+            streetAddress: `${property.address || ''}${property.address_number ? `, ${property.address_number}` : ''}`,
+            addressLocality: property.city,
+            addressRegion: property.state,
+            postalCode: property.zip_code,
+            addressCountry: 'BR',
+          },
+          ...(hasMapPoint
+            ? {
+                geo: {
+                  '@type': 'GeoCoordinates',
+                  latitude: property.latitude,
+                  longitude: property.longitude,
+                },
+              }
+            : {}),
+        }
+      : undefined,
+  })
+
+  const handleShare = async () => {
+    const url = window.location.href
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: property?.title || 'Imóvel',
+          text: `Confira este imóvel: ${property?.title}`,
+          url,
+        })
+        return
+      } catch {
+        // Fallback para cópia
+      }
+    }
+    await navigator.clipboard.writeText(url)
+    setCopiedLink(true)
+    setTimeout(() => setCopiedLink(false), 3000)
+  }
 
   // Log error if any
   if (error) {
@@ -78,7 +156,7 @@ export function PublicPropertyDetail() {
         <div className="text-center">
           <p className="text-lg font-medium text-red-600">Erro ao carregar imóvel</p>
           <p className="text-sm text-muted-foreground mt-2">{error.message}</p>
-          <Link to="/login" className="mt-6 inline-block">
+          <Link to={slug ? `/${slug}/imoveis` : '/login'} className="mt-6 inline-block">
             <Button className="bg-[#AD7B3B] hover:bg-[#AD7B3B]/90 text-white">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Voltar para imóveis
@@ -96,7 +174,7 @@ export function PublicPropertyDetail() {
           <Home className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
           <h2 className="text-2xl font-serif font-medium text-primary mb-2">Imóvel não encontrado</h2>
           <p className="text-muted-foreground mb-6">Este imóvel pode ter sido removido ou não existe.</p>
-          <Link to="/login">
+          <Link to={slug ? `/${slug}/imoveis` : '/login'}>
             <Button className="bg-[#AD7B3B] hover:bg-[#AD7B3B]/90 text-white">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Voltar para imóveis
@@ -123,9 +201,6 @@ export function PublicPropertyDetail() {
   }
 
   const features = property.features || []
-  const hasRent = property.rent_price > 0
-  const hasSale = property.sale_price > 0
-  const hasMapPoint = property.latitude != null && property.longitude != null && Number.isFinite(Number(property.latitude)) && Number.isFinite(Number(property.longitude))
   const fullAddress = [property.address, property.address_number, property.neighborhood, property.city, property.state, property.zip_code, 'Brasil'].filter(Boolean).join(', ')
   const detailItems = [
     property.suites ? `${property.suites} suíte${property.suites === 1 ? '' : 's'}` : null,
@@ -136,9 +211,39 @@ export function PublicPropertyDetail() {
     property.parking_covered ? 'Vaga coberta' : property.parking ? 'Vaga descoberta' : null,
   ].filter(Boolean) as string[]
 
+  const monthlyTotal = hasRent
+    ? property.rent_price +
+      (property.condo_fee || 0) +
+      (property.iptu || 0) +
+      (property.gas_fee || 0) +
+      (property.water_fee || 0) +
+      (property.electricity_fee || 0) +
+      (property.other_fees || 0)
+    : 0
+
   return (
     <div className="min-h-screen bg-[#EEECE5]">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* Barra superior de Navegação e Compartilhamento */}
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+          <Link
+            to={slug ? `/${slug}/imoveis` : '/login'}
+            className="inline-flex items-center gap-2 text-sm font-medium text-primary/80 hover:text-primary transition-colors bg-white/70 backdrop-blur-xs px-3.5 py-2 rounded-lg border border-border/40 shadow-2xs hover:shadow-xs"
+          >
+            <ArrowLeft className="h-4 w-4 text-[#AD7B3B]" />
+            Voltar para o catálogo de imóveis
+          </Link>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleShare}
+            className="bg-white/80 border-border/60 hover:bg-white text-xs gap-2 shadow-2xs"
+          >
+            {copiedLink ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Share2 className="h-3.5 w-3.5 text-[#AD7B3B]" />}
+            {copiedLink ? 'Link copiado!' : 'Compartilhar este imóvel'}
+          </Button>
+        </div>
+
         {/* Galeria de Fotos */}
         <div className="mb-8">
           <PropertyGallery
@@ -307,22 +412,40 @@ export function PublicPropertyDetail() {
           <div className="space-y-6">
             {/* Preços */}
             {(hasRent || hasSale) && (
-              <div className="bg-white rounded-lg p-6 border border-border/40 sticky top-24">
-                <h2 className="font-serif text-xl font-medium text-primary mb-4">Valores</h2>
+              <div className="bg-white rounded-lg p-6 border border-border/40 shadow-xs sticky top-24">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="font-serif text-xl font-medium text-primary">Valores</h2>
+                  <span className="text-[11px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                    <ShieldCheck className="h-3 w-3" /> Negociação Direta
+                  </span>
+                </div>
                 <div className="space-y-4">
                   {hasRent && (
                     <div className="border-b border-border/40 pb-4">
-                      <div className="text-sm text-muted-foreground mb-1">Aluguel</div>
+                      <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-1">Aluguel</div>
                       <div className="text-3xl font-semibold text-primary">
                         {formatCurrency(property.rent_price)}
+                        <span className="text-xs font-normal text-muted-foreground ml-1">/mês</span>
                       </div>
-                      <div className="text-xs text-muted-foreground">/mês</div>
+
+                      {/* Estimativa de custo total mensal para locatário */}
+                      {monthlyTotal > property.rent_price && (
+                        <div className="mt-3 p-3 bg-muted/40 rounded-lg border border-border/30">
+                          <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+                            <span>Estimativa total mensal:</span>
+                            <span className="font-semibold text-primary text-sm">{formatCurrency(monthlyTotal)}</span>
+                          </div>
+                          <p className="text-[11px] text-muted-foreground">
+                            Inclui aluguel + taxas discriminadas.
+                          </p>
+                        </div>
+                      )}
                     </div>
                   )}
                   {hasSale && (
                     <div>
-                      <div className="text-sm text-muted-foreground mb-1">Venda</div>
-                      <div className="text-3xl font-semibold text-emerald-600">
+                      <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-1">Valor de Venda</div>
+                      <div className="text-3xl font-semibold text-emerald-700">
                         {formatCurrency(property.sale_price)}
                       </div>
                     </div>
@@ -332,9 +455,15 @@ export function PublicPropertyDetail() {
                 {/* CTA */}
                 <div className="mt-6 space-y-3">
                   <Button
-                    className="w-full bg-[#AD7B3B] hover:bg-[#AD7B3B]/90 text-white font-medium"
+                    className="w-full bg-[#AD7B3B] hover:bg-[#AD7B3B]/90 text-white font-medium shadow-xs"
                     size="lg"
-                    onClick={() => contact.whatsapp && window.open(`https://wa.me/${contact.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`Olá! Tenho interesse no imóvel ${property.title}`)}`, '_blank')}
+                    onClick={() => {
+                      if (!contact.whatsapp) return
+                      const humanizedMsg = encodeURIComponent(
+                        `Olá! Vi o imóvel "${property.title}" (${TYPE_LABELS[property.type]}) no portal da imobiliária e gostaria de mais informações e verificar a disponibilidade de visita.`
+                      )
+                      window.open(`https://wa.me/${contact.whatsapp.replace(/\D/g, '')}?text=${humanizedMsg}`, '_blank')
+                    }}
                     disabled={!contact.whatsapp}
                   >
                     <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
