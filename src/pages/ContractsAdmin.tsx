@@ -569,7 +569,7 @@ export function ContractsAdmin() {
         </div>
       }
       emptyStateMessage="Nenhum contrato cadastrado"
-      renderActions={(item: any) => (
+      renderActions={(item: any, { edit, delete: deleteItem }) => (
         <div className="flex items-center gap-1">
           <Button
             variant="ghost"
@@ -583,12 +583,7 @@ export function ContractsAdmin() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => {
-              const methods = (globalThis as any).__crudPageMethods
-              if (methods?.openEdit) {
-                methods.openEdit(item)
-              }
-            }}
+            onClick={() => edit(item)}
             className="text-muted-foreground hover:text-primary transition-transform hover:scale-110 active:scale-95"
             title="Editar"
           >
@@ -600,12 +595,7 @@ export function ContractsAdmin() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => {
-              const methods = (globalThis as any).__crudPageMethods
-              if (methods?.deleteItem) {
-                methods.deleteItem(item.id)
-              }
-            }}
+            onClick={() => deleteItem(item)}
             className="text-muted-foreground hover:text-destructive transition-transform hover:scale-110 active:scale-95"
             title="Excluir"
           >
