@@ -191,6 +191,7 @@ export function ContractsAdmin() {
     const { data: result, error } = await create(data)
     if (error) throw error
     await syncPropertyStatus(result.property_id)
+    void refetch()
     return result
   }
 
@@ -204,6 +205,7 @@ export function ContractsAdmin() {
     if (anterior?.property_id && anterior.property_id !== result.property_id) {
       await syncPropertyStatus(anterior.property_id)
     }
+    void refetch()
     return result
   }
 
@@ -214,6 +216,7 @@ export function ContractsAdmin() {
     const { error } = await remove(id)
     if (error) throw error
     await syncPropertyStatus(alvo?.property_id)
+    void refetch()
   }
 
   const renderForm = ({
@@ -538,12 +541,16 @@ export function ContractsAdmin() {
       subtitle="Cadastre e gerencie os contratos de locação"
       columns={columns}
       fetchData={async () => {
-        await refetch()
-        const enriched = (leases || []).map(lease => ({
+        const { data: dbLeases, error: errLeases } = await supabase
+          .from('leases')
+          .select('*')
+          .order('created_at', { ascending: false })
+        if (errLeases) throw new Error(errLeases.message)
+        const enriched = (dbLeases || []).map((lease) => ({
           ...lease,
-          property: properties?.find(p => p.id === lease.property_id),
-          tenant: profiles?.find(p => p.id === lease.tenant_id),
-          landlord: profiles?.find(p => p.id === lease.landlord_id),
+          property: properties?.find((p) => p.id === lease.property_id),
+          tenant: profiles?.find((p) => p.id === lease.tenant_id),
+          landlord: profiles?.find((p) => p.id === lease.landlord_id),
         }))
         return enriched
       }}

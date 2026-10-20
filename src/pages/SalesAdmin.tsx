@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { supabase } from '@/integrations/supabase/client'
 import * as React from 'react'
 import { useState } from 'react'
 
@@ -27,7 +28,7 @@ const SALE_STATUSES: { value: SaleStatus; label: string }[] = [
 const FILTER_STATUS = SALE_STATUSES
 
 export function SalesAdmin() {
-  const { data: sales, error, refetch } = useSales()
+  const { error, refetch } = useSales()
   const { data: properties } = useProperties()
   const { data: profiles } = useProfiles()
   const { create } = useCreateEntity('sales')
@@ -74,18 +75,21 @@ export function SalesAdmin() {
   const handleCreate = async (data: Partial<Sale>) => {
     const { data: result, error } = await create(data)
     if (error) throw error
+    void refetch()
     return result
   }
 
   const handleUpdate = async (id: string, data: Partial<Sale>) => {
     const { data: result, error } = await update(id, data)
     if (error) throw error
+    void refetch()
     return result
   }
 
   const handleDelete = async (id: string) => {
     const { error } = await remove(id)
     if (error) throw error
+    void refetch()
   }
 
   const renderForm = ({
@@ -255,12 +259,16 @@ export function SalesAdmin() {
           subtitle=""
           columns={columns}
           fetchData={async () => {
-            await refetch()
-            const enriched = (sales || []).map(sale => ({
+            const { data: dbSales, error: errSales } = await supabase
+              .from('sales')
+              .select('*')
+              .order('created_at', { ascending: false })
+            if (errSales) throw new Error(errSales.message)
+            const enriched = (dbSales || []).map((sale) => ({
               ...sale,
-              property: properties?.find(p => p.id === sale.property_id),
-              buyer: profiles?.find(p => p.id === sale.buyer_id),
-              seller: profiles?.find(p => p.id === sale.seller_id),
+              property: properties?.find((p) => p.id === sale.property_id),
+              buyer: profiles?.find((p) => p.id === sale.buyer_id),
+              seller: profiles?.find((p) => p.id === sale.seller_id),
             }))
             return enriched
           }}

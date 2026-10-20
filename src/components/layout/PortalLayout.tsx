@@ -8,7 +8,7 @@ interface PortalLayoutProps {
 }
 
 export function PortalLayout({ children }: PortalLayoutProps) {
-  const { signOut, organization } = useAuth()
+  const { signOut, organization, profile } = useAuth()
   const navigate = useNavigate()
 
   const handleLogout = async () => {
@@ -39,9 +39,11 @@ export function PortalLayout({ children }: PortalLayoutProps) {
               <Button variant="ghost" size="sm" asChild>
                 <Link to="/portal/payments">Pagamentos</Link>
               </Button>
-              <Button variant="ghost" size="sm" asChild>
-                <Link to="/portal/repasses">Repasses</Link>
-              </Button>
+              {profile?.tipo_relacao !== 'locatario' && (
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/portal/repasses">Repasses</Link>
+                </Button>
+              )}
               <Button variant="ghost" size="sm" asChild>
                 <Link to="/portal/documents">Documentos</Link>
               </Button>
