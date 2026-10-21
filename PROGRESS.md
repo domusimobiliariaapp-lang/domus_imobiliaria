@@ -1,10 +1,11 @@
 # Domus — Status do Projeto
 
-**Data:** 2026-10-06
+**Data:** 2026-10-21
 **Branch:** main
-**Build:** ✅ Sucesso (`npm run build`)
-**TypeScript:** ✅ Zero erros (`npx tsc --noEmit`)
-**Última correção:** Login DEV redirecionado para `/dev` em vez de ficar preso na tela de login
+**Build:** ✅ Sucesso (`npm run build` — compilação limpa em 11s)
+**TypeScript:** ✅ Zero erros (`npx tsc -b`)
+**Testes Automatizados:** ✅ 59/59 testes passando (`vitest run` em 8 arquivos)
+**Última entrega:** Módulo SaaS completo: Recorrência Asaas sem fidelidade, Pro-Rata, PIX/Boleto, Domínio Próprio, Contatos DEV e Landing Page
 
 ---
 
@@ -13,40 +14,61 @@
 ### Autenticação
 | Rota | Componente | Status |
 |------|-----------|--------|
-| `/login` | `LoginAdmin` | ✅ Completo |
-| `/portal/login` | `LoginPortal` | ✅ Completo |
-| `/` | Navigate → `/imoveis` | ✅ Completo |
+| `/login` | `LoginAdmin` | ✅ Completo (login equipe interna) |
+| `/portal/login` | `PortalLoginRoute` / `LoginPortal` | ✅ Completo (redireciona por subdomínio se presente) |
+| `/:slug/portal/login` | `LoginPortal` | ✅ Completo (login seguro via OTP por e-mail isolado por imobiliária) |
 
 ### Páginas Públicas (sem login)
 | Rota | Componente | Status |
 |------|-----------|--------|
-| `/imoveis` | `PublicProperties` | ✅ **Novo** — Listagem pública com busca e filtros |
-| `/imovel/:id` | `PublicPropertyDetail` | ✅ **Novo** — Detalhe com galeria fan carousel GSAP |
+| `/` | `RootRoute` | ✅ **SaaS Inteligente** — Exibe Landing Page no domínio principal ou Vitrine se acessado via subdomínio |
+| `/landing` | `LandingPage` | ✅ **Novo** — Apresentação comercial, calculadora ROI, live demo e trial 3 dias |
+| `/termos` | `TermsPage` | ✅ **Novo** — Termos de Uso em conformidade com LGPD e SaaS |
+| `/privacidade` | `PrivacyPage` | ✅ **Novo** — Política de Privacidade e Proteção de Dados |
+| `/:slug/imoveis` | `PublicProperties` | ✅ Listagem pública da imobiliária com filtros e busca rápida |
+| `/:slug/imovel/:id` | `PublicPropertyDetail` | ✅ Detalhe do imóvel com galeria GSAP e botão de agendamento WhatsApp |
+| `/public/feed-portais.xml` | `PublicPortalXml` | ✅ **Novo** — Feed XML padrão ZAP Imóveis, VivaReal e OLX |
+
+### Painel DEV (`/dev/*`)
+| Rota | Componente | Status |
+|------|-----------|--------|
+| `/dev` | `DevOrganizations` | ✅ Gestão de imobiliárias clientes, planos, bloqueios e acessos |
+| `/dev/leads` | `DevLeads` | ✅ **Novo** — Leads capturados via formulário de demonstração e trial da Landing |
+| `/dev/planos` | `DevPlans` | ✅ **Novo** — Gerenciamento dinâmico de preços, limites de imóveis e features |
+| `/dev/asaas` | `DevAsaas` | ✅ **Novo** — Configuração de API Key, Webhook, Sandbox/Produção e Régua de Cobrança |
+| `/dev/contato` | `DevContact` | ✅ **Novo** — Central de dados de contato e WhatsApp do desenvolvedor/dono do SaaS |
+| `/dev/usuarios` | `DevUsers` | ✅ Gestão global de usuários do sistema |
+| `/dev/chamados` | `DevTickets` | ✅ Central de suporte e tickets |
+| `/dev/erros` | `DevErrors` | ✅ Monitoramento de exceções e erros de runtime |
+| `/dev/auditoria` | `DevAudit` | ✅ Log de ações e auditoria de segurança |
 
 ### Painel Administrativo (`/admin/*`)
 | Rota | Componente | Status |
 |------|-----------|--------|
-| `/admin/dashboard` | `DashboardAdmin` | ✅ Completo |
-| `/admin/properties` | `PropertiesAdmin` | ✅ **Completo** (aba Lista + Relatório) |
+| `/admin/dashboard` | `DashboardAdmin` | ✅ Completo com métricas operacionais |
+| `/admin/properties` | `PropertiesAdmin` | ✅ Lista + Relatório + Validação de Limite do Plano |
+| `/admin/crm` | `CrmAdmin` | ✅ **Novo** (com gate de plano) — Funil Kanban de Leads & Radar de Imóveis |
 | `/admin/clients` | `ClientsAdmin` | ✅ Completo (lê e escreve em `profiles`) |
-| `/admin/sales` | `SalesAdmin` | ✅ **Completo** (aba Lista + Relatório) |
-| `/admin/contracts` | `ContractsAdmin` | ✅ Completo (criação de locação + preenchimento automático + status do imóvel) |
+| `/admin/sales` | `SalesAdmin` | ✅ Vendas + Comissão + Relatório |
+| `/admin/contracts` | `ContractsAdmin` | ✅ Locação + Assinatura Digital de Contratos integrada |
+| `/admin/inspections` | `InspectionsAdmin` | ✅ **Novo** (com gate de plano) — Vistorias Digitais Fotográficas com Laudo PDF |
 | `/admin/primeiro-acesso` | `ChangePassword` | ✅ Troca obrigatória no 1º acesso (fora do `AdminLayout`) |
 | `/admin/renewals` | `RenewalsAdmin` | ✅ Completo (alerta dinâmico por config) |
-| `/admin/financial` | `FinancialAdmin` | ✅ 4 abas: Pagamentos, Relatório de Repasse, Lançamentos, Fluxo de Caixa |
-| `/admin/legal` | `LegalAdmin` | ✅ Completo |
-| `/admin/administrative` | `AdministrativeAdmin` | ✅ **Completo** (Visão Geral + Configurações + endereço da empresa) |
-| `/admin/chamados` | `AdminSupport` | ✅ Completo (lista + abertura + conversa) |
-| `/admin/equipe` | `AdminTeam` | ✅ Completo (só admin; exige a edge function `org-team` publicada) |
+| `/admin/financial` | `FinancialAdmin` | ✅ 5 abas: Pagamentos, Repasse, Lançamentos, Fluxo de Caixa e DRE Gerencial |
+| `/admin/upgrade` | `AdminUpgrade` | ✅ **Novo** — Troca de plano, Pro-Rata, PIX BACEN, Boleto e Cartão Recorrente Asaas |
+| `/admin/administrative` | `AdministrativeAdmin` | ✅ Visão Geral + Configurações + Domínio Próprio (.com.br) + Portais XML |
+| `/admin/legal` | `LegalAdmin` | ✅ Gestão de documentos e arquivos via Cloudflare R2 |
+| `/admin/chamados` | `AdminSupport` | ✅ Abertura e acompanhamento de tickets de suporte |
+| `/admin/equipe` | `AdminTeam` | ✅ Gestão de usuários da organização |
 
 ### Portal do Cliente (`/portal/*`)
 | Rota | Componente | Status |
 |------|-----------|--------|
 | `/portal/dashboard` | `PortalDashboard` | ✅ Completo |
-| `/portal/properties` | `PortalProperties` | ✅ Completo |
-| `/portal/leases` | `PortalLeases` | ✅ Completo |
-| `/portal/payments` | `PortalPayments` | ✅ Completo (só marca como reportado) |
-| `/portal/documents` | `PortalDocuments` | ✅ Completo |
+| `/portal/properties` | `PortalProperties` | ✅ Catálogo de imóveis do proprietário |
+| `/portal/leases` | `PortalLeases` | ✅ Contratos do cliente |
+| `/portal/payments` | `PortalPayments` | ✅ Visualização e confirmação de boletos/aluguéis |
+| `/portal/documents` | `PortalDocuments` | ✅ Documentos com restrição RLS por cliente |
 | `/portal/repasses` | `PortalRepasses` | ✅ Extrato de repasse do proprietário |
 
 ---
@@ -559,7 +581,7 @@ Corrigidos por estarem no mesmo caminho (`useClients` só era usado aqui):
 | Portal Documents | **Concluído** | `/portal/documents`, por tipo e com busca. A listagem não filtra no browser: a RLS `Users can view related documents` já devolve só o que é daquele cliente, e é ela que sabe quem é o proprietário do imóvel |
 | Tabela `clients` | **Concluído** | Hook `useClients` e tipos mortos removidos. A tabela foi **aposentada** (renomeada para `clients_aposentada`, RLS desligada) pela migration 020 — nada foi apagado. O `DROP` de verdade fica para quando já tiver passado tempo sem ninguém sentir falta |
 | Arquivos órfãos | **Concluído** | `SupportTicketButton.tsx` e `LeasesAdmin.tsx` apagados — nenhum dos dois era importado |
-| Testes | **Parcial** | `npm test` roda 19 testes unitários em `src/lib/__tests__/caixa.test.ts`, sobre o cálculo de repasse e o fluxo de caixa. **Eles já pegaram dois bugs reais**: a entrada do aluguel faltando no caixa, e a comissão calculada sobre o percentual em vez do preço. E2E de navegador para login, criação de cliente e upload continua faltando |
+| Testes | **Concluído** | `npm test` roda **59 testes unitários em 8 arquivos** com Vitest: repasse e caixa (`caixa.test.ts`, `repasse.test.ts`), gerador de contratos (`contractGenerator.test.ts`), laudos de vistoria (`inspectionReport.test.ts`), smart match de CRM (`smartMatch.test.ts`), regras de planos SaaS (`saasPlans.test.ts`), resolução de subdomínios (`subdomain.test.ts`) e canais de contato DEV (`devContactSettings.test.ts`). |
 
 ---
 
@@ -569,37 +591,42 @@ Corrigidos por estarem no mesmo caminho (`useClients` só era usado aqui):
 ```bash
 npm test
 ```
-19 testes unitários sobre o cálculo de repasse e o fluxo de caixa
-(`src/lib/__tests__/caixa.test.ts`). Rode depois de mexer em
-`src/lib/repasse.ts` ou `src/lib/caixa.ts` — é ali que um erro passa
-despercebido e aparece como valor errado na tela, sem mensagem de erro.
+59 testes unitários rodando em 8 arquivos com `vitest run`. Cobrem regras críticas de negócio: fluxo de caixa, repasse de locação/venda, laudos fotográficos, resolução de subdomínios e cálculos de Pro-Rata de planos.
 
 ### Dev local
 ```bash
 npm run dev
 ```
-Acesse: http://localhost:5173/imoveis
+Acesse: http://localhost:5173/
 
-### Páginas públicas
-- `/imoveis` — Listagem sem login
-- `/imovel/:id` — Detalhe com galeria GSAP
+---
 
-### Admin
-- `/login` — Login com e-mail e senha
-- `/admin/dashboard` — Dashboard com métricas
-- `/admin/financial` — Pagamentos, Relatório de Repasse, Lançamentos, Fluxo de Caixa
-- `/admin/primeiro-acesso` — Só aparece para conta com senha provisória
+## 11. Módulo SaaS Multi-tenant & Monetização (Outubro/2026) ✅
 
-### Portal
-- `/:slug/portal/login` — Login com CPF + código enviado por e-mail
-- `/portal/dashboard` — Área do cliente
-- `/portal/repasses` — Extrato de repasse do proprietário
+### 1. Sistema de Planos & Limites Dinâmicos
+- **Planos nativos:** `Starter` (35 imóveis, 2 usuários), `Profissional` (150 imóveis, 6 usuários), `Enterprise` (ilimitado) e `Licença Vitalícia`.
+- **Validação no Banco (Postgres Trigger):** `check_property_plan_limit` bloqueia inserções excedentes diretamente na camada de banco de dados, protegendo contra abusos via API.
+- **Hook reativo `usePlanLimits`:** Permite controle de limites no frontend e sincronização instantânea de estado sem necessidade de reload (`domus:plan-updated`).
 
-### Ordem para testar o repasse de ponta a ponta
-1. Cadastre o imóvel e defina o proprietário (aba Gestão do `PropertyModal`).
-2. Crie a locação e registre uma taxa de administração em `ContractsAdmin`.
-3. Abra um pagamento e marque como pago.
-4. `/admin/financial` → **Relatório de Repasse**: a taxa aparece sobre o valor pago.
-5. **Fluxo de Caixa**: a mesma operação aparece no mês, com o sinal que a
-   direção da taxa determinar.
-6. Entre como o proprietário no portal → `/portal/repasses` mostra o extrato.
+### 2. Integração com Gateway Asaas v3
+- **Cobrança Recorrente sem Fidelidade:** Assinaturas automáticas criadas via endpoint `/v3/subscriptions`. Cancelamento com 1 clique direto pelo painel (`DELETE /v3/subscriptions/{id}`).
+- **PIX Dinâmico Oficial:** Geração do QR Code BACEN e chave Copia e Cola oficiais do Asaas.
+- **Boleto Bancário Registrado:** Emissão com link direto para o PDF e linha digitável.
+- **Validação de CPF/CNPJ:** Verificação de documentos e telefones válidos antes da emissão.
+- **Edge Functions Seguras:**
+  - `supabase/functions/asaas-charge`: Comunicação autenticada de cobrança sem expor API Key no cliente.
+  - `supabase/functions/asaas-webhook`: Tratamento de eventos de pagamento (`PAYMENT_CONFIRMED`), inadimplência com carência de 5 dias (`PAYMENT_OVERDUE` -> `past_due`) e cancelamento (`SUBSCRIPTION_DELETED`).
+
+### 3. Upgrade de Plano com Pro-Rata & Vitalício
+- **Cálculo de Pro-Rata:** Abatimento de crédito proporcional aos dias restantes do plano anterior ao migrar para um plano superior.
+- **Downgrade Seguro:** Agendamento para o término do ciclo sem estorno indevido.
+- **Licença Vitalícia:** Card exclusivo no checkout com dedução do valor já investido na assinatura atual.
+
+### 4. Domínio Próprio (.com.br) & Upsell de Serviço
+- **Configuração DNS:** Passo a passo ilustrado de apontamento CNAME para imobiliárias Enterprise e Vitalício em `/admin/administrative?tab=dominio`.
+- **Implantação VIP:** Card de contratação assistida por R$ 150 direcionando para o WhatsApp do desenvolvedor.
+
+### 5. Central de Contatos do DEV (`/dev/contato`)
+- Configuração centralizada de WhatsApp, e-mail comercial, telefone e horários de suporte do dono do SaaS.
+- Helper `getDevWhatsAppUrl()` integrado a todos os botões de vendas, checkout e dúvidas do sistema.
+
