@@ -28,23 +28,27 @@ COMMENT ON TABLE public.saas_plans IS
 ALTER TABLE public.saas_plans ENABLE ROW LEVEL SECURITY;
 
 -- Leitura pública (Landing page e clientes precisam ver planos ativos; DEV vê todos)
+DROP POLICY IF EXISTS "saas_plans_select_all" ON public.saas_plans;
 CREATE POLICY "saas_plans_select_all"
   ON public.saas_plans
   FOR SELECT
   USING (active = TRUE OR is_dev());
 
 -- Apenas a conta DEV pode alterar, criar ou remover planos
+DROP POLICY IF EXISTS "saas_plans_insert_dev" ON public.saas_plans;
 CREATE POLICY "saas_plans_insert_dev"
   ON public.saas_plans
   FOR INSERT
   WITH CHECK (is_dev());
 
+DROP POLICY IF EXISTS "saas_plans_update_dev" ON public.saas_plans;
 CREATE POLICY "saas_plans_update_dev"
   ON public.saas_plans
   FOR UPDATE
   USING (is_dev())
   WITH CHECK (is_dev());
 
+DROP POLICY IF EXISTS "saas_plans_delete_dev" ON public.saas_plans;
 CREATE POLICY "saas_plans_delete_dev"
   ON public.saas_plans
   FOR DELETE

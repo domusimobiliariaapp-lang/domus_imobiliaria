@@ -25,23 +25,27 @@ COMMENT ON TABLE public.saas_leads IS
 ALTER TABLE public.saas_leads ENABLE ROW LEVEL SECURITY;
 
 -- Visitantes do site podem inserir solicitações (anônimo ou autenticado)
+DROP POLICY IF EXISTS "saas_leads_insert_public" ON public.saas_leads;
 CREATE POLICY "saas_leads_insert_public"
   ON public.saas_leads
   FOR INSERT
   WITH CHECK (TRUE);
 
 -- Apenas a conta DEV pode visualizar e gerenciar os leads do SaaS
+DROP POLICY IF EXISTS "saas_leads_select_dev" ON public.saas_leads;
 CREATE POLICY "saas_leads_select_dev"
   ON public.saas_leads
   FOR SELECT
   USING (is_dev());
 
+DROP POLICY IF EXISTS "saas_leads_update_dev" ON public.saas_leads;
 CREATE POLICY "saas_leads_update_dev"
   ON public.saas_leads
   FOR UPDATE
   USING (is_dev())
   WITH CHECK (is_dev());
 
+DROP POLICY IF EXISTS "saas_leads_delete_dev" ON public.saas_leads;
 CREATE POLICY "saas_leads_delete_dev"
   ON public.saas_leads
   FOR DELETE
