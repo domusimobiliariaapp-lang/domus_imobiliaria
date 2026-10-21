@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { Home, MapPin, Bed, Bath, Car, ArrowLeft, Calendar, Square, FileImage, Share2, Check, ShieldCheck } from 'lucide-react'
+import { Home, MapPin, Bed, Bath, Car, ArrowLeft, Calendar, Square, FileImage, Share2, Check, ShieldCheck, MessageCircle } from 'lucide-react'
 import { usePublicProperty } from '@/hooks/useSupabase'
 import { useSEO } from '@/hooks/useSEO'
 import { PropertyGallery } from '@/components/PropertyGallery'
@@ -77,8 +77,11 @@ export function PublicPropertyDetail() {
       title: property?.title,
       description: property?.description?.slice(0, 160),
       image: property?.images?.[0],
+      imageWidth: '1200',
+      imageHeight: '630',
       type: 'article',
       url: window.location.href,
+      siteName: slug ? `${slug.toUpperCase()} Imobiliária` : 'Domus Imobiliária',
     },
     jsonLd: property
       ? {
@@ -117,6 +120,21 @@ export function PublicPropertyDetail() {
         }
       : undefined,
   })
+
+  const shareOnWhatsApp = () => {
+    const priceText = property?.sale_price
+      ? `R$ ${property.sale_price.toLocaleString('pt-BR')}`
+      : property?.rent_price
+      ? `R$ ${property.rent_price.toLocaleString('pt-BR')}/mês`
+      : ''
+    const text = encodeURIComponent(
+      `Confira este imóvel: *${property?.title || 'Imóvel'}*\n` +
+      (priceText ? `Valor: *${priceText}*\n` : '') +
+      `Local: ${property?.neighborhood || ''}, ${property?.city || ''} - ${property?.state || ''}\n\n` +
+      `Veja fotos e detalhes completos:\n${window.location.href}`
+    )
+    window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank')
+  }
 
   const handleShare = async () => {
     const url = window.location.href
@@ -233,15 +251,27 @@ export function PublicPropertyDetail() {
             <ArrowLeft className="h-4 w-4 text-[#AD7B3B]" />
             Voltar para o catálogo de imóveis
           </Link>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleShare}
-            className="bg-white/80 border-border/60 hover:bg-white text-xs gap-2 shadow-2xs"
-          >
-            {copiedLink ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Share2 className="h-3.5 w-3.5 text-[#AD7B3B]" />}
-            {copiedLink ? 'Link copiado!' : 'Compartilhar este imóvel'}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={shareOnWhatsApp}
+              className="bg-white/80 border-border/60 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 text-xs gap-1.5 shadow-2xs cursor-pointer"
+              title="Compartilhar direto no WhatsApp"
+            >
+              <MessageCircle className="h-3.5 w-3.5 text-emerald-600" />
+              <span>WhatsApp</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleShare}
+              className="bg-white/80 border-border/60 hover:bg-white text-xs gap-1.5 shadow-2xs cursor-pointer"
+            >
+              {copiedLink ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Share2 className="h-3.5 w-3.5 text-[#AD7B3B]" />}
+              {copiedLink ? 'Link copiado!' : 'Copiar link'}
+            </Button>
+          </div>
         </div>
 
         {/* Galeria de Fotos */}

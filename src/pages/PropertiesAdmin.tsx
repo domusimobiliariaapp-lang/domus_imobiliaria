@@ -1,5 +1,5 @@
 import { CRUDPage } from '@/components/CRUDPage'
-import { Home, AlertCircle, Share2, Edit2, Trash2, Printer } from 'lucide-react'
+import { Home, AlertCircle, Share2, Edit2, Trash2, Printer, Globe } from 'lucide-react'
 import { useProperties, useCreateEntity, useUpdateEntity, useDeleteEntity } from '@/hooks/useSupabase'
 import type { Property } from '@/types'
 import { Button } from '@/components/ui/button'
@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/components/ui/toast'
 import { PropertyModal } from '@/components/PropertyModal'
+import { PortalIntegrationsTab } from '@/components/PortalIntegrationsTab'
 import * as React from 'react'
 import { useState } from 'react'
 import { supabase } from '@/integrations/supabase/client'
@@ -48,7 +49,7 @@ const FILTER_PURPOSE = [
 ]
 
 export function PropertiesAdmin() {
-  const { error, refetch } = useProperties()
+  const { data: properties = [], error, refetch } = useProperties()
   const { create } = useCreateEntity('properties')
   const { update } = useUpdateEntity('properties')
   const { remove } = useDeleteEntity('properties')
@@ -215,6 +216,10 @@ export function PropertiesAdmin() {
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
           <TabsTrigger value="lista">Lista</TabsTrigger>
+          <TabsTrigger value="portais" className="gap-2">
+            <Globe className="h-4 w-4" />
+            Portais & Feed XML
+          </TabsTrigger>
           <TabsTrigger value="relatorio">Relatório</TabsTrigger>
         </TabsList>
       </Tabs>
@@ -257,6 +262,8 @@ export function PropertiesAdmin() {
             renderActions={propertyActions}
           />
         </div>
+      ) : tab === 'portais' ? (
+        <PortalIntegrationsTab properties={properties || []} />
       ) : (
         <PropertiesReportView />
       )}

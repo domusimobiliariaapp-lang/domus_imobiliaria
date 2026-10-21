@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { LifeBuoy } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { DomusSidebar } from '@/components/layout/DomusSidebar'
+import { TrialBanner } from '@/components/layout/TrialBanner'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 
@@ -113,6 +114,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             </div>
           </div>
         </header>
+
+        <TrialBanner />
 
         <main className="container-domus py-6">{children}</main>
       </div>

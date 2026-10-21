@@ -1,5 +1,48 @@
 export type UserRole = 'dev' | 'admin' | 'corretor' | 'financeiro' | 'juridico' | 'cliente'
 
+export type SubscriptionStatus = 'trial' | 'active' | 'past_due' | 'canceled' | 'blocked'
+
+export interface SaasPlanFeatures {
+  crm?: boolean
+  portal?: boolean
+  vistorias?: boolean
+  subdomain?: boolean
+  custom_domain?: boolean
+}
+
+export interface SaasPlan {
+  id: string
+  name: string
+  description?: string
+  price_monthly: number
+  price_annual_monthly: number
+  max_properties?: number | null
+  max_users?: number | null
+  features: SaasPlanFeatures
+  popular?: boolean
+  badge?: string | null
+  active?: boolean
+  created_at?: string
+  updated_at?: string
+}
+
+export type LeadStatus = 'novo' | 'contatado' | 'convertido' | 'descartado'
+
+export interface SaasLead {
+  id: string
+  name: string
+  email: string
+  phone: string
+  agency_name: string
+  subdomain: string
+  portfolio_size: string
+  plan_id: string
+  status: LeadStatus
+  notes?: string | null
+  created_at: string
+  updated_at?: string
+}
+
 /** Uma imobiliária. Toda linha de negócio pertence a exatamente uma. */
 export interface Organization {
   id: string
@@ -12,6 +55,9 @@ export interface Organization {
   logo_url?: string
   address?: string
   active: boolean
+  plan_id?: string
+  subscription_status?: SubscriptionStatus
+  trial_ends_at?: string | null
   created_at: string
   updated_at?: string
 }
@@ -206,12 +252,15 @@ export interface Lease {
 }
 
 export interface LeaseSigner {
+  id?: string
   name: string
   email: string
   cpf?: string
   role: 'locatario' | 'locador' | 'fiador' | 'testemunha' | 'imobiliaria'
   status: 'pendente' | 'assinado' | 'recusado'
   signed_at?: string
+  ip_address?: string
+  signature_hash?: string
 }
 
 export interface Sale {

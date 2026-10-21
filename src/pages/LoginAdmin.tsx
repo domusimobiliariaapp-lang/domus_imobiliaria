@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Separator } from '@/components/ui/separator'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/hooks/useAuth'
+import { DomusLogo } from '@/components/brand/DomusLogo'
 
 export function LoginAdmin() {
   const [email, setEmail] = useState('')
@@ -43,9 +44,7 @@ export function LoginAdmin() {
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 bg-gradient-to-br from-[#17323D] to-[#0d1f26] text-white relative overflow-hidden">
         {/* Brand */}
         <div>
-          <span className="font-serif text-4xl font-medium tracking-tight">
-            Domus<span className="text-[#AD7B3B]">.</span>
-          </span>
+          <DomusLogo size="lg" className="[&_span]:text-white [&_p]:text-white/70" />
         </div>
 
         {/* Tagline */}
@@ -69,6 +68,9 @@ export function LoginAdmin() {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-background">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
+            <div className="lg:hidden flex justify-center mb-4">
+              <DomusLogo size="md" />
+            </div>
             <CardTitle className="text-2xl">Bem-vindo ao Domus</CardTitle>
             <CardDescription>Área administrativa — faça login para continuar</CardDescription>
           </CardHeader>

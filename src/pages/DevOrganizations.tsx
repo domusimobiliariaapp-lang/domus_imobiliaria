@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Building2, Plus, Copy, Check, Pencil, X, Power } from 'lucide-react'
+import { Building2, Plus, Copy, Check, Pencil, X, Power, CreditCard } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -17,6 +17,8 @@ const emptyForm = {
   admin_name: '',
   admin_email: '',
   admin_password: '',
+  plan_id: 'pro',
+  subscription_status: 'trial',
 }
 
 /** Deriva um slug válido do nome, como sugestão enquanto o usuário digita. */
@@ -45,6 +47,39 @@ export function DevOrganizations() {
   const [editForm, setEditForm] = useState({ name: '', slug: '', cnpj: '', phone: '', whatsapp: '' })
   const [deleting, setDeleting] = useState<Organization | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState('')
+
+  const [changingPlanOrg, setChangingPlanOrg] = useState<Organization | null>(null)
+  const [modalPlanId, setModalPlanId] = useState('pro')
+  const [modalStatus, setModalStatus] = useState('active')
+  const [modalExtendDays, setModalExtendDays] = useState(3)
+  const [savingSubscription, setSavingSubscription] = useState(false)
+
+  const openPlanModal = (org: Organization) => {
+    setChangingPlanOrg(org)
+    setModalPlanId(org.plan_id || 'pro')
+    setModalStatus(org.subscription_status || 'active')
+    setModalExtendDays(3)
+  }
+
+  const handleSaveSubscription = async () => {
+    if (!changingPlanOrg) return
+    setSavingSubscription(true)
+    try {
+      await devAdmin.setOrgSubscription(
+        changingPlanOrg.id,
+        modalPlanId,
+        modalStatus,
+        modalStatus === 'trial' ? modalExtendDays : 0
+      )
+      addToast(`Assinatura de ${changingPlanOrg.name} atualizada.`, 'success')
+      setChangingPlanOrg(null)
+      loadOrganizations()
+    } catch (err: any) {
+      addToast(`Erro ao atualizar assinatura: ${err.message}`, 'error')
+    } finally {
+      setSavingSubscription(false)
+    }
+  }
 
   const loadOrganizations = async () => {
     setLoadingList(true)
@@ -291,6 +326,37 @@ export function DevOrganizations() {
                   Mínimo de 8 caracteres. Passe esta senha ao administrador por um canal seguro.
                 </p>
               </div>
+
+              <div className="grid grid-cols-2 gap-3 pt-1">
+                <div className="space-y-1">
+                  <Label htmlFor="plan_id" className="text-xs font-medium">Plano Inicial</Label>
+                  <select
+                    id="plan_id"
+                    value={form.plan_id}
+                    onChange={(e) => setForm((prev) => ({ ...prev, plan_id: e.target.value }))}
+                    className="w-full h-9 px-3 rounded-md border border-input bg-background text-xs"
+                    disabled={submitting}
+                  >
+                    <option value="starter">Starter (até 35 imóveis)</option>
+                    <option value="pro">Profissional (até 150)</option>
+                    <option value="enterprise">Enterprise (ilimitado)</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <Label htmlFor="subscription_status" className="text-xs font-medium">Status Inicial</Label>
+                  <select
+                    id="subscription_status"
+                    value={form.subscription_status}
+                    onChange={(e) => setForm((prev) => ({ ...prev, subscription_status: e.target.value }))}
+                    className="w-full h-9 px-3 rounded-md border border-input bg-background text-xs"
+                    disabled={submitting}
+                  >
+                    <option value="trial">Período de Teste (3 dias)</option>
+                    <option value="active">Assinatura Ativa</option>
+                  </select>
+                </div>
+              </div>
             </div>
 
             <Button
@@ -375,14 +441,36 @@ export function DevOrganizations() {
                       <>
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <p className="font-medium truncate">
-                              {org.name}
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-medium truncate">{org.name}</span>
+                              <span
+                                className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                                  org.plan_id === 'starter'
+                                    ? 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300'
+                                    : org.plan_id === 'enterprise'
+                                    ? 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300'
+                                    : 'bg-[#AD7B3B]/15 text-[#AD7B3B]'
+                                }`}
+                              >
+                                {org.plan_id === 'starter' ? 'Starter' : org.plan_id === 'enterprise' ? 'Enterprise' : 'Profissional'}
+                              </span>
+                              <span
+                                className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                                  org.subscription_status === 'trial'
+                                    ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                                    : org.subscription_status === 'blocked'
+                                    ? 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300'
+                                    : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-400'
+                                }`}
+                              >
+                                {org.subscription_status === 'trial' ? 'Trial 3d' : org.subscription_status === 'blocked' ? 'Bloqueado' : 'Ativo'}
+                              </span>
                               {!org.active && (
-                                <span className="ml-2 text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                                <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
                                   inativa
                                 </span>
                               )}
-                            </p>
+                            </div>
                             <p className="text-sm text-muted-foreground truncate">/{org.slug}</p>
                             {stat && (
                               <p className="text-xs text-muted-foreground mt-0.5">
@@ -393,6 +481,15 @@ export function DevOrganizations() {
                             )}
                           </div>
                           <div className="flex gap-1 shrink-0">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-8 w-8 rounded-md shrink-0 text-[#AD7B3B] hover:text-[#AD7B3B]"
+                              onClick={() => openPlanModal(org)}
+                              title="Gerenciar Plano e Assinatura"
+                            >
+                              <CreditCard className="h-4 w-4" />
+                            </Button>
                             <Button
                               variant="outline"
                               size="icon"
@@ -497,6 +594,90 @@ export function DevOrganizations() {
                   className="rounded-md bg-destructive text-white hover:bg-destructive/90"
                 >
                   Excluir definitivamente
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {changingPlanOrg && (
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 p-4 py-10"
+          role="dialog"
+          aria-modal="true"
+        >
+          <Card className="w-full max-w-md rounded-md shadow-2xl">
+            <CardHeader>
+              <CardTitle className="text-lg font-serif">
+                Gerenciar Assinatura de {changingPlanOrg.name}
+              </CardTitle>
+              <CardDescription>
+                Altere o plano, o status da conta ou estenda o período de testes.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="change-plan">Plano da Imobiliária</Label>
+                <select
+                  id="change-plan"
+                  value={modalPlanId}
+                  onChange={(e) => setModalPlanId(e.target.value)}
+                  className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm"
+                >
+                  <option value="starter">Starter (até 35 imóveis)</option>
+                  <option value="pro">Profissional (até 150 imóveis)</option>
+                  <option value="enterprise">Enterprise (ilimitado)</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="change-status">Status da Conta</Label>
+                <select
+                  id="change-status"
+                  value={modalStatus}
+                  onChange={(e) => setModalStatus(e.target.value)}
+                  className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm"
+                >
+                  <option value="active">Ativo (acesso regular)</option>
+                  <option value="trial">Período de Teste (Trial)</option>
+                  <option value="blocked">Bloqueado (inadimplente / suspenso)</option>
+                </select>
+              </div>
+
+              {modalStatus === 'trial' && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="extend-days">Dias de Teste (a partir de hoje)</Label>
+                  <Input
+                    id="extend-days"
+                    type="number"
+                    min={1}
+                    max={90}
+                    value={modalExtendDays}
+                    onChange={(e) => setModalExtendDays(Number(e.target.value))}
+                    className="h-9 text-sm"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Define a nova data de expiração para o período de testes.
+                  </p>
+                </div>
+              )}
+
+              <div className="flex gap-2 justify-end pt-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setChangingPlanOrg(null)}
+                  disabled={savingSubscription}
+                  className="rounded-md"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleSaveSubscription}
+                  disabled={savingSubscription}
+                  className="rounded-md bg-[#17323D] text-white hover:bg-[#17323D]/90"
+                >
+                  {savingSubscription ? 'Salvando...' : 'Salvar Assinatura'}
                 </Button>
               </div>
             </CardContent>

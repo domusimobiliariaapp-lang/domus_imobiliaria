@@ -77,6 +77,8 @@ export function PublicProperties() {
       description: `Encontre seu próximo imóvel com a ${orgDisplayName}. Atendimento direto e negociações transparentes.`,
       url: window.location.href,
       type: 'website',
+      siteName: orgDisplayName,
+      image: properties?.[0]?.images?.[0],
     },
   })
 

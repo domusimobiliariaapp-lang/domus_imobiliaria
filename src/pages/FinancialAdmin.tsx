@@ -2,7 +2,7 @@ import { CRUDPage } from '@/components/CRUDPage'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { DollarSign, AlertCircle, TrendingUp, TrendingDown, Clock, FileText, Calculator, Wallet } from 'lucide-react'
+import { DollarSign, AlertCircle, TrendingUp, TrendingDown, Clock, FileText, Calculator, Wallet, PieChart } from 'lucide-react'
 import { usePayments, useUpdateEntity, useProperties, useLeases, useSales, useProfiles } from '@/hooks/useSupabase'
 import { supabase } from '@/integrations/supabase/client'
 import type { Payment, Lease, Profile } from '@/types'
@@ -19,6 +19,7 @@ import {
 } from '@/lib/repasse'
 import { LancamentosTab } from '@/components/LancamentosTab'
 import { FluxoCaixaTab } from '@/components/FluxoCaixaTab'
+import { DreGerencialTab } from '@/components/DreGerencialTab'
 
 type PaymentStatus = Payment['status']
 
@@ -317,6 +318,10 @@ export function FinancialAdmin() {
           <TabsTrigger value="repasse">
             <Calculator className="h-4 w-4 mr-2" />
             Relatório de Repasse
+          </TabsTrigger>
+          <TabsTrigger value="dre">
+            <PieChart className="h-4 w-4 mr-2" />
+            DRE Gerencial
           </TabsTrigger>
         </TabsList>
 
@@ -714,6 +719,13 @@ export function FinancialAdmin() {
             não pertence a contrato nenhum — IPTU, multa, taxa de cadastro. */}
         <TabsContent value="caixa" className="space-y-6">
           <FluxoCaixaTab />
+        </TabsContent>
+
+        {/* ============================================================
+            ABA DE DRE GERENCIAL CONSOLIDADO
+            ============================================================ */}
+        <TabsContent value="dre" className="space-y-6">
+          <DreGerencialTab />
         </TabsContent>
       </Tabs>
     </div>

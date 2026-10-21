@@ -66,6 +66,8 @@ serve(async (req) => {
     const adminName = typeof body.admin_name === 'string' ? body.admin_name.trim() : ''
     const email = typeof body.admin_email === 'string' ? body.admin_email.trim().toLowerCase() : ''
     const password = typeof body.admin_password === 'string' ? body.admin_password : ''
+    const planId = typeof body.plan_id === 'string' ? body.plan_id.trim() : 'pro'
+    const subscriptionStatus = typeof body.subscription_status === 'string' ? body.subscription_status.trim() : 'active'
 
     if (!SLUG_RE.test(slug)) {
       return json({ error: 'Slug inválido: use de 2 a 40 caracteres minúsculos, números e hífens.' }, 400)
@@ -150,9 +152,19 @@ serve(async (req) => {
 
     // A org nasce aqui, não antes: se a criação da conta falhar, não sobra uma
     // imobiliária órfã.
+    const trialEndsAt = subscriptionStatus === 'trial'
+      ? new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()
+      : null
+
     const { data: org, error: orgError } = await admin
       .from('organizations')
-      .insert({ slug, name })
+      .insert({
+        slug,
+        name,
+        plan_id: planId,
+        subscription_status: subscriptionStatus,
+        trial_ends_at: trialEndsAt,
+      })
       .select()
       .single()
 

@@ -8,8 +8,11 @@ export interface SEOProps {
     title?: string
     description?: string
     image?: string
+    imageWidth?: string
+    imageHeight?: string
     type?: string
     url?: string
+    siteName?: string
   }
   twitter?: {
     card?: 'summary' | 'summary_large_image'
@@ -80,9 +83,16 @@ export function useSEO({ title, description, canonical, og, twitter, jsonLd }: S
     updateMetaTag('property', 'og:title', og?.title || title)
     updateMetaTag('property', 'og:description', og?.description || description)
     updateMetaTag('property', 'og:image', og?.image)
+    if (og?.image) {
+      updateMetaTag('property', 'og:image:width', og.imageWidth || '1200')
+      updateMetaTag('property', 'og:image:height', og.imageHeight || '630')
+    }
     updateMetaTag('property', 'og:url', og?.url || canonical || window.location.href)
     updateMetaTag('property', 'og:type', og?.type || 'website')
     updateMetaTag('property', 'og:locale', 'pt_BR')
+    if (og?.siteName) {
+      updateMetaTag('property', 'og:site_name', og.siteName)
+    }
 
     // 5. Twitter Card
     updateMetaTag('name', 'twitter:card', twitter?.card || (og?.image ? 'summary_large_image' : 'summary'))

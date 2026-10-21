@@ -1,10 +1,14 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { Building2, Users, LifeBuoy, AlertTriangle, ScrollText, LogOut } from 'lucide-react'
+import { Building2, Users, LifeBuoy, AlertTriangle, ScrollText, LogOut, DollarSign, Sparkles, CreditCard, MessageCircle } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
 
 const TABS = [
   { to: '/dev', label: 'Imobiliárias', icon: Building2, end: true },
+  { to: '/dev/leads', label: 'Leads (Site)', icon: Sparkles, end: false },
+  { to: '/dev/planos', label: 'Planos & Preços', icon: DollarSign, end: false },
+  { to: '/dev/asaas', label: 'Asaas & Cobrança', icon: CreditCard, end: false },
+  { to: '/dev/contato', label: 'Contato & WhatsApp', icon: MessageCircle, end: false },
   { to: '/dev/usuarios', label: 'Contas', icon: Users, end: false },
   { to: '/dev/chamados', label: 'Chamados', icon: LifeBuoy, end: false },
   { to: '/dev/erros', label: 'Erros', icon: AlertTriangle, end: false },

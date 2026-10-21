@@ -1,6 +1,8 @@
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Link, useLocation } from 'react-router-dom'
+import { usePlanLimits } from '@/hooks/usePlanLimits'
+import { Sparkles, ArrowUpRight } from 'lucide-react'
 
 const navGroups: NavGroup[] = [
   {
@@ -26,6 +28,7 @@ const navGroups: NavGroup[] = [
       { href: '/admin/legal', label: 'Jurídico' },
       { href: '/admin/administrative', label: 'Administrativo' },
       { href: '/admin/chamados', label: 'Chamados' },
+      { href: '/admin/upgrade', label: 'Plano & Limites', onlyAdmin: true },
       // Só o admin cria acessos. Isso é conveniência, não segurança: quem
       // tentar digitar /admin/equipe sem ser admin recebe a tela de "apenas o
       // administrador", e a edge function barra de todo modo.
@@ -50,12 +53,17 @@ interface DomusSidebarProps {
 
 export function DomusSidebar({ isOpen, onClose, user, onLogout, orgName }: DomusSidebarProps) {
   const location = useLocation()
+  const planLimits = usePlanLimits()
   const initials = user.name
     .split(' ')
     .map((n) => n.charAt(0))
     .slice(0, 2)
     .join('')
     .toUpperCase()
+
+  const percentUsed = planLimits.maxProperties
+    ? Math.min(100, Math.round((planLimits.currentPropertiesCount / planLimits.maxProperties) * 100))
+    : 0
 
   return (
     <>
@@ -131,6 +139,60 @@ export function DomusSidebar({ isOpen, onClose, user, onLogout, orgName }: Domus
               )
             })}
           </nav>
+
+          {/* Card de Plano & Cota de Imóveis */}
+          {!planLimits.loading && (
+            <div className="mx-3 mb-2 p-3 rounded-xl bg-white/5 border border-white/10 text-xs">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="font-semibold text-white/90 truncate flex items-center gap-1">
+                  <Sparkles className="w-3.5 h-3.5 text-[#AD7B3B]" />
+                  <span>Plano {planLimits.planName}</span>
+                </span>
+                {planLimits.status === 'trial' ? (
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#AD7B3B]/30 text-[#AD7B3B] font-medium border border-[#AD7B3B]/40">
+                    {planLimits.trialDaysRemaining !== null ? `${planLimits.trialDaysRemaining}d teste` : 'Teste'}
+                  </span>
+                ) : (
+                  <span className="text-[10px] text-emerald-400 font-medium">Ativo</span>
+                )}
+              </div>
+
+              <div className="space-y-1 mt-2">
+                <div className="flex items-center justify-between text-[11px] text-white/60">
+                  <span>Carteira</span>
+                  <span className="font-mono text-white/80">
+                    {planLimits.currentPropertiesCount} / {planLimits.maxProperties ?? '∞'} imóveis
+                  </span>
+                </div>
+                {planLimits.maxProperties !== null && (
+                  <div className="w-full h-1.5 rounded-full bg-white/10 overflow-hidden">
+                    <div
+                      className={cn(
+                        'h-full transition-all duration-500 rounded-full',
+                        percentUsed >= 90
+                          ? 'bg-red-500'
+                          : percentUsed >= 75
+                          ? 'bg-amber-400'
+                          : 'bg-[#AD7B3B]'
+                      )}
+                      style={{ width: `${percentUsed}%` }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {user.role === 'admin' && (
+                <Link
+                  to="/admin/upgrade"
+                  onClick={onClose}
+                  className="mt-2.5 pt-2 border-t border-white/10 flex items-center justify-between text-[11px] text-[#AD7B3B] hover:text-[#AD7B3B]/80 font-medium transition-colors"
+                >
+                  <span>Gerenciar plano</span>
+                  <ArrowUpRight className="w-3 h-3" />
+                </Link>
+              )}
+            </div>
+          )}
 
           {/* Footer - User info + logout */}
           <div className="border-t border-white/10 p-4">

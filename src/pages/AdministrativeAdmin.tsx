@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Users, FileText, Building2, DollarSign, AlertCircle, CheckCircle, Clock, Loader2 } from 'lucide-react'
+import { Users, FileText, Building2, DollarSign, AlertCircle, CheckCircle, Clock, Loader2, Globe } from 'lucide-react'
 import { useDashboardStats } from '@/hooks/useSupabase'
 import { useLeases } from '@/hooks/useSupabase'
 import { usePayments } from '@/hooks/useSupabase'
@@ -14,6 +14,7 @@ import { useAuth } from '@/hooks/useAuth'
 import * as React from 'react'
 import { formatCpfCnpj, formatBrazilianPhone, formatCep, onlyDigits, onlyNumbers, formatDecimal, parseDecimal } from '@/lib/inputMasks'
 import { lookupCep } from '@/lib/cepLookup'
+import { CustomDomainSetup } from '@/components/domain/CustomDomainSetup'
 
 /**
  * Configurações da empresa.
@@ -105,8 +106,14 @@ export function AdministrativeAdmin() {
   const [address, setAddress] = useState<CompanyAddress>(EMPTY_ADDRESS)
   const [loadingSettings, setLoadingSettings] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [tab, setTab] = useState('visao_geral')
   const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [tab, setTab] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const p = new URLSearchParams(window.location.search).get('tab')
+      if (p === 'dominio' || p === 'configuracoes') return p
+    }
+    return 'visao_geral'
+  })
   const [cepMessage, setCepMessage] = useState<string>('')
   const [lookingUpCep, setLookingUpCep] = useState(false)
   const lastFetchedCep = useRef<string | null>(null)
@@ -369,6 +376,10 @@ export function AdministrativeAdmin() {
         <TabsList>
           <TabsTrigger value="visao_geral">Visão Geral</TabsTrigger>
           <TabsTrigger value="configuracoes">Configurações</TabsTrigger>
+          <TabsTrigger value="dominio" className="flex items-center gap-1.5">
+            <Globe className="w-3.5 h-3.5 text-[#AD7B3B]" />
+            <span>Domínio Próprio (.com.br)</span>
+          </TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -556,6 +567,8 @@ export function AdministrativeAdmin() {
           </CardContent>
         </Card>
       )}
+
+      {tab === 'dominio' && <CustomDomainSetup />}
     </div>
   )
 }

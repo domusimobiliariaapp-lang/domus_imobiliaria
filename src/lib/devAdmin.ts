@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client'
+import type { SaasPlan } from '@/types'
 
 /**
  * Cliente das edge functions de administração.
@@ -219,5 +220,93 @@ export const devAdmin = {
         updated_at: new Date().toISOString(),
       })
       .eq('id', ticketId)
+  },
+
+  /** Lista todos os planos de assinatura SaaS configurados */
+  getPlans: async () => {
+    try {
+      const { data, error } = await supabase
+        .from('saas_plans')
+        .select('*')
+        .order('price_monthly', { ascending: true })
+
+      if (!error && data && data.length > 0) {
+        return data as SaasPlan[]
+      }
+    } catch {
+      // Ignora erro de tabela não criada no schema cache
+    }
+
+    // Fallback padrão para exibição sem travar a interface
+    return [
+      {
+        id: 'starter',
+        name: 'Starter',
+        description: 'Para corretores autônomos e imobiliárias boutique com até 35 contratos de aluguel.',
+        price_monthly: 229,
+        price_annual_monthly: 189,
+        max_properties: 35,
+        max_users: 2,
+        features: { subdomain: true, portal: true, crm: false, vistorias: false, custom_domain: false },
+        popular: false,
+        badge: null,
+        active: true,
+      },
+      {
+        id: 'pro',
+        name: 'Profissional',
+        description: 'Gestão completa para imobiliárias em expansão com automação de ponta a ponta.',
+        price_monthly: 489,
+        price_annual_monthly: 389,
+        max_properties: 150,
+        max_users: 6,
+        features: { subdomain: true, portal: true, crm: true, vistorias: true, custom_domain: false },
+        popular: true,
+        badge: 'Mais Escolhido',
+        active: true,
+      },
+      {
+        id: 'enterprise',
+        name: 'Enterprise',
+        description: 'Estrutura robusta para grandes carteiras, franquias e redes imobiliárias.',
+        price_monthly: 980,
+        price_annual_monthly: 790,
+        max_properties: null,
+        max_users: null,
+        features: { subdomain: true, portal: true, crm: true, vistorias: true, custom_domain: true },
+        popular: false,
+        badge: 'Sem Limites',
+        active: true,
+      },
+    ] as SaasPlan[]
+  },
+
+  /** Atualiza valores, limites e recursos de um plano pelo painel DEV */
+  updatePlan: async (plan: Partial<SaasPlan> & { id: string }) => {
+    const { data, error } = await supabase.rpc('dev_update_plan', {
+      p_plan_id: plan.id,
+      p_price_monthly: plan.price_monthly,
+      p_price_annual_monthly: plan.price_annual_monthly,
+      p_max_properties: plan.max_properties ?? null,
+      p_max_users: plan.max_users ?? null,
+      p_features: plan.features ?? {},
+      p_popular: Boolean(plan.popular),
+      p_badge: plan.badge ?? null,
+      p_active: plan.active ?? true,
+    })
+    if (error) throw new DevAdminError(error.message)
+    return data
+  },
+
+  /** Altera plano, status de assinatura ou estende dias de trial de uma imobiliária */
+  setOrgSubscription: async (orgId: string, planId: string, status: string, extendDays = 0) => {
+    const { data, error } = await supabase.rpc('dev_set_org_subscription', {
+      p_org_id: orgId,
+      p_plan_id: planId,
+      p_subscription_status: status,
+      p_extend_days: extendDays,
+    })
+    if (error) throw new DevAdminError(error.message)
+    return data
   },
 }

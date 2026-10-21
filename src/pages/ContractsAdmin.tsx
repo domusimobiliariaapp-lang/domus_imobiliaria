@@ -3,13 +3,15 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { FileText, AlertCircle, ScrollText, Printer, Send, CheckCircle2 } from 'lucide-react'
+import { FileText, AlertCircle, ScrollText, Printer, Send, CheckCircle2, FileSignature, Calculator } from 'lucide-react'
 import { useLeases, useCreateEntity, useUpdateEntity, useDeleteEntity, useProperties, useProfiles } from '@/hooks/useSupabase'
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/integrations/supabase/client'
 import { calcularRepasseLocacao, formatBRL } from '@/lib/repasse'
 import { generateRentalContract, type GeneratedContract } from '@/lib/contractGenerator'
 import { FeeTermsEditor } from '@/components/FeeTermsEditor'
+import { DigitalSignatureModal } from '@/components/DigitalSignatureModal'
+import { TenantCreditAndGuaranteeModal } from '@/components/TenantCreditAndGuaranteeModal'
 import { formatCurrencyInput, parseCurrencyInput, onlyNumbers } from '@/lib/inputMasks'
 import type { Lease, Property } from '@/types'
 import { Button } from '@/components/ui/button'
@@ -42,9 +44,18 @@ export function ContractsAdmin() {
 
   const { organization } = useAuth()
   const [contractModalOpen, setContractModalOpen] = React.useState(false)
+  const [signatureModalOpen, setSignatureModalOpen] = React.useState(false)
+  const [selectedLeaseForSignature, setSelectedLeaseForSignature] = React.useState<Lease | null>(null)
+  const [creditModalOpen, setCreditModalOpen] = React.useState(false)
+  const [selectedLeaseForCredit, setSelectedLeaseForCredit] = React.useState<Lease | null>(null)
   const [generatedContract, setGeneratedContract] = React.useState<GeneratedContract | null>(null)
   const [selectedLeaseForContract, setSelectedLeaseForContract] = React.useState<Lease | null>(null)
   const [enviandoAssinatura, setEnviandoAssinatura] = React.useState(false)
+
+  const handleOpenCreditAnalysis = (lease?: Lease) => {
+    setSelectedLeaseForCredit(lease || null)
+    setCreditModalOpen(true)
+  }
 
   const handleOpenContractMinuta = (lease: Lease) => {
     const prop = (properties || []).find((p) => p.id === lease.property_id)
@@ -63,6 +74,12 @@ export function ContractsAdmin() {
       landlord,
       organization,
     })
+
+    // Se o contrato no banco ainda não tiver signers salvos, persiste os signers gerados
+    if (!lease.signers || (Array.isArray(lease.signers) && lease.signers.length === 0)) {
+      void update(lease.id, { signers: contract.signers })
+      lease.signers = contract.signers
+    }
 
     setSelectedLeaseForContract(lease)
     setGeneratedContract(contract)
@@ -536,6 +553,17 @@ export function ContractsAdmin() {
 
   return (
     <>
+    <div className="flex justify-end mb-2">
+      <Button
+        onClick={() => handleOpenCreditAnalysis()}
+        variant="outline"
+        size="sm"
+        className="gap-2 border-[#AD7B3B]/40 text-[#AD7B3B] hover:bg-[#AD7B3B]/10 hover:text-[#AD7B3B] shadow-xs text-xs"
+      >
+        <Calculator className="h-4 w-4" />
+        Análise de Renda & Garantias
+      </Button>
+    </div>
     <CRUDPage<Lease & { property?: Property }>
       title="Contratos"
       subtitle="Cadastre e gerencie os contratos de locação"
@@ -574,11 +602,48 @@ export function ContractsAdmin() {
           <Button
             variant="ghost"
             size="icon"
+            onClick={() => handleOpenCreditAnalysis(item)}
+            className="text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-transform hover:scale-110 active:scale-95"
+            title="Análise de Renda e Garantia Locatícia"
+          >
+            <Calculator className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => handleOpenContractMinuta(item)}
             className="text-[#AD7B3B] hover:bg-amber-50 hover:text-[#AD7B3B] transition-transform hover:scale-110 active:scale-95"
-            title="Gerar Minuta & Assinatura Digital"
+            title="Gerar Minuta do Contrato"
           >
             <ScrollText className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              if (!item.signers || (Array.isArray(item.signers) && item.signers.length === 0)) {
+                const prop = (properties || []).find((p) => p.id === item.property_id)
+                const tenant = (profiles || []).find((p) => p.id === item.tenant_id)
+                const landlord = (profiles || []).find((p) => p.id === item.landlord_id)
+                if (prop && tenant && landlord) {
+                  const contract = generateRentalContract({
+                    lease: item,
+                    property: prop,
+                    tenant,
+                    landlord,
+                    organization,
+                  })
+                  void update(item.id, { signers: contract.signers })
+                  item.signers = contract.signers
+                }
+              }
+              setSelectedLeaseForSignature(item)
+              setSignatureModalOpen(true)
+            }}
+            className="text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 transition-transform hover:scale-110 active:scale-95"
+            title="Gestão de Assinaturas Eletrônicas"
+          >
+            <FileSignature className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"
@@ -664,6 +729,21 @@ export function ContractsAdmin() {
             <Button
               variant="outline"
               size="sm"
+              onClick={() => {
+                if (selectedLeaseForContract) {
+                  setSelectedLeaseForSignature(selectedLeaseForContract)
+                  setSignatureModalOpen(true)
+                }
+              }}
+              className="text-xs text-[#AD7B3B] border-[#AD7B3B]/40 hover:bg-[#AD7B3B]/10 gap-1.5"
+            >
+              <FileSignature className="h-3.5 w-3.5" />
+              Ver Signatários
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
               onClick={handleMarkAsSigned}
               className="text-xs text-emerald-700 hover:bg-emerald-50 gap-1.5"
             >
@@ -684,6 +764,23 @@ export function ContractsAdmin() {
         </div>
       </DialogContent>
     </Dialog>
+
+    {/* MODAL DE GESTÃO DE ASSINATURA ELETRÔNICA */}
+    <DigitalSignatureModal
+      isOpen={signatureModalOpen}
+      onClose={() => setSignatureModalOpen(false)}
+      lease={selectedLeaseForSignature}
+      onContractUpdated={() => void refetch()}
+    />
+
+    {/* MODAL DE ANÁLISE DE RENDA E SIMULADOR DE GARANTIA LOCATÍCIA */}
+    <TenantCreditAndGuaranteeModal
+      open={creditModalOpen}
+      onOpenChange={setCreditModalOpen}
+      lease={selectedLeaseForCredit}
+      property={(properties || []).find((p) => p.id === selectedLeaseForCredit?.property_id)}
+      tenant={(profiles || []).find((p) => p.id === selectedLeaseForCredit?.tenant_id)}
+    />
     </>
   )
 }

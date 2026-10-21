@@ -75,12 +75,42 @@ export function PortalLeases() {
     setAssinando(true)
     try {
       const nowIso = new Date().toISOString()
+      
+      // Atualiza o signatário correspondente no array signers
+      const currentSigners = Array.isArray(selectedLease.signers) ? [...selectedLease.signers] : []
+      let foundSigner = false
+      
+      currentSigners.forEach((s) => {
+        if (s.email === user.email || s.id === user.id) {
+          s.status = 'assinado'
+          s.signed_at = nowIso
+          s.ip_address = 'Autenticado no Portal do Cliente'
+          s.signature_hash = `SHA256-${Math.random().toString(36).substring(2, 10).toUpperCase()}`
+          foundSigner = true
+        }
+      })
+
+      // Se não achou diretamente, mas o usuário é o locatário do contrato:
+      if (!foundSigner && selectedLease.tenant_id === user.id) {
+        currentSigners.forEach((s) => {
+          if (s.role === 'locatario') {
+            s.status = 'assinado'
+            s.signed_at = nowIso
+            s.ip_address = 'Autenticado no Portal do Cliente'
+            s.signature_hash = `SHA256-${Math.random().toString(36).substring(2, 10).toUpperCase()}`
+          }
+        })
+      }
+
+      const allSigned = currentSigners.length > 0 && currentSigners.every((s) => s.status === 'assinado')
+
       const { error } = await supabase
         .from('leases')
         .update({
-          signature_status: 'assinado',
-          signed_at: nowIso,
-          status: 'ativo',
+          signers: currentSigners,
+          signature_status: allSigned ? 'assinado' : 'aguardando_assinaturas',
+          signed_at: allSigned ? nowIso : selectedLease.signed_at,
+          status: allSigned ? 'ativo' : selectedLease.status,
         })
         .eq('id', selectedLease.id)
 
@@ -292,15 +322,20 @@ export function PortalLeases() {
               </Button>
 
               {selectedLease?.signature_status === 'aguardando_assinaturas' && (
-                <Button
-                  size="sm"
-                  disabled={assinando}
-                  onClick={handleSignContract}
-                  className="bg-emerald-700 hover:bg-emerald-800 text-white gap-1.5 text-xs shadow-sm"
-                >
-                  <CheckCircle2 className="h-4 w-4" />
-                  {assinando ? 'Confirmando...' : 'Assinar Eletronicamente Agora'}
-                </Button>
+                <div className="flex flex-col sm:flex-row items-center gap-2">
+                  <span className="text-[10px] text-muted-foreground hidden md:inline">
+                    Ao clicar, você anui formalmente com este contrato (MP 2.200-2 / Lei 14.063).
+                  </span>
+                  <Button
+                    size="sm"
+                    disabled={assinando}
+                    onClick={handleSignContract}
+                    className="bg-emerald-700 hover:bg-emerald-800 text-white gap-1.5 text-xs shadow-sm cursor-pointer"
+                  >
+                    <CheckCircle2 className="h-4 w-4" />
+                    {assinando ? 'Registrando Assinatura...' : 'Assinar Eletronicamente Agora'}
+                  </Button>
+                </div>
               )}
             </div>
           </div>
