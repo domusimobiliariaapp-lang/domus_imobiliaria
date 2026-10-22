@@ -13,9 +13,11 @@ import {
   MessageSquare,
   KeyRound,
   FileSpreadsheet,
-  Clock
+  Clock,
+  XCircle
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { NumberTicker } from '@/components/ui/NumberTicker'
 import { LiveScreenShowcase } from '@/components/landing/LiveScreenShowcase'
 import { SolutionsCatalog } from '@/components/landing/SolutionsCatalog'
 import { PricingTable } from '@/components/landing/PricingTable'
@@ -203,11 +205,179 @@ export function LandingPage() {
               <span>Banco de dados isolado por empresa</span>
             </div>
           </motion.div>
+
+          {/* BARRA DE IMPACTO COM NUMBER TICKERS VIVOS */}
+          <motion.div
+            initial={{ opacity: 0, y: 25 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+            className="mt-12 max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-3 p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#12232B]/80 backdrop-blur-md border border-[#D4D0C8] dark:border-[#2D4A51] shadow-lg text-left"
+          >
+            <div className="p-2 border-r border-[#D4D0C8]/60 dark:border-[#2D4A51]/60 last:border-r-0">
+              <span className="text-[11px] text-muted-foreground block font-medium">Aluguéis Geridos</span>
+              <div className="text-xl sm:text-2xl font-serif font-bold text-[#17323D] dark:text-[#EEECE5] mt-1">
+                <NumberTicker value={14.8} prefix="R$ " suffix="M+" decimals={1} />
+              </div>
+              <span className="text-[10px] text-emerald-600 font-semibold block mt-0.5">Zero atrito de repasse</span>
+            </div>
+
+            <div className="p-2 border-r border-[#D4D0C8]/60 dark:border-[#2D4A51]/60 last:border-r-0">
+              <span className="text-[11px] text-muted-foreground block font-medium">Taxa de Adimplência</span>
+              <div className="text-xl sm:text-2xl font-serif font-bold text-[#AD7B3B] mt-1">
+                <NumberTicker value={98.6} suffix="%" decimals={1} />
+              </div>
+              <span className="text-[10px] text-muted-foreground block mt-0.5">com régua automática</span>
+            </div>
+
+            <div className="p-2 border-r border-[#D4D0C8]/60 dark:border-[#2D4A51]/60 last:border-r-0">
+              <span className="text-[11px] text-muted-foreground block font-medium">Tempo de Repasse</span>
+              <div className="text-xl sm:text-2xl font-serif font-bold text-[#17323D] dark:text-[#EEECE5] mt-1">
+                <span>1 clique</span>
+              </div>
+              <span className="text-[10px] text-emerald-600 font-semibold block mt-0.5">PIX em lote automático</span>
+            </div>
+
+            <div className="p-2">
+              <span className="text-[11px] text-muted-foreground block font-medium">Assinatura Digital</span>
+              <div className="text-xl sm:text-2xl font-serif font-bold text-[#AD7B3B] mt-1">
+                <span>&lt; 3 min</span>
+              </div>
+              <span className="text-[10px] text-muted-foreground block mt-0.5">Validade jurídica real</span>
+            </div>
+          </motion.div>
         </div>
       </section>
 
       {/* CATÁLOGO DE SOLUÇÕES POR SEGMENTO */}
       <SolutionsCatalog onSelectSolution={(solution) => openTrial('Profissional', solution)} />
+
+      {/* SEÇÃO TOCANDO NA DOR DO CLIENTE (ANTES vs DEPOIS) */}
+      <section className="py-16 sm:py-24 bg-gradient-to-b from-transparent via-[#17323D]/5 to-transparent">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-red-100 dark:bg-red-950/60 text-red-800 dark:text-red-300 border border-red-200 dark:border-red-900/60 mb-4">
+              <span>Pare de perder tempo com processos manuais</span>
+            </div>
+            <h2 className="text-3xl sm:text-5xl font-serif font-bold text-[#17323D] dark:text-[#EEECE5] tracking-tight">
+              A rotina que consome sua equipe vs. A facilidade com o Domus
+            </h2>
+            <p className="mt-4 text-base text-muted-foreground leading-relaxed">
+              O maior custo de uma imobiliária não é a tecnologia; é a quantidade de horas que corretores e administradores gastam apagando incêndios no WhatsApp.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
+            {/* CARD ANTES (A DOR) */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4 }}
+              className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#12232B] border-2 border-red-200 dark:border-red-900/40 shadow-sm relative overflow-hidden"
+            >
+              <div className="flex items-center gap-2.5 text-red-600 dark:text-red-400 font-semibold text-sm mb-6 pb-4 border-b border-red-100 dark:border-red-900/30">
+                <XCircle className="w-5 h-5 shrink-0" />
+                <span>O que acontece na rotina tradicional (Excel e WhatsApp)</span>
+              </div>
+
+              <div className="space-y-5 text-xs sm:text-sm text-foreground/80">
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-red-100 text-red-700 flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold">1</div>
+                  <div>
+                    <strong className="text-foreground block font-semibold">Cobrança manual e constrangedora:</strong>
+                    <span className="text-muted-foreground">Sua equipe precisa lembrar quem pagou e mandar mensagem cobrando um a um no WhatsApp.</span>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-red-100 text-red-700 flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold">2</div>
+                  <div>
+                    <strong className="text-foreground block font-semibold">Repasse demorado e estressante no dia 10:</strong>
+                    <span className="text-muted-foreground">Proprietários ligam irritados cobrando comprovantes enquanto você digita transferências manualmente no internet banking.</span>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-red-100 text-red-700 flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold">3</div>
+                  <div>
+                    <strong className="text-foreground block font-semibold">Interrupções constantes por 2ª via:</strong>
+                    <span className="text-muted-foreground">Inquilinos perdem o boleto e a imobiliária vira uma central de atendimento para reenviar PDFs.</span>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-red-100 text-red-700 flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold">4</div>
+                  <div>
+                    <strong className="text-foreground block font-semibold">Imóveis vagos gerando prejuízo:</strong>
+                    <span className="text-muted-foreground">Leads dos portais chegam, esfriam porque o retorno demora horas e o imóvel continua gerando despesa ao proprietário.</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* CARD DEPOIS (A SOLUÇÃO DOMUS) */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4 }}
+              className="p-6 sm:p-8 rounded-3xl bg-[#17323D] text-[#EEECE5] border-2 border-[#AD7B3B] shadow-xl relative overflow-hidden"
+            >
+              <div className="flex items-center gap-2.5 text-[#AD7B3B] font-semibold text-sm mb-6 pb-4 border-b border-[#2D4A51]">
+                <CheckCircle2 className="w-5 h-5 shrink-0" />
+                <span>Como fica sua imobiliária com o Domus</span>
+              </div>
+
+              <div className="space-y-5 text-xs sm:text-sm text-[#EEECE5]/90">
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-[#AD7B3B]/20 text-[#AD7B3B] border border-[#AD7B3B]/40 flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold">✓</div>
+                  <div>
+                    <strong className="text-white block font-semibold">Régua de cobrança automática:</strong>
+                    <span className="text-white/70">O sistema avisa 3 dias antes com link e código PIX. Quem não pagou recebe lembrete educado no WhatsApp sem você mexer um dedo.</span>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-[#AD7B3B]/20 text-[#AD7B3B] border border-[#AD7B3B]/40 flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold">✓</div>
+                  <div>
+                    <strong className="text-white block font-semibold">Repasse em 1 clique com extrato automático:</strong>
+                    <span className="text-white/70">A taxa de administração é descontada na hora e o comprovante com todos os lançamentos chega no WhatsApp do proprietário.</span>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-[#AD7B3B]/20 text-[#AD7B3B] border border-[#AD7B3B]/40 flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold">✓</div>
+                  <div>
+                    <strong className="text-white block font-semibold">Portal do Inquilino e Proprietário sem Senha:</strong>
+                    <span className="text-white/70">O cliente digita o CPF e recebe código de 6 dígitos no celular. Ele mesmo pega a 2ª via ou informe de IRPF em segundos.</span>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-[#AD7B3B]/20 text-[#AD7B3B] border border-[#AD7B3B]/40 flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold">✓</div>
+                  <div>
+                    <strong className="text-white block font-semibold">Match inteligente de leads e vitrine própria:</strong>
+                    <span className="text-white/70">Imóvel desocupado é cruzado imediatamente com clientes na lista de espera e os corretores recebem a notificação pronta para fechar.</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8 pt-4 border-t border-[#2D4A51] flex flex-col sm:flex-row items-center justify-between gap-4">
+                <span className="text-xs text-white/70 font-medium">
+                  Pronto para transformar sua operação?
+                </span>
+                <Button
+                  onClick={() => openTrial('Profissional')}
+                  className="w-full sm:w-auto h-10 px-5 bg-[#AD7B3B] hover:bg-[#AD7B3B]/90 text-white font-medium text-xs rounded-xl cursor-pointer"
+                >
+                  <span>Experimentar por 3 Dias</span>
+                  <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
 
       {/* APRESENTAÇÃO DE TELAS REAIS */}
       <section id="showcase" className="py-16 sm:py-24 bg-card/60 border-y border-border">

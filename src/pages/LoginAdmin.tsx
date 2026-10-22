@@ -1,11 +1,8 @@
 import * as React from 'react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
+import { motion } from 'framer-motion'
+import { Lock, Mail, Eye, EyeOff, ArrowRight, ShieldCheck, Check } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/hooks/useAuth'
 import { DomusLogo } from '@/components/brand/DomusLogo'
@@ -13,8 +10,11 @@ import { DomusLogo } from '@/components/brand/DomusLogo'
 export function LoginAdmin() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [rememberMe, setRememberMe] = useState(true)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
   const { signIn } = useAuth()
   const navigate = useNavigate()
 
@@ -28,100 +28,203 @@ export function LoginAdmin() {
       setError(error.message)
       setLoading(false)
     } else {
+      setSuccess(true)
       // Recupera a role do perfil recém-criado/atualizado pra
       // redirecionar cada tipo de usuário pro destino correto.
       const { data: { user } } = await supabase.auth.getUser()
       const role = (user?.app_metadata as Record<string, unknown> | undefined)?.role as string | undefined
-      if (role === 'dev') navigate('/dev', { replace: true })
-      else if (role === 'cliente') navigate('/portal/dashboard', { replace: true })
-      else navigate('/admin', { replace: true })
+      setTimeout(() => {
+        if (role === 'dev') navigate('/dev', { replace: true })
+        else if (role === 'cliente') navigate('/portal/dashboard', { replace: true })
+        else navigate('/admin', { replace: true })
+      }, 400)
     }
   }
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex bg-[#EEECE5] dark:bg-[#0E1E24]">
       {/* Left Panel - Brand */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 bg-gradient-to-br from-[#17323D] to-[#0d1f26] text-white relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 bg-gradient-to-br from-[#17323D] via-[#1A3845] to-[#0d1f26] text-white relative overflow-hidden shadow-2xl">
         {/* Brand */}
-        <div>
+        <div className="relative z-10">
           <DomusLogo size="lg" className="[&_span]:text-white [&_p]:text-white/70" />
         </div>
 
         {/* Tagline */}
-        <div className="max-w-md">
-          <p className="text-lg leading-relaxed opacity-90">
-            Gestão completa de locações e vendas para sua imobiliária.
-            Controle contratos, pagamentos, documentos e clientes em um só lugar.
+        <div className="max-w-md relative z-10 space-y-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-[#AD7B3B]/20 text-[#AD7B3B] border border-[#AD7B3B]/30">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>Sistema Multi-Tenant Isolado</span>
+          </div>
+          <h2 className="text-3xl font-serif font-bold text-white leading-tight">
+            Gestão patrimonial completa para imobiliárias de alta performance.
+          </h2>
+          <p className="text-sm leading-relaxed text-white/80">
+            Controle contratos, réguas de cobrança por PIX, conciliação e repasses aos proprietários sem dor de cabeça no fim do mês.
           </p>
         </div>
 
         {/* Footer */}
-        <div className="text-sm opacity-50">
-          Sistema de Gestão Imobiliária · Uso interno
+        <div className="text-xs text-white/50 relative z-10 flex items-center justify-between">
+          <span>Sistema Domus • Uso interno autorizado</span>
+          <span>Criptografia de ponta a ponta</span>
         </div>
 
         {/* Blueprint Illustration */}
         <BlueprintIllustration />
       </div>
 
-      {/* Right Panel - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-background">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <div className="lg:hidden flex justify-center mb-4">
-              <DomusLogo size="md" />
-            </div>
-            <CardTitle className="text-2xl">Bem-vindo ao Domus</CardTitle>
-            <CardDescription>Área administrativa — faça login para continuar</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {error && (
-              <div className="mb-4 p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md" role="alert">
-                {error}
+      {/* Right Panel - Neumorphic Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 relative overflow-hidden">
+        {/* Elementos de ambientação suave em Neumorphism no fundo */}
+        <div className="absolute -top-12 -left-12 w-52 h-52 rounded-full neumorph-card opacity-60 pointer-events-none" />
+        <div className="absolute -bottom-10 -right-10 w-64 h-64 rounded-full neumorph-card opacity-50 pointer-events-none" />
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45 }}
+          className="relative z-10 w-full max-w-md rounded-[2.5rem] p-8 sm:p-10 neumorph-card border border-white/80 dark:border-white/10 shadow-xl"
+        >
+          {/* Logo Mobile */}
+          <div className="lg:hidden flex justify-center mb-6">
+            <DomusLogo size="md" />
+          </div>
+
+          {/* Ícone de Cadeado em Relevo com gradiente Ouro Domus */}
+          <div className="flex justify-center mb-6">
+            <div className="w-20 h-20 rounded-full neumorph-btn flex items-center justify-center text-[#AD7B3B] shadow-md">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#AD7B3B] to-[#C89551] flex items-center justify-center text-white shadow-inner">
+                <Lock className="w-6 h-6 stroke-[2.2]" />
               </div>
-            )}
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">E-mail</Label>
-                <Input
+            </div>
+          </div>
+
+          {/* Título e Subtítulo */}
+          <div className="text-center mb-6">
+            <h1 className="text-2xl font-serif font-bold tracking-tight text-[#17323D] dark:text-[#EEECE5]">
+              Bem-vindo ao Domus
+            </h1>
+            <p className="text-xs text-[#6B6375] dark:text-muted-foreground mt-1">
+              Área administrativa — digite seus dados para entrar
+            </p>
+          </div>
+
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4 p-3 text-xs text-red-700 bg-red-100/80 dark:bg-red-950/60 dark:text-red-300 border border-red-200 dark:border-red-900/40 rounded-xl"
+              role="alert"
+            >
+              {error}
+            </motion.div>
+          )}
+
+          {/* Formulário Neumórfico Real */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Input E-mail */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-[#17323D] dark:text-[#EEECE5] block pl-1">
+                E-mail
+              </label>
+              <div className="w-full h-12 rounded-2xl neumorph-inset flex items-center px-4 transition-all focus-within:ring-2 focus-within:ring-[#AD7B3B]/40">
+                <Mail className="w-4 h-4 text-[#6B6375] mr-3 shrink-0" />
+                <input
                   id="email"
                   type="email"
-                  placeholder="seu@email.com"
+                  required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  required
+                  placeholder="seu@imobiliaria.com.br"
                   disabled={loading}
                   autoComplete="email"
+                  className="w-full bg-transparent text-sm text-[#17323D] dark:text-white placeholder:text-muted-foreground focus:outline-none font-medium"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Senha</Label>
-                <Input
+            </div>
+
+            {/* Input Senha */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-[#17323D] dark:text-[#EEECE5] block pl-1">
+                Senha
+              </label>
+              <div className="w-full h-12 rounded-2xl neumorph-inset flex items-center px-4 transition-all focus-within:ring-2 focus-within:ring-[#AD7B3B]/40">
+                <Lock className="w-4 h-4 text-[#6B6375] mr-3 shrink-0" />
+                <input
                   id="password"
-                  type="password"
-                  placeholder="••••••••"
+                  type={showPassword ? 'text' : 'password'}
+                  required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  required
+                  placeholder="••••••••"
                   disabled={loading}
                   autoComplete="current-password"
+                  className="w-full bg-transparent text-sm text-[#17323D] dark:text-white placeholder:text-muted-foreground focus:outline-none font-medium"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-[#6B6375] hover:text-[#17323D] dark:hover:text-white transition-colors p-1 cursor-pointer"
+                  title={showPassword ? 'Ocultar senha' : 'Ver senha'}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
-              <Button type="submit" className="w-full bg-[#17323D] text-white hover:bg-[#17323D]/90 h-10 px-4 py-2 rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#AD7B3B] focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none" disabled={loading}>
-                {loading ? 'Entrando...' : 'Entrar'}
-              </Button>
-            </form>
-          </CardContent>
-          <CardFooter className="flex flex-col gap-4">
-            <Separator />
-            <p className="text-center text-sm text-muted-foreground">
-              Acesso para equipe interna (admin, corretor, financeiro, jurídico)
+            </div>
+
+            {/* Lembrar-me */}
+            <div className="flex items-center justify-between text-xs pt-1 px-1">
+              <label className="flex items-center gap-2 cursor-pointer select-none text-[#6B6375] dark:text-muted-foreground font-medium">
+                <div
+                  onClick={() => setRememberMe(!rememberMe)}
+                  className={`w-4 h-4 rounded neumorph-inset flex items-center justify-center transition-all ${
+                    rememberMe ? 'text-[#AD7B3B] font-bold' : 'text-transparent'
+                  }`}
+                >
+                  <Check className="w-3 h-3 stroke-[3]" />
+                </div>
+                Lembrar neste navegador
+              </label>
+            </div>
+
+            {/* Botão de Entrar Neumórfico */}
+            <div className="pt-2">
+              <motion.button
+                whileTap={{ scale: 0.98 }}
+                type="submit"
+                disabled={loading}
+                className="w-full h-12 rounded-2xl neumorph-btn-primary font-semibold text-white hover:bg-[#1f4250] text-sm tracking-wide cursor-pointer flex items-center justify-center gap-2 transition-all shadow-md"
+              >
+                {loading ? (
+                  <div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                ) : success ? (
+                  <span className="text-[#AD7B3B] flex items-center gap-2 font-bold">
+                    <Check className="w-4 h-4 stroke-[3]" /> Acesso Autorizado!
+                  </span>
+                ) : (
+                  <>
+                    <span>Entrar no Sistema</span>
+                    <ArrowRight className="w-4 h-4 ml-1" />
+                  </>
+                )}
+              </motion.button>
+            </div>
+          </form>
+
+          {/* Links e Alternâncias */}
+          <div className="mt-6 pt-4 border-t border-[#D4D0C8]/60 dark:border-[#2D4A51] space-y-3 text-center text-xs">
+            <p className="text-muted-foreground">
+              Acesso restrito para equipe interna (admin, corretor, financeiro, jurídico).
             </p>
-            <Button variant="ghost" className="w-full" asChild>
-              <a href="/portal/login">É cliente? Acesse o portal →</a>
-            </Button>
-          </CardFooter>
-        </Card>
+            <a
+              href="/portal/login"
+              className="inline-flex items-center justify-center text-xs font-semibold text-[#AD7B3B] hover:text-[#8C6027] transition-colors"
+            >
+              É inquilino ou proprietário? Acesse o Portal sem Senha →
+            </a>
+          </div>
+        </motion.div>
       </div>
     </div>
   )

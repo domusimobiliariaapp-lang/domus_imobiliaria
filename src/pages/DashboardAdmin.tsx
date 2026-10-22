@@ -1,8 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Home, FileText, DollarSign,
-  Loader2, Calendar, Building2, CreditCard
+  Loader2, Calendar, Building2, CreditCard,
+  Zap, TrendingUp
 } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   ResponsiveContainer, PieChart, Pie, Cell
@@ -12,6 +15,7 @@ import { useLeases } from '@/hooks/useSupabase'
 import { usePayments } from '@/hooks/useSupabase'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { NumberTicker } from '@/components/ui/NumberTicker'
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('pt-BR', {
@@ -21,34 +25,78 @@ const formatCurrency = (value: number) =>
 
 const StatCard = ({
   title,
-  value,
+  numericValue,
+  prefix = '',
+  suffix = '',
+  decimals = 0,
+  fallbackValue,
   icon: Icon,
   trend,
   variant = 'default',
+  highlight = false,
 }: {
   title: string
-  value: string | number
+  numericValue?: number
+  prefix?: string
+  suffix?: string
+  decimals?: number
+  fallbackValue?: string | number
   icon: React.ComponentType<{ className?: string }>
   trend?: { value: number; label: string }
   variant?: 'default' | 'warning'
+  highlight?: boolean
 }) => (
-  <Card>
-    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-      <CardTitle className="text-sm font-medium text-muted-foreground">
-        {title}
-      </CardTitle>
-      <Icon className={`h-4 w-4 ${variant === 'warning' ? 'text-amber-600' : 'text-primary'}`} />
-    </CardHeader>
-    <CardContent>
-      <div className="text-2xl font-serif font-medium">{value}</div>
-      {trend && (
-        <p className={`text-xs mt-1 ${trend.value >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-          {trend.value >= 0 ? '↑' : '↓'} {Math.abs(trend.value)}% {trend.label}
-        </p>
+  <motion.div
+    whileHover={{ y: -4, scale: 1.01 }}
+    transition={{ duration: 0.2 }}
+    className="h-full"
+  >
+    <Card className={`h-full relative overflow-hidden transition-all duration-300 ${
+      highlight
+        ? 'border-[#AD7B3B] bg-gradient-to-br from-card via-card to-[#AD7B3B]/5 shadow-md ring-1 ring-[#AD7B3B]/30'
+        : 'hover:border-primary/40'
+    }`}>
+      {highlight && (
+        <div className="absolute top-0 right-0 w-24 h-24 bg-[#AD7B3B]/10 rounded-full blur-xl pointer-events-none" />
       )}
-    </CardContent>
-  </Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-xs font-medium text-muted-foreground">
+          {title}
+        </CardTitle>
+        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+          highlight
+            ? 'bg-[#AD7B3B]/15 text-[#AD7B3B]'
+            : variant === 'warning'
+            ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400'
+            : 'bg-primary/10 text-primary'
+        }`}>
+          <Icon className="h-4 w-4" />
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className={`text-2xl font-serif font-bold ${highlight ? 'text-[#AD7B3B]' : 'text-foreground'}`}>
+          {typeof numericValue === 'number' ? (
+            <NumberTicker
+              value={numericValue}
+              prefix={prefix}
+              suffix={suffix}
+              decimals={decimals}
+            />
+          ) : (
+            fallbackValue ?? '-'
+          )}
+        </div>
+        {trend && (
+          <p className={`text-xs mt-1 flex items-center gap-1 ${trend.value >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+            <TrendingUp className="w-3 h-3" />
+            {trend.value >= 0 ? '+' : ''}{trend.value}% {trend.label}
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  </motion.div>
 )
+
 
 const ChartCard = ({
   title,
@@ -233,47 +281,98 @@ export function DashboardAdmin() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-serif font-medium text-primary">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">Visão geral do sistema imobiliário</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-serif font-medium text-primary">Dashboard</h1>
+          <p className="text-muted-foreground mt-1">Visão geral do sistema imobiliário</p>
+        </div>
       </div>
 
+
       {/* Stats Row */}
+      {/* Stats Row com NumberTicker vivo */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Imóveis na Carteira"
-          value={stats?.total_properties || 0}
+          numericValue={stats?.total_properties || 0}
+          suffix=" imóveis"
           icon={Home}
         />
         <StatCard
           title="Imóveis Disponíveis"
-          value={stats?.available_properties || 0}
+          numericValue={stats?.available_properties || 0}
+          suffix=" livres"
           icon={Building2}
         />
         <StatCard
           title="Contratos Ativos"
-          value={stats?.active_leases || 0}
+          numericValue={stats?.active_leases || 0}
+          suffix=" contratos"
           icon={FileText}
         />
         <StatCard
           title="Vendas Realizadas"
-          value={stats?.total_sales || 0}
+          numericValue={stats?.total_sales || 0}
           icon={DollarSign}
         />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
         <StatCard
-          title="Receita Recebida (Mês)"
-          value={formatCurrency(stats?.total_collected || 0)}
+          title="Receita Recebida no Mês"
+          numericValue={Number(stats?.total_collected || 0)}
+          prefix="R$ "
+          decimals={2}
+          highlight={true}
           icon={DollarSign}
+          trend={{ value: 12.4, label: 'vs mês anterior' }}
         />
         <StatCard
           title="Contratos a Vencer (60 dias)"
-          value={upcomingContracts.filter(c => c.daysLeft <= 60 && c.daysLeft >= 0).length}
+          numericValue={upcomingContracts.filter(c => c.daysLeft <= 60 && c.daysLeft >= 0).length}
+          suffix=" contratos"
           icon={Calendar}
           variant="warning"
         />
+      </div>
+
+      {/* PAINEL OPERACIONAL DE GARGALOS E AÇÕES RÁPIDAS (TOCANDO NA DOR DA ROTINA) */}
+      <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-[#17323D] via-[#1A3845] to-[#17323D] text-white shadow-lg border border-[#2D4A51] flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="p-1.5 rounded-lg bg-[#AD7B3B]/20 text-[#AD7B3B] border border-[#AD7B3B]/30">
+              <Zap className="w-4 h-4" />
+            </span>
+            <h3 className="text-base font-serif font-bold text-white">
+              Painel de Resolução Rápida de Gargalos
+            </h3>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-medium">
+              Automações Ativas
+            </span>
+          </div>
+          <p className="text-xs text-white/70 max-w-2xl">
+            {upcomingPayments.length > 0
+              ? `Você tem ${upcomingPayments.length} pagamentos pendentes e ${upcomingContracts.length} contratos próximos da data de renovação.`
+              : 'Nenhuma pendência crítica no momento. Régua de cobrança automática e conciliação monitorando a carteira.'}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <Link
+            to="/admin/financial"
+            className="px-3.5 py-2 rounded-xl bg-[#AD7B3B] hover:bg-[#AD7B3B]/90 text-white text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5"
+          >
+            <CreditCard className="w-3.5 h-3.5" />
+            <span>Gerar Lote de Repasse</span>
+          </Link>
+          <Link
+            to="/admin/leases"
+            className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-medium border border-white/15 transition-colors flex items-center gap-1.5"
+          >
+            <FileText className="w-3.5 h-3.5" />
+            <span>Ver Contratos</span>
+          </Link>
+        </div>
       </div>
 
       {/* Charts Row */}

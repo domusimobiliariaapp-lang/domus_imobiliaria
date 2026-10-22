@@ -16,7 +16,8 @@ import {
   ShieldCheck,
   UserCheck,
   Search,
-  ExternalLink
+  ExternalLink,
+  Zap
 } from 'lucide-react'
 import {
   ResponsiveContainer,
@@ -25,8 +26,12 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-  CartesianGrid
+  CartesianGrid,
+  PieChart,
+  Pie,
+  Cell
 } from 'recharts'
+import { NumberTicker } from '@/components/ui/NumberTicker'
 
 interface LiveScreenShowcaseProps {
   onOpenTrial: () => void
@@ -41,8 +46,24 @@ const revenueData = [
   { mes: 'Abr', faturamento: 148520, repasse: 133668 },
 ]
 
+const propertyTypeData = [
+  { name: 'Apartamentos', value: 84, color: '#17323D' },
+  { name: 'Casas em Condomínio', value: 36, color: '#AD7B3B' },
+  { name: 'Salas Comerciais', value: 16, color: '#2D4A51' },
+  { name: 'Terrenos & Galpões', value: 6, color: '#C89551' },
+]
+
 export function LiveScreenShowcase({ onOpenTrial }: LiveScreenShowcaseProps) {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'contracts' | 'crm' | 'financial' | 'portal' | 'subdomain'>('dashboard')
+  const [dashboardSubView, setDashboardSubView] = useState<'cashflow' | 'donut' | 'actions'>('cashflow')
+  const [actionToast, setActionToast] = useState<string | null>(null)
+
+  const handleTriggerAction = (msg: string) => {
+    setActionToast(msg)
+    setTimeout(() => {
+      setActionToast(null)
+    }, 3500)
+  }
 
   const tabs = [
     { id: 'dashboard', label: 'Dashboard de Locações', icon: LayoutDashboard },
@@ -127,7 +148,7 @@ export function LiveScreenShowcase({ onOpenTrial }: LiveScreenShowcaseProps) {
         {/* Conteúdo com AnimatePresence para transição suave entre abas */}
         <div className="p-4 sm:p-6 bg-background/40 min-h-[470px]">
           <AnimatePresence mode="wait">
-            {/* TELA 1: DASHBOARD DE LOCAÇÕES */}
+            {/* TELA 1: DASHBOARD DE LOCAÇÕES INTERATIVO & FOCADO NA DOR DO CLIENTE */}
             {activeTab === 'dashboard' && (
               <motion.div
                 key="dashboard"
@@ -137,136 +158,361 @@ export function LiveScreenShowcase({ onOpenTrial }: LiveScreenShowcaseProps) {
                 transition={{ duration: 0.25 }}
                 className="space-y-6"
               >
+                {/* Cabeçalho do Dashboard com Abas de Visão */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
                   <div>
-                    <h3 className="text-xl font-serif text-[#17323D] dark:text-[#EEECE5]">
-                      Carteira de Locação em Abril/2026
-                    </h3>
-                    <p className="text-xs text-muted-foreground">
-                      Contratos vigentes, faturamento do mês e repasses previstos para os proprietários.
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-xl font-serif text-[#17323D] dark:text-[#EEECE5]">
+                        Carteira de Locação em Tempo Real
+                      </h3>
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-400">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        Sem Inadimplência Crítica
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Repasses automáticos programados, réguas de cobrança ativas e vacância controlada.
                     </p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-400 font-medium">
-                      Repasses de Abril Fechados
-                    </span>
+
+                  {/* Sub-abas de visualização do dashboard */}
+                  <div className="flex items-center gap-1.5 p-1 rounded-xl bg-muted/60 border border-border">
+                    <button
+                      onClick={() => setDashboardSubView('cashflow')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                        dashboardSubView === 'cashflow'
+                          ? 'bg-[#17323D] text-white shadow-xs'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      Fluxo & Repasses
+                    </button>
+                    <button
+                      onClick={() => setDashboardSubView('donut')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                        dashboardSubView === 'donut'
+                          ? 'bg-[#17323D] text-white shadow-xs'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      Tipologias & Vacância
+                    </button>
+                    <button
+                      onClick={() => setDashboardSubView('actions')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1 ${
+                        dashboardSubView === 'actions'
+                          ? 'bg-[#AD7B3B] text-white shadow-xs'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      <Zap className="w-3 h-3" />
+                      <span>Ações Imediatas</span>
+                    </button>
                   </div>
                 </div>
 
+                {/* 4 Cards de Métricas com Number Ticker */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                  <div className="p-4 rounded-xl bg-card border border-border shadow-xs">
+                  <div className="p-4 rounded-xl bg-card border border-border shadow-xs hover:border-[#AD7B3B]/40 transition-colors">
                     <div className="flex items-center justify-between text-muted-foreground text-xs">
                       <span>Aluguel Bruto Recebido</span>
                       <DollarSign className="w-4 h-4 text-[#AD7B3B]" />
                     </div>
                     <div className="text-xl sm:text-2xl font-serif font-bold text-[#17323D] dark:text-[#EEECE5] mt-2">
-                      R$ 148.520
+                      <NumberTicker value={148520} prefix="R$ " />
                     </div>
-                    <p className="text-[11px] text-emerald-600 flex items-center gap-1 mt-1">
+                    <p className="text-[11px] text-emerald-600 flex items-center gap-1 mt-1 font-medium">
                       <TrendingUp className="w-3 h-3" /> +8,4% no trimestre
                     </p>
                   </div>
 
-                  <div className="p-4 rounded-xl bg-card border border-border shadow-xs">
+                  <div className="p-4 rounded-xl bg-card border border-border shadow-xs hover:border-[#AD7B3B]/40 transition-colors">
                     <div className="flex items-center justify-between text-muted-foreground text-xs">
                       <span>Contratos Ativos</span>
                       <Building2 className="w-4 h-4 text-[#17323D] dark:text-[#AD7B3B]" />
                     </div>
                     <div className="text-xl sm:text-2xl font-serif font-bold text-[#17323D] dark:text-[#EEECE5] mt-2">
-                      142 imóveis
+                      <NumberTicker value={142} suffix=" contratos" />
                     </div>
                     <p className="text-[11px] text-muted-foreground mt-1">
-                      2 imóveis vagos para anúncio
+                      Apenas 2 imóveis vagos (1,4%)
                     </p>
                   </div>
 
-                  <div className="p-4 rounded-xl bg-card border border-border shadow-xs">
+                  <div className="p-4 rounded-xl bg-card border border-border shadow-xs hover:border-[#AD7B3B]/40 transition-colors">
                     <div className="flex items-center justify-between text-muted-foreground text-xs">
                       <span>Taxa de Administração</span>
                       <Receipt className="w-4 h-4 text-[#AD7B3B]" />
                     </div>
                     <div className="text-xl sm:text-2xl font-serif font-bold text-[#AD7B3B] mt-2">
-                      R$ 14.852
+                      <NumberTicker value={14852} prefix="R$ " />
                     </div>
                     <p className="text-[11px] text-muted-foreground mt-1">
-                      Receita líquida da imobiliária
+                      Lucro líquido retido na conta
                     </p>
                   </div>
 
-                  <div className="p-4 rounded-xl bg-card border border-border shadow-xs">
+                  <div className="p-4 rounded-xl bg-card border border-border shadow-xs hover:border-[#AD7B3B]/40 transition-colors">
                     <div className="flex items-center justify-between text-muted-foreground text-xs">
                       <span>Inadimplência</span>
                       <AlertCircle className="w-4 h-4 text-emerald-600" />
                     </div>
                     <div className="text-xl sm:text-2xl font-serif font-bold text-emerald-600 mt-2">
-                      1,4%
+                      <NumberTicker value={1.4} suffix="%" decimals={1} />
                     </div>
                     <p className="text-[11px] text-muted-foreground mt-1">
-                      2 boletos vencidos em cobrança
+                      Régua de cobrança automática ativa
                     </p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                  <div className="lg:col-span-2 p-4 rounded-xl bg-card border border-border shadow-xs">
-                    <div className="flex items-center justify-between mb-4">
-                      <h4 className="text-sm font-semibold text-foreground">
-                        Volume de Aluguéis vs Repasses (últimos 6 meses)
-                      </h4>
-                      <span className="text-[11px] text-muted-foreground">Em milhares (R$)</span>
-                    </div>
-                    <div className="h-56 w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={revenueData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
-                          <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
-                          <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-                          <Tooltip
-                            formatter={(value: any) => [`R$ ${Number(value).toLocaleString('pt-BR')}`, '']}
-                            contentStyle={{ backgroundColor: '#17323D', color: '#fff', borderRadius: '8px', fontSize: '12px' }}
-                          />
-                          <Bar dataKey="faturamento" fill="#17323D" name="Aluguel Recebido" radius={[4, 4, 0, 0]} />
-                          <Bar dataKey="repasse" fill="#AD7B3B" name="Repasse aos Proprietários" radius={[4, 4, 0, 0]} />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-
-                  <div className="p-4 rounded-xl bg-card border border-border shadow-xs flex flex-col justify-between">
-                    <div>
-                      <h4 className="text-sm font-semibold text-foreground mb-3">
-                        Reajustes de Aniversário (Próximos 30 dias)
-                      </h4>
-                      <div className="space-y-2.5">
-                        <div className="p-2.5 rounded-lg bg-muted/40 border border-border text-xs">
-                          <div className="flex justify-between font-medium">
-                            <span>Apto 402 - Ed. Jardins</span>
-                            <span className="text-[#AD7B3B]">Dia 10/05</span>
-                          </div>
-                          <p className="text-[11px] text-muted-foreground mt-0.5">Locatário: Roberto Guimarães</p>
-                          <p className="text-[11px] text-emerald-600 mt-1 font-mono">IPCA acumulado: +4,18%</p>
+                {/* Área Dinâmica conforme Sub-aba selecionada */}
+                {dashboardSubView === 'cashflow' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="grid grid-cols-1 lg:grid-cols-3 gap-4"
+                  >
+                    <div className="lg:col-span-2 p-4 rounded-xl bg-card border border-border shadow-xs">
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <h4 className="text-sm font-semibold text-foreground">
+                            Volume de Aluguéis vs Repasses aos Proprietários
+                          </h4>
+                          <p className="text-[11px] text-muted-foreground">
+                            Conciliação 100% batida: cada centavo rastreado da conta do inquilino ao dono.
+                          </p>
                         </div>
+                        <span className="text-[11px] text-muted-foreground font-mono">Em milhares (R$)</span>
+                      </div>
+                      <div className="h-56 w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={revenueData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
+                            <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
+                            <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+                            <Tooltip
+                              formatter={(value: any) => [`R$ ${Number(value).toLocaleString('pt-BR')}`, '']}
+                              contentStyle={{ backgroundColor: '#17323D', color: '#fff', borderRadius: '8px', fontSize: '12px' }}
+                            />
+                            <Bar dataKey="faturamento" fill="#17323D" name="Aluguel Recebido" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="repasse" fill="#AD7B3B" name="Repasse aos Proprietários" radius={[4, 4, 0, 0]} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
 
-                        <div className="p-2.5 rounded-lg bg-muted/40 border border-border text-xs">
-                          <div className="flex justify-between font-medium">
-                            <span>Casa 18 - Cond. Pinheiros</span>
-                            <span className="text-[#AD7B3B]">Dia 22/05</span>
+                    <div className="p-4 rounded-xl bg-card border border-border shadow-xs flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="text-sm font-semibold text-foreground">
+                            Reajustes por Aniversário
+                          </h4>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-semibold">
+                            2 pendentes
+                          </span>
+                        </div>
+                        <div className="space-y-2.5">
+                          <div className="p-2.5 rounded-lg bg-muted/40 border border-border text-xs">
+                            <div className="flex justify-between font-medium">
+                              <span>Apto 402 - Ed. Jardins</span>
+                              <span className="text-[#AD7B3B] font-semibold">Dia 10/05</span>
+                            </div>
+                            <p className="text-[11px] text-muted-foreground mt-0.5">Roberto Guimarães (Aluguel: R$ 3.200)</p>
+                            <p className="text-[11px] text-emerald-600 mt-1 font-mono font-medium">
+                              IPCA acumulado: +4,18% (+R$ 133,76)
+                            </p>
                           </div>
-                          <p className="text-[11px] text-muted-foreground mt-0.5">Locatária: Mariana Esteves</p>
-                          <p className="text-[11px] text-emerald-600 mt-1 font-mono">IGP-M acumulado: +3,75%</p>
+
+                          <div className="p-2.5 rounded-lg bg-muted/40 border border-border text-xs">
+                            <div className="flex justify-between font-medium">
+                              <span>Casa 18 - Cond. Pinheiros</span>
+                              <span className="text-[#AD7B3B] font-semibold">Dia 22/05</span>
+                            </div>
+                            <p className="text-[11px] text-muted-foreground mt-0.5">Mariana Esteves (Aluguel: R$ 5.400)</p>
+                            <p className="text-[11px] text-emerald-600 mt-1 font-mono font-medium">
+                              IGP-M acumulado: +3,75% (+R$ 202,50)
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={onOpenTrial}
+                        className="w-full mt-3 py-2 text-xs font-semibold rounded-lg bg-[#17323D] hover:bg-[#17323D]/90 text-white flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                      >
+                        <span>Aplicar reajuste e emitir aditivo</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Visão de Tipologia & Vacância com Gráfico Donut */}
+                {dashboardSubView === 'donut' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="grid grid-cols-1 lg:grid-cols-3 gap-4"
+                  >
+                    <div className="lg:col-span-2 p-5 rounded-xl bg-card border border-border shadow-xs flex flex-col sm:flex-row items-center gap-6">
+                      <div className="h-52 w-52 relative shrink-0">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={propertyTypeData}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={55}
+                              outerRadius={80}
+                              paddingAngle={3}
+                              dataKey="value"
+                            >
+                              {propertyTypeData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={entry.color} />
+                              ))}
+                            </Pie>
+                            <Tooltip
+                              formatter={(val: any) => [`${val} imóveis`, 'Quantidade']}
+                              contentStyle={{ backgroundColor: '#17323D', color: '#fff', borderRadius: '8px', fontSize: '12px' }}
+                            />
+                          </PieChart>
+                        </ResponsiveContainer>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                          <span className="text-xl font-serif font-bold text-[#17323D] dark:text-[#EEECE5]">
+                            142
+                          </span>
+                          <span className="text-[10px] text-muted-foreground uppercase font-medium">
+                            Imóveis
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex-1 w-full space-y-3">
+                        <h4 className="text-sm font-semibold text-foreground">
+                          Composição da Carteira Imobiliária
+                        </h4>
+                        <div className="space-y-2">
+                          {propertyTypeData.map((item) => (
+                            <div key={item.name} className="flex items-center justify-between text-xs">
+                              <div className="flex items-center gap-2">
+                                <span className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+                                <span className="text-foreground font-medium">{item.name}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-muted-foreground">{item.value} imóveis</span>
+                                <span className="font-semibold text-foreground">
+                                  {Math.round((item.value / 142) * 100)}%
+                                </span>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     </div>
 
-                    <button
-                      onClick={onOpenTrial}
-                      className="w-full mt-3 py-2 text-xs font-medium rounded-lg bg-[#17323D] hover:bg-[#17323D]/90 text-white flex items-center justify-center gap-1.5 cursor-pointer"
-                    >
-                      <span>Aplicar reajuste com 1 clique</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
+                    <div className="p-4 rounded-xl bg-[#17323D] text-[#EEECE5] shadow-xs flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center gap-2 text-[#AD7B3B] mb-2 text-xs font-semibold uppercase tracking-wider">
+                          <CheckCircle2 className="w-4 h-4" />
+                          <span>Índice de Vacância Baixo</span>
+                        </div>
+                        <h4 className="text-base font-serif font-bold text-white">
+                          98,6% dos Imóveis Ocupados
+                        </h4>
+                        <p className="text-xs text-white/80 mt-2 leading-relaxed">
+                          Quando um imóvel fica vago, o Domus cruza os requisitos com os leads que já procuraram no seu site e avisa seu corretor no WhatsApp.
+                        </p>
+                      </div>
+
+                      <div className="mt-4 p-3 rounded-lg bg-white/10 border border-white/10 text-xs">
+                        <span className="text-white/60 block text-[11px]">Custo evitado de vacância:</span>
+                        <span className="text-base font-bold text-[#AD7B3B]">R$ 11.400 / mês</span>
+                        <span className="text-[10px] text-white/70 block mt-0.5">em condomínio e IPTU poupados ao dono</span>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Visão de Ações Imediatas (Resolução de Dor em 1 Clique) */}
+                {dashboardSubView === 'actions' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-5 rounded-xl bg-card border border-border shadow-xs space-y-4"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-border">
+                      <div>
+                        <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                          <Zap className="w-4 h-4 text-[#AD7B3B]" />
+                          Gatilhos Automáticos de Cobrança e Repasse
+                        </h4>
+                        <p className="text-xs text-muted-foreground">
+                          Veja como o sistema elimina 15 horas de trabalho manual por semana na sua imobiliária:
+                        </p>
+                      </div>
+                      {actionToast && (
+                        <motion.span
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                        >
+                          ✓ {actionToast}
+                        </motion.span>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div className="p-3.5 rounded-xl bg-muted/30 border border-border space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-semibold text-foreground">Cobrança PIX WhatsApp</span>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-semibold">2 em atraso</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                          Dispara mensagem educada no WhatsApp do inquilino com o código PIX Copia-e-Cola direto.
+                        </p>
+                        <button
+                          onClick={() => handleTriggerAction('2 mensagens de cobrança enviadas via WhatsApp!')}
+                          className="w-full py-1.5 px-3 rounded-lg text-xs font-semibold bg-[#17323D] hover:bg-[#17323D]/90 text-white cursor-pointer transition-colors"
+                        >
+                          Disparar Cobrança Agora
+                        </button>
+                      </div>
+
+                      <div className="p-3.5 rounded-xl bg-muted/30 border border-border space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-semibold text-foreground">Lote de Repasse Bancário</span>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-semibold">R$ 133.668</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                          Gera arquivo CNAB ou PIX em lote com comprovantes e informe de retenção anexados.
+                        </p>
+                        <button
+                          onClick={() => handleTriggerAction('Lote de repasse autorizado e comprovantes emitidos!')}
+                          className="w-full py-1.5 px-3 rounded-lg text-xs font-semibold bg-[#AD7B3B] hover:bg-[#AD7B3B]/90 text-white cursor-pointer transition-colors"
+                        >
+                          Autorizar Lote de Repasse
+                        </button>
+                      </div>
+
+                      <div className="p-3.5 rounded-xl bg-muted/30 border border-border space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-semibold text-foreground">Match de Imóvel Vago</span>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 font-semibold">3 leads esperando</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                          Cruza o Apto 104 recém-desocupado com 3 interessados com renda já aprovada.
+                        </p>
+                        <button
+                          onClick={() => handleTriggerAction('3 visitas agendadas automaticamente pelo corretor!')}
+                          className="w-full py-1.5 px-3 rounded-lg text-xs font-semibold bg-[#2D4A51] hover:bg-[#2D4A51]/90 text-white cursor-pointer transition-colors"
+                        >
+                          Agendar Visita com Leads
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
               </motion.div>
             )}
 

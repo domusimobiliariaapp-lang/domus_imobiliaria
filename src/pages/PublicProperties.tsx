@@ -1,12 +1,13 @@
 import { useEffect, useState, useMemo } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { Home, MapPin, Bed, Bath, Car, Search, Filter, X, Sparkles } from 'lucide-react'
+import { Home, Search, Filter, X, Sparkles } from 'lucide-react'
 import { usePublicProperties } from '@/hooks/useSupabase'
 import { useSEO } from '@/hooks/useSEO'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import type { PropertyType, PropertyStatus } from '@/types'
+import { PropertyCard3D } from '@/components/ui/PropertyCard3D'
+import type { PropertyType } from '@/types'
 
 const TYPE_LABELS: Record<PropertyType, string> = {
   apartamento: 'Apartamento',
@@ -36,22 +37,6 @@ const TYPE_FILTERS: { value: PropertyType | 'todos'; label: string }[] = [
   { value: 'loja', label: 'Loja' },
   { value: 'chacara', label: 'Chácara / Sítio' },
 ]
-
-const STATUS_LABELS: Record<PropertyStatus, string> = {
-  disponivel: 'Disponível',
-  alugado: 'Alugado',
-  vendido: 'Vendido',
-  reservado: 'Reservado',
-  indisponivel: 'Indisponível',
-}
-
-const STATUS_COLORS: Record<PropertyStatus, string> = {
-  disponivel: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-  alugado: 'bg-blue-100 text-blue-700 border-blue-200',
-  vendido: 'bg-red-100 text-red-700 border-red-200',
-  reservado: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-  indisponivel: 'bg-gray-100 text-gray-700 border-gray-200',
-}
 
 type TransacaoFilter = 'todos' | 'aluguel' | 'venda'
 type SortOption = 'recentes' | 'menor_preco' | 'maior_preco'
@@ -130,13 +115,6 @@ export function PublicProperties() {
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     })
   }, [properties, searchTerm, typeFilter, transacaoFilter, sortBy])
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value)
-  }
 
   const hasActiveFilters = searchTerm !== '' || typeFilter !== 'todos' || transacaoFilter !== 'todos'
 
@@ -340,127 +318,14 @@ export function PublicProperties() {
             </div>
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {filteredProperties.map((property) => {
-                const hasRent = property.rent_price > 0
-                const hasSale = property.sale_price > 0
-
-                return (
-                  <Link
-                    key={property.id}
-                    to={`/${slug}/imovel/${property.id}`}
-                    className="group block bg-white rounded-xl overflow-hidden border border-border/40 hover:border-border/80 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
-                  >
-                    {/* Imagem de Capa */}
-                    <div className="aspect-[4/3] bg-muted/60 relative overflow-hidden">
-                      {property.images && property.images.length > 0 ? (
-                        <img
-                          src={property.images[0]}
-                          alt={property.title}
-                          loading="lazy"
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground/50 bg-[#EEECE5]/40">
-                          <Home className="h-10 w-10 mb-1" />
-                          <span className="text-xs">Foto sob consulta</span>
-                        </div>
-                      )}
-
-                      {/* Badges de Tipo de Negócio */}
-                      <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
-                        <Badge
-                          className={`${STATUS_COLORS[property.status]} text-[11px] font-normal backdrop-blur-xs shadow-2xs`}
-                        >
-                          {STATUS_LABELS[property.status]}
-                        </Badge>
-                        {hasRent && (
-                          <Badge variant="outline" className="bg-blue-900/80 text-white border-0 text-[10px] font-normal">
-                            Locação
-                          </Badge>
-                        )}
-                        {hasSale && (
-                          <Badge variant="outline" className="bg-emerald-900/80 text-white border-0 text-[10px] font-normal">
-                            Venda
-                          </Badge>
-                        )}
-                      </div>
-
-                      {property.videos && property.videos.length > 0 && (
-                        <div className="absolute top-3 right-3 bg-black/70 backdrop-blur-xs text-white text-[11px] px-2 py-0.5 rounded-md flex items-center gap-1">
-                          <svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M8 5v14l11-7z"/>
-                          </svg>
-                          Vídeo
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Informações Principais */}
-                    <div className="p-4 sm:p-5">
-                      <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-                        <span className="font-medium text-[#AD7B3B]">{TYPE_LABELS[property.type]}</span>
-                        <span>{property.area_m2} m² úteis</span>
-                      </div>
-
-                      <h3 className="font-serif font-medium text-primary text-lg mb-1.5 line-clamp-1 group-hover:text-[#AD7B3B] transition-colors">
-                        {property.title}
-                      </h3>
-
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground mb-4">
-                        <MapPin className="h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
-                        <span className="line-clamp-1">{property.neighborhood}, {property.city}</span>
-                      </div>
-
-                      {/* Características Rápidas */}
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground/80 mb-4 py-2 border-y border-border/30">
-                        {property.bedrooms ? (
-                          <div className="flex items-center gap-1" title={`${property.bedrooms} quartos`}>
-                            <Bed className="h-3.5 w-3.5 text-primary/70" />
-                            <span>{property.bedrooms} {property.bedrooms === 1 ? 'quarto' : 'quartos'}</span>
-                          </div>
-                        ) : null}
-                        {property.bathrooms ? (
-                          <div className="flex items-center gap-1" title={`${property.bathrooms} banheiros`}>
-                            <Bath className="h-3.5 w-3.5 text-primary/70" />
-                            <span>{property.bathrooms} {property.bathrooms === 1 ? 'banheiro' : 'banheiros'}</span>
-                          </div>
-                        ) : null}
-                        {property.parking ? (
-                          <div className="flex items-center gap-1" title={`${property.parking} vagas`}>
-                            <Car className="h-3.5 w-3.5 text-primary/70" />
-                            <span>{property.parking} {property.parking === 1 ? 'vaga' : 'vagas'}</span>
-                          </div>
-                        ) : null}
-                      </div>
-
-                      {/* Preço e CTA */}
-                      <div className="flex items-end justify-between pt-1">
-                        <div>
-                          {hasRent && (
-                            <div>
-                              <div className="text-[11px] text-muted-foreground">Aluguel mensal</div>
-                              <div className="font-semibold text-primary text-base sm:text-lg">
-                                {formatCurrency(property.rent_price)}
-                              </div>
-                            </div>
-                          )}
-                          {hasSale && (
-                            <div className={hasRent ? 'mt-1' : ''}>
-                              <div className="text-[11px] text-muted-foreground">Valor de venda</div>
-                              <div className="font-semibold text-emerald-700 text-base sm:text-lg">
-                                {formatCurrency(property.sale_price)}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        <span className="text-xs font-medium text-[#AD7B3B] group-hover:translate-x-0.5 transition-transform">
-                          Ver detalhes →
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                )
-              })}
+              {filteredProperties.map((property) => (
+                <PropertyCard3D
+                  key={property.id}
+                  property={property}
+                  isPublic={true}
+                  slug={slug}
+                />
+              ))}
             </div>
           </>
         )}

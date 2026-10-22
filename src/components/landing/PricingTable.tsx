@@ -314,17 +314,29 @@ export function PricingTable({ onSelectPlan }: PricingTableProps) {
                   viewport={{ once: true }}
                   transition={{ duration: 0.35, delay: idx * 0.1 }}
                   whileHover={{ y: -6, transition: { duration: 0.2 } }}
-                  className={`rounded-2xl flex flex-col justify-between transition-shadow duration-300 relative ${
+                  className={`group rounded-2xl flex flex-col justify-between transition-all duration-300 relative ${
                     p.popular
-                      ? 'border-2 border-[#AD7B3B] bg-card shadow-xl ring-1 ring-[#AD7B3B]/20 scale-[1.01] z-10'
+                      ? 'border-2 border-[#AD7B3B] bg-card shadow-xl ring-2 ring-[#AD7B3B]/20 scale-[1.02] z-10'
                       : 'border border-border bg-card/80 shadow-sm hover:shadow-lg'
                   } p-6 sm:p-8`}
                 >
                   {p.popular && (
-                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full text-xs font-semibold bg-[#AD7B3B] text-white flex items-center gap-1.5 shadow-md">
-                      <Sparkles className="w-3.5 h-3.5" />
-                      <span>{p.badge}</span>
-                    </div>
+                    <>
+                      <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full text-xs font-semibold bg-[#AD7B3B] text-white flex items-center gap-1.5 shadow-md">
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>{p.badge}</span>
+                      </div>
+
+                      {/* Faixa revelada no hover solicitada pelo cliente */}
+                      <div className="overflow-hidden max-h-0 group-hover:max-h-12 transition-all duration-300 ease-in-out -mt-2 mb-2">
+                        <div className="py-1 px-2.5 rounded-lg bg-[#AD7B3B]/15 border border-[#AD7B3B]/40 text-center">
+                          <span className="text-[11px] font-bold text-[#AD7B3B] tracking-wider uppercase flex items-center justify-center gap-1">
+                            <Sparkles className="w-3 h-3" />
+                            Melhor Custo-Benefício da Categoria
+                          </span>
+                        </div>
+                      </div>
+                    </>
                   )}
 
                   <div>

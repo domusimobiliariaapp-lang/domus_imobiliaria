@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/components/ui/toast'
 import { PropertyModal } from '@/components/PropertyModal'
 import { PortalIntegrationsTab } from '@/components/PortalIntegrationsTab'
+import { PropertyCard3D } from '@/components/ui/PropertyCard3D'
 import * as React from 'react'
 import { useState } from 'react'
 import { supabase } from '@/integrations/supabase/client'
@@ -178,22 +179,13 @@ export function PropertiesAdmin() {
   )
 
   const propertyCard = (item: Property) => (
-    <article className="overflow-hidden rounded-md border border-border bg-background">
-      <a href={`/imovel/${item.id}`} target="_blank" rel="noreferrer" aria-label={`Ver página pública de ${item.title}`} className="block aspect-[16/10] bg-muted">
-        {item.images?.[0] ? <img src={item.images[0]} alt={`Foto principal de ${item.title}`} loading="lazy" className="h-full w-full object-contain" /> : <div className="flex h-full items-center justify-center"><Home className="h-12 w-12 text-muted-foreground/50" /><span className="sr-only">Sem foto</span></div>}
-      </a>
-      <div className="space-y-3 p-4">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0"><h3 className="truncate font-serif text-lg text-primary">{item.title}</h3><p className="text-sm text-muted-foreground">{PROPERTY_TYPES.find(type => type.value === item.type)?.label || item.type} · {item.city} - {item.state}</p></div>
-          <StatusBadge type="property" value={item.status} />
-        </div>
-        <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
-          {item.rent_price > 0 && <span><span className="text-muted-foreground">Aluguel </span><strong>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.rent_price)}</strong></span>}
-          {item.sale_price > 0 && <span><span className="text-muted-foreground">Venda </span><strong>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.sale_price)}</strong></span>}
-        </div>
-        <div className="flex justify-between border-t border-border pt-2"><a href={`/imovel/${item.id}`} target="_blank" rel="noreferrer" className="self-center text-sm font-medium text-primary underline-offset-2 hover:underline">Ver página</a>{propertyActions(item)}</div>
-      </div>
-    </article>
+    <PropertyCard3D
+      key={item.id}
+      property={item}
+      onEdit={openEdit}
+      onDelete={handleDeleteClick}
+      onShare={handleShare}
+    />
   )
 
   // Error state

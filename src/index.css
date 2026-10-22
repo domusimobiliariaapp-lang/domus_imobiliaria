@@ -203,7 +203,90 @@
   }
 }
 
+
 /* Print header - hidden by default, shown in print */
 .print-header {
   display: none;
 }
+
+/* ==========================================================================
+   Micro-interactions & Modern UI styles (Neumorphism, Glassmorphism, Animations)
+   ========================================================================== */
+
+/* Neumorphic Soft UI utilities - Harmonizados com a paleta Domus (#EEECE5, #17323D, #AD7B3B) */
+.neumorph-bg {
+  background: #EEECE5;
+}
+
+.neumorph-card {
+  background: #EEECE5;
+  box-shadow: 14px 14px 28px #d6d3cb, -14px -14px 28px #ffffff;
+}
+
+.neumorph-card-sm {
+  background: #EEECE5;
+  box-shadow: 8px 8px 16px #d6d3cb, -8px -8px 16px #ffffff;
+}
+
+.neumorph-inset {
+  background: #EEECE5;
+  box-shadow: inset 4px 4px 8px #d6d3cb, inset -4px -4px 8px #ffffff;
+}
+
+.neumorph-inset:focus-within {
+  box-shadow: inset 5px 5px 10px #cbc7bd, inset -5px -5px 10px #ffffff, 0 0 0 2px rgba(173, 123, 59, 0.45);
+}
+
+.neumorph-btn {
+  background: #EEECE5;
+  box-shadow: 6px 6px 14px #d6d3cb, -6px -6px 14px #ffffff;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.neumorph-btn:active {
+  box-shadow: inset 3px 3px 6px #d6d3cb, inset -3px -3px 6px #ffffff;
+  transform: scale(0.98);
+}
+
+.neumorph-btn-primary {
+  background: #17323D;
+  box-shadow: 6px 6px 14px #d6d3cb, -6px -6px 14px #ffffff;
+  color: #ffffff;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.neumorph-btn-primary:active {
+  transform: scale(0.98);
+  box-shadow: inset 2px 2px 5px #0d1f26, inset -2px -2px 5px #254d5c;
+}
+
+
+/* Glassmorphism Dark & Light utilities */
+.glass-card-dark {
+  background: rgba(17, 24, 39, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+}
+
+.glass-card-light {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 10px 30px -10px rgba(23, 50, 61, 0.12);
+}
+
+/* Shaking micro-animations for Delete button */
+@keyframes trashImpactShake {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  20% { transform: rotate(-8deg) scale(1.08); }
+  40% { transform: rotate(8deg) scale(1.08); }
+  60% { transform: rotate(-5deg) scale(1.04); }
+  80% { transform: rotate(4deg) scale(1.02); }
+}
+
+.animate-trash-shake {
+  animation: trashImpactShake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
