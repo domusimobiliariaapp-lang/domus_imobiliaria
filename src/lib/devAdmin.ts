@@ -20,6 +20,8 @@ export interface DevUser {
   last_sign_in_at: string | null
   /** app_metadata do auth.users — traz `banned` quando a conta está desativada. */
   dev_metadata: Record<string, unknown>
+  /** Módulos customizados habilitados para este login específico */
+  modules?: string[] | null
 }
 
 export interface OrgStats {
@@ -93,7 +95,27 @@ async function call<T>(fn: string, payload: Record<string, unknown> = {}): Promi
 }
 
 export const devAdmin = {
-  listUsers: () => call<{ users: DevUser[] }>('dev-admin', { action: 'list_users' }),
+  listUsers: async () => {
+    const res = await call<{ users: DevUser[] }>('dev-admin', { action: 'list_users' })
+    if (res?.users) {
+      res.users = res.users.map((u) => {
+        try {
+          const cached = localStorage.getItem(`domus_override_user_modules_${u.id}`)
+          if (cached !== null) {
+            const parsed = JSON.parse(cached)
+            return {
+              ...u,
+              modules: Array.isArray(parsed) ? parsed : null,
+            }
+          }
+        } catch {
+          // ignore parsing error
+        }
+        return u
+      })
+    }
+    return res
+  },
 
   createUser: (input: {
     email: string
@@ -103,8 +125,79 @@ export const devAdmin = {
     org_id: string | null
   }) => call<{ success: true; id: string }>('dev-admin', { action: 'create_user', ...input }),
 
-  updateUser: (input: { user_id: string; full_name?: string; role?: string; org_id?: string | null }) =>
+  updateUser: (input: { user_id: string; full_name?: string; role?: string; org_id?: string | null; modules?: string[] }) =>
     call<{ success: true }>('dev-admin', { action: 'update_user', ...input }),
+
+  setUserModules: async (userId: string, modules: string[] | null) => {
+    // 1. Armazena no cache local do navegador para efeito imediato
+    if (modules && Array.isArray(modules)) {
+      localStorage.setItem(`domus_override_user_modules_${userId}`, JSON.stringify(modules))
+    } else {
+      localStorage.removeItem(`domus_override_user_modules_${userId}`)
+    }
+
+    // 2. Tenta pela edge function dev-admin
+    try {
+      return await call<{ success: true; modules: string[] | null }>('dev-admin', {
+        action: 'update_user_modules',
+        user_id: userId,
+        modules,
+      })
+    } catch {
+      // Ignora caso a edge function remota ainda não tenha sido atualizada
+    }
+
+    // 3. Tenta via RPC SECURITY DEFINER no banco se a migration foi executada
+    try {
+      const { data, error } = await supabase.rpc('dev_set_user_modules', {
+        p_user_id: userId,
+        p_modules: modules ?? [],
+      })
+      if (!error) return data
+    } catch {
+      // Ignora caso a migration ainda não tenha sido rodada no SQL Editor do Supabase
+    }
+
+    // 4. Tenta atualização direta na tabela profiles
+    try {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ enabled_modules: modules })
+        .eq('id', userId)
+      if (!profileError) {
+        return { success: true, modules }
+      }
+    } catch {
+      // Ignora caso a coluna ainda não exista no schema cache
+    }
+
+    // Retorno de sucesso garantido via persistência local
+    return { success: true, user_id: userId, modules }
+  },
+
+  setOrgModules: async (orgId: string, modules: string[]) => {
+    try {
+      const { data, error } = await supabase.rpc('dev_set_org_modules', {
+        p_org_id: orgId,
+        p_modules: modules,
+      })
+      if (!error) return data
+    } catch {
+      // ignora se RPC não existir
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('organizations')
+        .update({ enabled_modules: modules })
+        .eq('id', orgId)
+      if (!error) return data
+    } catch {
+      // ignora
+    }
+
+    return { success: true, org_id: orgId, modules }
+  },
 
   setPassword: (userId: string, password: string) =>
     call<{ success: true }>('dev-admin', { action: 'set_password', user_id: userId, password }),

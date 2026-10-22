@@ -1,231 +1,267 @@
-import { useState } from 'react'
-import { 
-  FileText, 
-  Calendar, 
-  Sun, 
-  CloudRain, 
-  Users, 
-  Camera, 
-  Plus, 
-  Search, 
-  AlertTriangle, 
-  HardHat, 
-  CheckCircle2 
+import { useState, useEffect } from 'react'
+import {
+  HardHat,
+  Calendar,
+  Users,
+  Image as ImageIcon,
+  AlertTriangle,
+  Plus
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
-
-interface DiarioItem {
-  id: string
-  obraNome: string
-  data: string
-  clima: 'Ensolarado' | 'Nublado' | 'Chuvoso'
-  temperatura: number
-  efetivoTotal: number
-  atividades: string
-  ocorrencias?: string
-  fotosCount: number
-  autor: string
-}
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { useAuth } from '@/hooks/useAuth'
+import { obrasService, type ObraDiario, type ObraProjeto } from '@/modules/obras/services/obrasService'
 
 export function ObrasDiarioAdmin() {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [novoDiarioOpen, setNovoDiarioOpen] = useState(false)
+  const { organization } = useAuth()
+  const orgId = organization?.id
 
-  const [diarios] = useState<DiarioItem[]>([
-    {
-      id: 'rdo-1',
-      obraNome: 'Residencial Alphaville Lote 14',
-      data: '22/10/2026',
-      clima: 'Ensolarado',
-      temperatura: 28,
-      efetivoTotal: 14,
-      atividades: 'Concretagem da laje do 1º pavimento. Concluída armação das vigas V101 e V102.',
-      ocorrencias: 'Atraso de 40 minutos na chegada do segundo caminhão betoneira.',
-      fotosCount: 6,
-      autor: 'Mestre Joaquim'
-    },
-    {
-      id: 'rdo-2',
-      obraNome: 'Edifício Comercial Corporate Tower',
-      data: '22/10/2026',
-      clima: 'Nublado',
-      temperatura: 24,
-      efetivoTotal: 32,
-      atividades: 'Instalação das esquadrias de alumínio no 4º andar. Passagem de cabos da prumada elétrica.',
-      fotosCount: 12,
-      autor: 'Eng. Lucas Ferraz'
-    },
-    {
-      id: 'rdo-3',
-      obraNome: 'Residencial Alphaville Lote 14',
-      data: '21/10/2026',
-      clima: 'Ensolarado',
-      temperatura: 29,
-      efetivoTotal: 12,
-      atividades: 'Montagem de formas e escoramento metálico. Inspeção do engenheiro estrutural aprovada.',
-      fotosCount: 4,
-      autor: 'Mestre Joaquim'
-    },
-  ])
+  const [obras, setObras] = useState<ObraProjeto[]>([])
+  const [selectedObraId, setSelectedObraId] = useState<string>('')
+  const [diarios, setDiarios] = useState<ObraDiario[]>([])
 
-  const filtered = diarios.filter(
-    (d) =>
-      d.obraNome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      d.atividades.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  // Novo RDO Modal
+  const [modalOpen, setModalOpen] = useState(false)
+  const [dataRdo, setDataRdo] = useState(new Date().toISOString().split('T')[0])
+  const [clima, setClima] = useState('Ensolarado')
+  const [temperatura, setTemperatura] = useState('27')
+  const [atividades, setAtividades] = useState('')
+  const [ocorrencias, setOcorrencias] = useState('')
+
+  useEffect(() => {
+    async function load() {
+      if (!orgId) return
+      const obrasData = await obrasService.getObras(orgId)
+      setObras(obrasData)
+      const defaultObraId = obrasData[0]?.id || ''
+      setSelectedObraId(defaultObraId)
+      const rdoData = await obrasService.getDiarios(defaultObraId, orgId)
+      setDiarios(rdoData)
+    }
+    load()
+  }, [orgId])
+
+  const handleSelectObra = async (obraId: string) => {
+    setSelectedObraId(obraId)
+    if (!orgId) return
+    const rdoData = await obrasService.getDiarios(obraId, orgId)
+    setDiarios(rdoData)
+  }
+
+  const handleSaveRdo = async () => {
+    if (!orgId || !selectedObraId || !atividades.trim()) return
+    const currentObra = obras.find(o => o.id === selectedObraId)
+    const novoRdo: Partial<ObraDiario> = {
+      obra_id: selectedObraId,
+      obra_nome: currentObra?.nome || 'Obra Ativa',
+      data: dataRdo,
+      clima,
+      temperatura: parseFloat(temperatura) || 25,
+      atividades: atividades.trim(),
+      ocorrencias: ocorrencias.trim() || undefined,
+      efetivo: [
+        { funcao: 'Engenheiro Residente', quantidade: 1 },
+        { funcao: 'Mestre de Obras', quantidade: 1 },
+        { funcao: 'Pedreiros', quantidade: 4 },
+        { funcao: 'Serventes de Obra', quantidade: 6 }
+      ]
+    }
+    const saved = await obrasService.saveDiario(novoRdo, orgId)
+    setDiarios([saved, ...diarios])
+    setAtividades('')
+    setOcorrencias('')
+    setModalOpen(false)
+  }
+
+  const selectedObra = obras.find(o => o.id === selectedObraId)
 
   return (
-    <div className="container-domus py-8 space-y-6">
-      {/* Cabeçalho */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-5">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/50 pb-5">
         <div>
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="bg-amber-600/10 text-amber-600 border-amber-600/30">
-              <HardHat className="w-3.5 h-3.5 mr-1" /> Módulo Engenharia & Obras
-            </Badge>
-            <span className="text-xs text-muted-foreground">RDO - Relatório Diário de Obra</span>
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
+            <HardHat className="h-4 w-4" /> Módulo de Engenharia & Obras
           </div>
-          <h1 className="text-2xl font-serif font-bold text-foreground mt-1">
-            Diário de Obra Digital
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+            Diário de Obra Digital (RDO)
           </h1>
           <p className="text-sm text-muted-foreground">
-            Registro diário de efetivo, condições climáticas, atividades executadas e fotos do canteiro.
+            Registro diário de efetivo, clima, avanços físicos e fotos comprobatórias do canteiro.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            onClick={() => setNovoDiarioOpen(!novoDiarioOpen)}
-            className="bg-[#17323D] hover:bg-[#17323D]/90 text-white gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            {novoDiarioOpen ? 'Fechar Formulário' : 'Novo Registro Diário'}
-          </Button>
+        <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold">
+              <Plus className="h-4 w-4 mr-2" /> Novo RDO do Dia
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Preencher Diário de Obra (RDO)</DialogTitle>
+              <DialogDescription>
+                Registre o progresso diário da equipe técnica e condições de trabalho.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-3">
+              <div className="grid grid-cols-3 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Data do RDO</Label>
+                  <Input type="date" value={dataRdo} onChange={(e) => setDataRdo(e.target.value)} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Condições do Clima</Label>
+                  <Select value={clima} onValueChange={setClima}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Ensolarado">Ensolarado (Praticável)</SelectItem>
+                      <SelectItem value="Nublado">Nublado (Praticável)</SelectItem>
+                      <SelectItem value="Chuvoso">Chuvoso (Parcial)</SelectItem>
+                      <SelectItem value="Impraticável">Chuva Forte (Impraticável)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Temperatura (°C)</Label>
+                  <Input type="number" value={temperatura} onChange={(e) => setTemperatura(e.target.value)} />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Atividades Executadas no Dia *</Label>
+                <Textarea
+                  rows={4}
+                  placeholder="Ex: Execução da concretagem dos pilares do térreo; montagem de fôrmas da viga V-102; passagem de eletrodutos..."
+                  value={atividades}
+                  onChange={(e) => setAtividades(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Ocorrências / Acidentes / Paralisações</Label>
+                <Input
+                  placeholder="Ex: Sem intercorrências / Entrega de brita com atraso de 1 hora"
+                  value={ocorrencias}
+                  onChange={(e) => setOcorrencias(e.target.value)}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setModalOpen(false)}>Cancelar</Button>
+              <Button onClick={handleSaveRdo} className="bg-primary text-primary-foreground">Gravar RDO</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Seletor de Obra Ativa */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-card p-4 rounded-xl border border-border/60">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <Label className="text-xs font-semibold uppercase text-muted-foreground whitespace-nowrap">Obra Selecionada:</Label>
+          <Select value={selectedObraId} onValueChange={handleSelectObra}>
+            <SelectTrigger className="w-full sm:w-[320px] font-semibold">
+              <SelectValue placeholder="Selecione o canteiro de obra" />
+            </SelectTrigger>
+            <SelectContent>
+              {obras.map((o) => (
+                <SelectItem key={o.id} value={o.id}>
+                  {o.numero} - {o.nome}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="text-xs text-muted-foreground">
+          {selectedObra ? `${selectedObra.cidade} - ${selectedObra.uf} • Progresso: ${selectedObra.progresso}%` : ''}
         </div>
       </div>
 
-      {/* Formulário Rápido de Novo Diário */}
-      {novoDiarioOpen && (
-        <Card className="border-[#AD7B3B]/40 bg-[#AD7B3B]/5">
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <FileText className="w-4 h-4 text-[#AD7B3B]" />
-              <span>Novo Diário de Obra (RDO)</span>
-            </CardTitle>
-            <CardDescription>
-              Preencha o registro do dia para manter o histórico legal e técnico da obra.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="space-y-1.5">
-                <Label className="text-xs">Data do Relatório</Label>
-                <Input type="date" defaultValue="2026-10-22" />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Condição do Clima</Label>
-                <Input placeholder="Ex: Ensolarado (28°C)" />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Efetivo Total no Canteiro</Label>
-                <Input type="number" placeholder="Ex: 15 trabalhadores" />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs">Atividades Realizadas no Dia</Label>
-              <Textarea placeholder="Descreva os serviços executados pela equipe..." rows={3} />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs">Ocorrências / Imprevistos (Opcional)</Label>
-              <Input placeholder="Atrasos de materiais, acidentes ou paralisações por chuva..." />
-            </div>
-
-            <div className="pt-2 flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setNovoDiarioOpen(false)}>
-                Cancelar
-              </Button>
-              <Button className="bg-[#17323D] hover:bg-[#17323D]/90 text-white gap-2">
-                <CheckCircle2 className="w-4 h-4" />
-                Salvar Diário
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Busca */}
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="w-4 h-4 absolute left-3 top-2.5 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por obra ou atividades..."
-            className="pl-9"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-      </div>
-
-      {/* Lista de Registros RDO */}
-      <div className="space-y-4">
-        {filtered.map((item) => (
-          <Card key={item.id} className="hover:shadow-sm transition-shadow">
-            <CardContent className="p-5 space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-3">
+      {/* Linha do Tempo dos Diários de Obra */}
+      <div className="space-y-5">
+        {diarios.map((rdo) => (
+          <Card key={rdo.id} className="border-border/60 shadow-sm overflow-hidden">
+            <CardHeader className="bg-muted/30 border-b border-border/40 py-3.5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-semibold text-sm text-foreground">{item.obraNome}</h3>
-                  <Badge variant="outline" className="font-mono text-xs">
-                    <Calendar className="w-3 h-3 mr-1 text-muted-foreground" />
-                    {item.data}
+                  <Calendar className="h-4 w-4 text-primary" />
+                  <span className="font-bold text-foreground text-base">
+                    RDO do dia {new Date(rdo.data).toLocaleDateString('pt-BR')}
+                  </span>
+                  <Badge variant="outline" className="border-primary/30 text-primary bg-primary/5 text-xs font-semibold">
+                    {rdo.clima} • {rdo.temperatura}°C
                   </Badge>
                 </div>
-                <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    {item.clima === 'Chuvoso' ? (
-                      <CloudRain className="w-3.5 h-3.5 text-blue-500" />
-                    ) : (
-                      <Sun className="w-3.5 h-3.5 text-amber-500" />
-                    )}
-                    {item.clima} ({item.temperatura}°C)
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Users className="w-3.5 h-3.5 text-muted-foreground" />
-                    {item.efetivoTotal} operários
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Camera className="w-3.5 h-3.5 text-muted-foreground" />
-                    {item.fotosCount} fotos
-                  </span>
+                <div className="text-xs text-muted-foreground font-medium">
+                  {rdo.obra_nome}
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-5 space-y-4">
+              {/* Efetivo de Mão de Obra */}
+              <div className="p-3 bg-muted/20 rounded-xl border border-border/40">
+                <div className="text-xs font-semibold text-muted-foreground uppercase flex items-center gap-1.5 mb-2">
+                  <Users className="h-3.5 w-3.5 text-primary" />
+                  Efetivo Presente no Canteiro ({rdo.efetivo.reduce((acc, e) => acc + e.quantidade, 0)} profissionais)
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {rdo.efetivo.map((ef, idx) => (
+                    <Badge key={idx} variant="secondary" className="text-xs font-medium py-1 px-2.5">
+                      <strong>{ef.quantidade}x</strong> {ef.funcao}
+                    </Badge>
+                  ))}
                 </div>
               </div>
 
-              <div className="text-xs space-y-1.5">
-                <p className="text-foreground leading-relaxed">
-                  <span className="font-semibold text-muted-foreground">Serviços executados: </span>
-                  {item.atividades}
+              {/* Atividades Executadas */}
+              <div className="space-y-1">
+                <h4 className="text-xs font-bold text-muted-foreground uppercase">Atividades Executadas</h4>
+                <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">
+                  {rdo.atividades}
                 </p>
-
-                {item.ocorrencias && (
-                  <p className="text-amber-600 dark:text-amber-400 bg-amber-500/10 p-2 rounded-lg flex items-center gap-1.5">
-                    <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
-                    <span>{item.ocorrencias}</span>
-                  </p>
-                )}
               </div>
 
-              <div className="pt-2 flex justify-between items-center text-[11px] text-muted-foreground">
-                <span>Registrado por: <strong>{item.autor}</strong></span>
-                <Button variant="ghost" size="sm" className="h-7 text-xs text-[#AD7B3B] hover:text-[#AD7B3B]/80">
-                  Ver Fotos & Imprimir PDF
-                </Button>
-              </div>
+              {/* Ocorrências */}
+              {rdo.ocorrencias && (
+                <div className="p-3 bg-amber-500/5 rounded-lg border border-amber-500/20 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2">
+                  <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
+                  <div>
+                    <strong>Ocorrência / Observação:</strong> {rdo.ocorrencias}
+                  </div>
+                </div>
+              )}
+
+              {/* Fotos Comprobatórias */}
+              {rdo.fotos && rdo.fotos.length > 0 && (
+                <div className="space-y-2 pt-2 border-t border-border/40">
+                  <div className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                    <ImageIcon className="h-3.5 w-3.5 text-primary" />
+                    Registros Fotográficos do Canteiro ({rdo.fotos.length})
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {rdo.fotos.map((foto) => (
+                      <div key={foto.id} className="group relative rounded-lg overflow-hidden border border-border/60 aspect-video bg-muted">
+                        <img
+                          src={foto.url}
+                          alt={foto.descricao || 'Foto do Canteiro'}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        />
+                        <div className="absolute inset-x-0 bottom-0 bg-black/60 p-1.5 text-[10px] text-white truncate">
+                          {foto.descricao || 'Foto de Acompanhamento'}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         ))}

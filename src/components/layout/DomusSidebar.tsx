@@ -12,10 +12,11 @@ import {
   HardHat, 
   SlidersHorizontal, 
   LayoutDashboard,
-  ChevronDown
+  ChevronDown,
+  Landmark
 } from 'lucide-react'
 
-export type SystemModuleKey = 'imobiliaria' | 'solar' | 'engenharia' | 'odonto'
+export type SystemModuleKey = 'imobiliaria' | 'solar' | 'engenharia' | 'odonto' | 'financeiro'
 
 interface NavItem {
   href: string
@@ -83,6 +84,16 @@ const navGroups: NavGroup[] = [
       { href: '/admin/obras/medicoes', label: 'Medições' },
       { href: '/admin/obras/cronograma', label: 'Cronograma Físico' },
       { href: '/admin/obras/compras', label: 'Compras & Insumos' },
+    ],
+  },
+  {
+    id: 'financeiro_erp',
+    label: 'Finanças ERP',
+    icon: Landmark,
+    requiredModule: 'financeiro',
+    collapsible: true,
+    items: [
+      { href: '/financeiro/app', label: 'Painel ERP Financeiro' },
     ],
   },
   {

@@ -41,38 +41,38 @@ import type { SaasPlan } from '@/types'
 const FALLBACK_PLANS: SaasPlan[] = [
   {
     id: 'starter',
-    name: 'Starter',
-    description: 'Para imobiliárias enxutas e corretores independentes.',
+    name: 'Starter All-in-One',
+    description: 'Suíte Unificada para pequenas imobiliárias e corretores (4 sistemas integrados).',
     price_monthly: 249,
     price_annual_monthly: 199,
     max_properties: 35,
     max_users: 2,
     popular: false,
-    badge: null,
+    badge: 'Suíte Unificada',
     features: { subdomain: true, portal: true, crm: false, vistorias: false, custom_domain: false },
   },
   {
     id: 'pro',
-    name: 'Profissional',
-    description: 'Gestão completa com automação de ponta a ponta.',
+    name: 'Profissional All-in-One',
+    description: 'Suíte Unificada 4 em 1 com automação de ponta a ponta e finanças pro.',
     price_monthly: 489,
     price_annual_monthly: 389,
     max_properties: 150,
     max_users: 6,
     popular: true,
-    badge: 'Mais Escolhido',
+    badge: 'Mais Escolhido • 4 em 1',
     features: { subdomain: true, portal: true, crm: true, vistorias: true, custom_domain: false },
   },
   {
     id: 'enterprise',
-    name: 'Enterprise',
-    description: 'Grandes imobiliárias, redes e franqueadoras.',
+    name: 'Enterprise All-in-One',
+    description: 'Suíte Corporativa sem limites com multi-empresas, filiais e suporte VIP.',
     price_monthly: 980,
     price_annual_monthly: 790,
     max_properties: null,
     max_users: null,
     popular: false,
-    badge: 'Sem Limites',
+    badge: 'Sem Limites • Corporativo',
     features: { subdomain: true, portal: true, crm: true, vistorias: true, custom_domain: true },
   },
 ]
@@ -758,6 +758,21 @@ export function AdminUpgrade() {
                     <span className={plan.features.custom_domain ? 'text-foreground' : 'line-through text-muted-foreground/60'}>
                       Domínio próprio (.com.br exclusivo)
                     </span>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-foreground font-medium pt-1 border-t border-border/50">
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Domus Finanças ERP Completo</span>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-foreground font-medium">
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Engenharia & Obras (RDO Digital)</span>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-foreground font-medium">
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Módulo Energia Solar (Homologação)</span>
                   </div>
                 </div>
 

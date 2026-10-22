@@ -49,8 +49,20 @@ const PrivacyPage = lazy(() => import('@/pages/PrivacyPage').then(m => ({ defaul
 const PublicPortalXml = lazy(() => import('@/pages/PublicPortalXml').then(m => ({ default: m.PublicPortalXml })))
 const SolarQuotesAdmin = lazy(() => import('@/pages/solar/SolarQuotesAdmin').then(m => ({ default: m.SolarQuotesAdmin })))
 const SolarProjectsAdmin = lazy(() => import('@/pages/solar/SolarProjectsAdmin').then(m => ({ default: m.SolarProjectsAdmin })))
+const SolarKitsAdmin = lazy(() => import('@/pages/solar/SolarKitsAdmin').then(m => ({ default: m.SolarKitsAdmin })))
+const SolarServiceOrdersAdmin = lazy(() => import('@/pages/solar/SolarServiceOrdersAdmin').then(m => ({ default: m.SolarServiceOrdersAdmin })))
+const SolarSuppliersAdmin = lazy(() => import('@/pages/solar/SolarSuppliersAdmin').then(m => ({ default: m.SolarSuppliersAdmin })))
+
 const ObrasProjetosAdmin = lazy(() => import('@/pages/obras/ObrasProjetosAdmin').then(m => ({ default: m.ObrasProjetosAdmin })))
 const ObrasDiarioAdmin = lazy(() => import('@/pages/obras/ObrasDiarioAdmin').then(m => ({ default: m.ObrasDiarioAdmin })))
+const ObrasMedicoesAdmin = lazy(() => import('@/pages/obras/ObrasMedicoesAdmin').then(m => ({ default: m.ObrasMedicoesAdmin })))
+const ObrasCronogramaAdmin = lazy(() => import('@/pages/obras/ObrasCronogramaAdmin').then(m => ({ default: m.ObrasCronogramaAdmin })))
+const ObrasComprasAdmin = lazy(() => import('@/pages/obras/ObrasComprasAdmin').then(m => ({ default: m.ObrasComprasAdmin })))
+
+// Novo Sistema Independente: Domus Finanças ERP (Venda Mensal ou Licença Vitalícia)
+const FinanceiroLanding = lazy(() => import('@/pages/financeiro/FinanceiroLanding').then(m => ({ default: m.FinanceiroLanding })))
+const FinanceiroDashboard = lazy(() => import('@/pages/financeiro/FinanceiroDashboard').then(m => ({ default: m.FinanceiroDashboard })))
+
 import { getSubdomainInfo } from '@/lib/subdomain'
 
 function PageLoading() {
@@ -180,6 +192,10 @@ function AppRoutes() {
         <Route path="/termos" element={<TermsPage />} />
         <Route path="/privacidade" element={<PrivacyPage />} />
 
+        {/* Novo Sistema Independente: Domus Finanças ERP (Venda Mensal ou Licença Vitalícia) */}
+        <Route path="/financeiro" element={<FinanceiroLanding />} />
+        <Route path="/financeiro/app" element={<FinanceiroDashboard />} />
+
         {/* Public login routes */}
         <Route path="/login" element={<LoginAdmin />} />
         <Route path="/portal/login" element={<PortalLoginRoute />} />
@@ -267,16 +283,16 @@ function AppRoutes() {
             {/* Módulo Energia Solar */}
             <Route path="solar/orcamentos" element={<SolarQuotesAdmin />} />
             <Route path="solar/projetos" element={<SolarProjectsAdmin />} />
-            <Route path="solar/kits" element={<SolarQuotesAdmin />} />
-            <Route path="solar/os" element={<SolarProjectsAdmin />} />
-            <Route path="solar/fornecedores" element={<SolarQuotesAdmin />} />
+            <Route path="solar/kits" element={<SolarKitsAdmin />} />
+            <Route path="solar/os" element={<SolarServiceOrdersAdmin />} />
+            <Route path="solar/fornecedores" element={<SolarSuppliersAdmin />} />
 
             {/* Módulo Engenharia & Obras */}
             <Route path="obras/projetos" element={<ObrasProjetosAdmin />} />
             <Route path="obras/diario" element={<ObrasDiarioAdmin />} />
-            <Route path="obras/medicoes" element={<ObrasProjetosAdmin />} />
-            <Route path="obras/cronograma" element={<ObrasProjetosAdmin />} />
-            <Route path="obras/compras" element={<ObrasProjetosAdmin />} />
+            <Route path="obras/medicoes" element={<ObrasMedicoesAdmin />} />
+            <Route path="obras/cronograma" element={<ObrasCronogramaAdmin />} />
+            <Route path="obras/compras" element={<ObrasComprasAdmin />} />
           </Route>
         </Route>
 

@@ -40,6 +40,7 @@ serve(async (req) => {
     'list_users',
     'create_user',
     'update_user',
+    'update_user_modules',
     'set_password',
     'toggle_active',
     'delete_user',
@@ -92,11 +93,11 @@ serve(async (req) => {
       const { data, error } = await admin.auth.admin.listUsers({ page: 1, perPage: 200 })
       if (error) return json({ error: 'Não foi possível listar as contas.' }, 500)
 
-      // O perfil traz org_id e role; o histórico de login só existe em
+      // O perfil traz org_id, role e enabled_modules; o histórico de login só existe em
       // auth.users, que o browser não lê.
       const { data: profiles } = await admin
         .from('profiles')
-        .select('id, role, full_name, email, org_id, created_at')
+        .select('id, role, full_name, email, org_id, enabled_modules, created_at')
 
       const byId = new Map((profiles ?? []).map((p) => [p.id, p]))
 
@@ -114,10 +115,40 @@ serve(async (req) => {
           last_sign_in_at: u.last_sign_in_at,
           // Metadata escrita por auth.admin, não pelo app.
           dev_metadata: u.app_metadata ?? {},
+          modules: (profile?.enabled_modules as string[]) || (u.app_metadata?.modules as string[]) || null,
         }
       })
 
       return json({ users })
+    }
+
+    // Atualização de módulos específicos de um login
+    if (action === 'update_user_modules') {
+      const userId = typeof body.user_id === 'string' ? body.user_id : ''
+      if (!userId) return json({ error: 'Conta não informada.' }, 400)
+      const modules = Array.isArray(body.modules) ? body.modules : null
+
+      // Atualiza profiles
+      await admin.from('profiles').update({ enabled_modules: modules }).eq('id', userId)
+
+      // Atualiza app_metadata no auth.users
+      const { data: currentUser } = await admin.auth.admin.getUserById(userId)
+      if (currentUser?.user) {
+        const existingMeta = currentUser.user.app_metadata ?? {}
+        await admin.auth.admin.updateUserById(userId, {
+          app_metadata: { ...existingMeta, modules: modules ?? [] },
+        })
+      }
+
+      await admin.from('admin_audit_log').insert({
+        actor_id: callerUser.id,
+        action: 'update_user_modules',
+        target_type: 'auth.users',
+        target_id: userId,
+        details: { modules },
+      })
+
+      return json({ success: true, modules })
     }
 
     // ------------------------------------------------------------------

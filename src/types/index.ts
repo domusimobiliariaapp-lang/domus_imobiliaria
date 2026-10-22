@@ -107,6 +107,8 @@ export interface Profile {
   observacoes?: string
   /** Imobiliária do usuário. Ausente (null) na conta DEV e em conta ainda não vinculada. */
   org_id?: string
+  /** Módulos específicos habilitados para este login (ou herda da org se vazio) */
+  enabled_modules?: string[]
   created_at: string
   updated_at?: string
 }

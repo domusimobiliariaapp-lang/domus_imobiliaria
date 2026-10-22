@@ -582,10 +582,10 @@ export function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-10">
             <h2 className="text-3xl sm:text-4xl font-serif font-bold text-[#17323D] dark:text-[#EEECE5]">
-              Planos conforme o tamanho da sua carteira
+              Planos flexíveis para cada modelo de negócio
             </h2>
             <p className="mt-3 text-sm sm:text-base text-muted-foreground">
-              Você tem 3 dias de teste sem compromisso para conhecer o sistema com a sua equipe.
+              Contrate apenas o sistema que sua empresa precisa hoje ou leve a <strong>Suíte Unificada All-in-One</strong> com todos os 4 sistemas integrados com desconto especial. Teste por 3 dias sem compromisso.
             </p>
           </div>
 
