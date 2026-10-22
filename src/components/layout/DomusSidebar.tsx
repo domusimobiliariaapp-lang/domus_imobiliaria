@@ -1,16 +1,52 @@
+import * as React from 'react'
+import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Link, useLocation } from 'react-router-dom'
 import { usePlanLimits } from '@/hooks/usePlanLimits'
-import { Sparkles, ArrowUpRight } from 'lucide-react'
+import { 
+  Sparkles, 
+  ArrowUpRight, 
+  Building2, 
+  SunMedium, 
+  HardHat, 
+  SlidersHorizontal, 
+  LayoutDashboard,
+  ChevronDown
+} from 'lucide-react'
+
+export type SystemModuleKey = 'imobiliaria' | 'solar' | 'engenharia' | 'odonto'
+
+interface NavItem {
+  href: string
+  label: string
+  onlyAdmin?: boolean
+  badge?: string
+}
+
+interface NavGroup {
+  id: string
+  label: string
+  icon: React.ComponentType<{ className?: string }>
+  requiredModule?: SystemModuleKey
+  collapsible?: boolean
+  items: NavItem[]
+}
 
 const navGroups: NavGroup[] = [
   {
+    id: 'overview',
     label: 'Visão Geral',
-    items: [{ href: '/admin/dashboard', label: 'Dashboard' }],
+    icon: LayoutDashboard,
+    collapsible: false,
+    items: [{ href: '/admin/dashboard', label: 'Dashboard Executivo' }],
   },
   {
-    label: 'Operação',
+    id: 'imobiliaria',
+    label: 'Imobiliária',
+    icon: Building2,
+    requiredModule: 'imobiliaria',
+    collapsible: true,
     items: [
       { href: '/admin/properties', label: 'Imóveis' },
       { href: '/admin/crm', label: 'CRM & Radar' },
@@ -22,38 +58,105 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    label: 'Gestão',
+    id: 'solar',
+    label: 'Energia Solar',
+    icon: SunMedium,
+    requiredModule: 'solar',
+    collapsible: true,
+    items: [
+      { href: '/admin/solar/orcamentos', label: 'Orçamentos & Simulação' },
+      { href: '/admin/solar/projetos', label: 'Projetos & Usinas' },
+      { href: '/admin/solar/kits', label: 'Kits & Inversores' },
+      { href: '/admin/solar/os', label: 'Ordens de Serviço' },
+      { href: '/admin/solar/fornecedores', label: 'Fornecedores' },
+    ],
+  },
+  {
+    id: 'engenharia',
+    label: 'Engenharia & Obras',
+    icon: HardHat,
+    requiredModule: 'engenharia',
+    collapsible: true,
+    items: [
+      { href: '/admin/obras/projetos', label: 'Obras & Contratos' },
+      { href: '/admin/obras/diario', label: 'Diário de Obra (RDO)' },
+      { href: '/admin/obras/medicoes', label: 'Medições' },
+      { href: '/admin/obras/cronograma', label: 'Cronograma Físico' },
+      { href: '/admin/obras/compras', label: 'Compras & Insumos' },
+    ],
+  },
+  {
+    id: 'gestao',
+    label: 'Gestão Corporativa',
+    icon: SlidersHorizontal,
+    collapsible: true,
     items: [
       { href: '/admin/financial', label: 'Financeiro' },
       { href: '/admin/legal', label: 'Jurídico' },
       { href: '/admin/administrative', label: 'Administrativo' },
       { href: '/admin/chamados', label: 'Chamados' },
-      { href: '/admin/upgrade', label: 'Plano & Limites', onlyAdmin: true },
-      // Só o admin cria acessos. Isso é conveniência, não segurança: quem
-      // tentar digitar /admin/equipe sem ser admin recebe a tela de "apenas o
-      // administrador", e a edge function barra de todo modo.
-      { href: '/admin/equipe', label: 'Equipe', onlyAdmin: true },
+      { href: '/admin/upgrade', label: 'Plano & Módulos', onlyAdmin: true },
+      { href: '/admin/equipe', label: 'Equipe & Acessos', onlyAdmin: true },
     ],
   },
 ]
-
-interface NavGroup {
-  label: string
-  items: { href: string; label: string; onlyAdmin?: boolean }[]
-}
 
 interface DomusSidebarProps {
   isOpen: boolean
   onClose: () => void
   user: { name: string; role: string }
   onLogout: () => void
-  /** Imobiliária do usuário. Sem ela, mostra a marca padrão do Domus. */
+  /** Imobiliária / Empresa do usuário. Sem ela, mostra a marca padrão do Domus. */
   orgName?: string
+  /** Módulos ativos contratados pela empresa */
+  enabledModules?: string[]
 }
 
-export function DomusSidebar({ isOpen, onClose, user, onLogout, orgName }: DomusSidebarProps) {
+export function DomusSidebar({ 
+  isOpen, 
+  onClose, 
+  user, 
+  onLogout, 
+  orgName,
+  enabledModules = ['imobiliaria']
+}: DomusSidebarProps) {
   const location = useLocation()
   const planLimits = usePlanLimits()
+
+  // Determina quais módulos da organização estão ativos
+  const activeModules = React.useMemo(() => {
+    if (!enabledModules || enabledModules.length === 0) return ['imobiliaria']
+    return enabledModules
+  }, [enabledModules])
+
+  // Guarda estado aberto/fechado de cada submenu
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+    const initialState: Record<string, boolean> = {
+      overview: true,
+      imobiliaria: true,
+      solar: true,
+      engenharia: true,
+      gestao: false,
+    }
+    return initialState
+  })
+
+  // Auto-expande o grupo correspondente à rota atual
+  useEffect(() => {
+    navGroups.forEach((group) => {
+      const isRouteInGroup = group.items.some(
+        (item) => location.pathname === item.href || location.pathname.startsWith(item.href + '/')
+      )
+      if (isRouteInGroup) {
+        setOpenGroups((prev) => ({ ...prev, [group.id]: true }))
+      }
+    })
+  }, [location.pathname])
+
+  const toggleGroup = (groupId: string) => {
+    setOpenGroups((prev) => ({ ...prev, [groupId]: !prev[groupId] }))
+  }
+
   const initials = user.name
     .split(' ')
     .map((n) => n.charAt(0))
@@ -64,6 +167,12 @@ export function DomusSidebar({ isOpen, onClose, user, onLogout, orgName }: Domus
   const percentUsed = planLimits.maxProperties
     ? Math.min(100, Math.round((planLimits.currentPropertiesCount / planLimits.maxProperties) * 100))
     : 0
+
+  // Filtra apenas grupos que a organização possui contratado
+  const visibleGroups = navGroups.filter((group) => {
+    if (!group.requiredModule) return true
+    return activeModules.includes(group.requiredModule)
+  })
 
   return (
     <>
@@ -104,38 +213,102 @@ export function DomusSidebar({ isOpen, onClose, user, onLogout, orgName }: Domus
             </button>
           </div>
 
-          {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-6" aria-label="Navegação principal">
-            {navGroups.map((group) => {
-              // Um grupo inteiro pode sumir se sobrar só item restrito: um
-              // "Gestão" com uma linha só seria pior que nada.
+          {/* Navigation com Submenus Suspensos */}
+          <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-3" aria-label="Navegação principal">
+            {visibleGroups.map((group) => {
               const visibleItems = group.items.filter((i) => !i.onlyAdmin || user.role === 'admin')
               if (visibleItems.length === 0) return null
+
+              const isGroupOpen = openGroups[group.id] ?? false
+              const GroupIcon = group.icon
+              const hasActiveChild = visibleItems.some(
+                (item) => location.pathname === item.href || location.pathname.startsWith(item.href + '/')
+              )
+
+              // Item único não-colapsável (ex: Dashboard)
+              if (!group.collapsible) {
+                return (
+                  <div key={group.id} className="space-y-1">
+                    {visibleItems.map((item) => {
+                      const isActive = location.pathname === item.href
+                      return (
+                        <Button
+                          key={item.href}
+                          variant="ghost"
+                          className={cn(
+                            'w-full justify-start gap-3 text-left text-sm font-medium rounded-lg px-3 py-2 transition-all',
+                            isActive
+                              ? 'text-white bg-white/15 border-l-2 border-[#AD7B3B] font-semibold'
+                              : 'text-white/80 hover:text-white hover:bg-white/5'
+                          )}
+                          onClick={onClose}
+                          asChild
+                        >
+                          <Link to={item.href}>
+                            <GroupIcon className={cn('h-4 w-4', isActive ? 'text-[#AD7B3B]' : 'text-white/60')} />
+                            <span>{item.label}</span>
+                          </Link>
+                        </Button>
+                      )
+                    })}
+                  </div>
+                )
+              }
+
+              // Módulo Colapsável com Submenu Suspenso
               return (
-              <div key={group.label} className="space-y-1">
-                <h3 className="px-3 text-xs font-semibold uppercase tracking-wider text-white/50 mb-2">
-                  {group.label}
-                </h3>
-                {visibleItems.map((item) => {
-                  const isActive = location.pathname === item.href || location.pathname.startsWith(item.href + '/')
-                  return (
-                    <Button
-                      key={item.href}
-                      variant="ghost"
+                <div key={group.id} className="space-y-1">
+                  {/* Cabeçalho do Grupo com Toggle */}
+                  <button
+                    type="button"
+                    onClick={() => toggleGroup(group.id)}
+                    className={cn(
+                      'w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors',
+                      hasActiveChild
+                        ? 'text-white bg-white/10'
+                        : 'text-white/60 hover:text-white hover:bg-white/5'
+                    )}
+                  >
+                    <div className="flex items-center gap-2.5 truncate">
+                      <GroupIcon className={cn('h-3.5 w-3.5', hasActiveChild ? 'text-[#AD7B3B]' : 'text-white/50')} />
+                      <span className="truncate">{group.label}</span>
+                    </div>
+                    <ChevronDown
                       className={cn(
-                        'w-full justify-start gap-3 text-left text-sm font-medium',
-                        isActive
-                          ? 'text-white bg-white/10 border-l-2 border-[#AD7B3B]'
-                          : 'text-white/80 hover:text-white hover:bg-white/5'
+                        'h-3.5 w-3.5 text-white/50 transition-transform duration-200',
+                        isGroupOpen ? 'rotate-180 text-white/80' : 'rotate-0'
                       )}
-                      onClick={onClose}
-                      asChild
-                    >
-                      <Link to={item.href}>{item.label.trim()}</Link>
-                    </Button>
-                  )
-                })}
-              </div>
+                    />
+                  </button>
+
+                  {/* Submenu Suspenso */}
+                  {isGroupOpen && (
+                    <div className="ml-3 pl-2.5 border-l border-white/10 space-y-0.5 pt-1">
+                      {visibleItems.map((item) => {
+                        const isActive =
+                          location.pathname === item.href || location.pathname.startsWith(item.href + '/')
+                        return (
+                          <Button
+                            key={item.href}
+                            variant="ghost"
+                            className={cn(
+                              'w-full justify-start text-left text-xs font-medium h-8 px-2.5 rounded-md transition-all',
+                              isActive
+                                ? 'text-white bg-white/15 font-semibold text-[#AD7B3B]'
+                                : 'text-white/70 hover:text-white hover:bg-white/5'
+                            )}
+                            onClick={onClose}
+                            asChild
+                          >
+                            <Link to={item.href}>
+                              <span className="truncate">{item.label}</span>
+                            </Link>
+                          </Button>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
               )
             })}
           </nav>

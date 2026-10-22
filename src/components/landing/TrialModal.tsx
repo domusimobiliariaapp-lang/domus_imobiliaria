@@ -11,13 +11,15 @@ interface TrialModalProps {
   isOpen: boolean
   onClose: () => void
   initialPlan?: string
+  initialModule?: string
 }
 
-export function TrialModal({ isOpen, onClose, initialPlan = 'Profissional' }: TrialModalProps) {
+export function TrialModal({ isOpen, onClose, initialPlan = 'Profissional', initialModule = 'Imobiliária & Locações' }: TrialModalProps) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [agencyName, setAgencyName] = useState('')
+  const [selectedModule, setSelectedModule] = useState(initialModule)
   const [subdomain, setSubdomain] = useState('')
   const [portfolioSize, setPortfolioSize] = useState('31-100')
   const [plan, setPlan] = useState(initialPlan)
@@ -69,7 +71,7 @@ export function TrialModal({ isOpen, onClose, initialPlan = 'Profissional' }: Tr
         portfolio_size: portfolioSize,
         plan_id: normalizedPlan,
         status: 'novo',
-        notes: `Aceite formal dos Termos v2.4 e LGPD registrado em ${new Date().toLocaleString('pt-BR')}`,
+        notes: `Módulo Solicitado: [${selectedModule}]. Aceite formal dos Termos v2.4 e LGPD registrado em ${new Date().toLocaleString('pt-BR')}`,
       })
     } catch (err) {
       // Falha silenciosa para não travar a experiência do usuário caso a tabela ainda não exista no Supabase remoto
@@ -82,9 +84,10 @@ export function TrialModal({ isOpen, onClose, initialPlan = 'Profissional' }: Tr
 
   const openWhatsAppDirect = () => {
     const message =
-      `Olá! Quero testar o Domus por 3 dias para a *${agencyName || 'minha imobiliária'}*.\n` +
+      `Olá! Quero testar a plataforma por 3 dias para a *${agencyName || 'minha empresa'}*.\n` +
+      `• Solução de Interesse: *${selectedModule}*\n` +
       `• Plano: *${plan}*\n` +
-      `• Carteira: *${portfolioSize} imóveis*\n` +
+      `• Porte: *${portfolioSize}*\n` +
       `• Subdomínio desejado: *${subdomain ? `${subdomain}.domus.com.br` : 'não definido'}*\n` +
       `• Responsável: *${name}*`
     window.open(getDevWhatsAppUrl(message), '_blank')
@@ -165,13 +168,31 @@ export function TrialModal({ isOpen, onClose, initialPlan = 'Profissional' }: Tr
                 </div>
 
                 <div className="space-y-1">
-                  <Label htmlFor="trial-agency" className="text-xs font-medium">Nome da Imobiliária</Label>
+                  <Label htmlFor="trial-module" className="text-xs font-medium">Solução de Interesse</Label>
+                  <select
+                    id="trial-module"
+                    value={selectedModule}
+                    onChange={(e) => setSelectedModule(e.target.value)}
+                    className="w-full h-10 px-3 text-sm rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer"
+                  >
+                    <option value="Imobiliária & Locações">🏢 Imobiliárias & Corretores</option>
+                    <option value="Energia Solar Fotovoltaica">☀️ Energia Solar & Usinas</option>
+                    <option value="Engenharia Civil & Obras">🏗️ Engenharia Civil & Obras</option>
+                    <option value="Clínicas & Consultórios">🦷 Clínicas & Consultórios de Saúde</option>
+                    <option value="Escritórios de Advocacia">⚖️ Escritórios de Advocacia</option>
+                    <option value="Gestão Financeira & ERP">💰 Gestão Financeira & ERP</option>
+                    <option value="Combo Integrado Multi-SaaS">🏆 Combo Integrado (Múltiplos Módulos)</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <Label htmlFor="trial-agency" className="text-xs font-medium">Nome da Empresa / Escritório</Label>
                   <div className="relative">
                     <Building className="w-4 h-4 text-muted-foreground absolute left-3 top-3" />
                     <Input
                       id="trial-agency"
                       required
-                      placeholder="Ex: Imobiliária Horizon"
+                      placeholder="Ex: Minha Empresa / Escritório"
                       value={agencyName}
                       onChange={(e) => handleAgencyChange(e.target.value)}
                       className="pl-9 h-10 text-sm"

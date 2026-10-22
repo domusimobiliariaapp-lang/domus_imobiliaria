@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { LiveScreenShowcase } from '@/components/landing/LiveScreenShowcase'
+import { SolutionsCatalog } from '@/components/landing/SolutionsCatalog'
 import { PricingTable } from '@/components/landing/PricingTable'
 import { RoiCalculator } from '@/components/landing/RoiCalculator'
 import { FaqSection } from '@/components/landing/FaqSection'
@@ -27,9 +28,11 @@ import { DomusLogo } from '@/components/brand/DomusLogo'
 export function LandingPage() {
   const [isTrialOpen, setIsTrialOpen] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState('Profissional')
+  const [selectedModule, setSelectedModule] = useState('Imobiliária & Locações')
 
-  const openTrial = (planName = 'Profissional') => {
+  const openTrial = (planName = 'Profissional', moduleName = 'Imobiliária & Locações') => {
     setSelectedPlan(planName)
+    setSelectedModule(moduleName)
     setIsTrialOpen(true)
   }
 
@@ -57,6 +60,12 @@ export function LandingPage() {
 
           {/* Navegação Desktop */}
           <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-muted-foreground">
+            <button
+              onClick={() => scrollToSection('solutions')}
+              className="hover:text-foreground transition-colors cursor-pointer text-[#AD7B3B] font-semibold"
+            >
+              Soluções
+            </button>
             <button
               onClick={() => scrollToSection('showcase')}
               className="hover:text-foreground transition-colors cursor-pointer"
@@ -191,11 +200,14 @@ export function LandingPage() {
             </div>
             <div className="flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span>Banco de dados isolado por imobiliária</span>
+              <span>Banco de dados isolado por empresa</span>
             </div>
           </motion.div>
         </div>
       </section>
+
+      {/* CATÁLOGO DE SOLUÇÕES POR SEGMENTO */}
+      <SolutionsCatalog onSelectSolution={(solution) => openTrial('Profissional', solution)} />
 
       {/* APRESENTAÇÃO DE TELAS REAIS */}
       <section id="showcase" className="py-16 sm:py-24 bg-card/60 border-y border-border">
@@ -509,6 +521,7 @@ export function LandingPage() {
         isOpen={isTrialOpen}
         onClose={() => setIsTrialOpen(false)}
         initialPlan={selectedPlan}
+        initialModule={selectedModule}
       />
     </div>
   )

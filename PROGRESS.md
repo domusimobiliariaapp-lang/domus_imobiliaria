@@ -1,11 +1,11 @@
 # Domus — Status do Projeto
 
-**Data:** 2026-10-21
+**Data:** 2026-10-22
 **Branch:** main
-**Build:** ✅ Sucesso (`npm run build` — compilação limpa em 11s)
+**Build:** ✅ Sucesso (`npm run build` — compilação limpa em 3.04s)
 **TypeScript:** ✅ Zero erros (`npx tsc -b`)
 **Testes Automatizados:** ✅ 59/59 testes passando (`vitest run` em 8 arquivos)
-**Última entrega:** Módulo SaaS completo: Recorrência Asaas sem fidelidade, Pro-Rata, PIX/Boleto, Domínio Próprio, Contatos DEV e Landing Page
+**Última entrega:** Expansão Comercial Multi-SaaS: Catálogo de Soluções por Segmento (`SolutionsCatalog.tsx`) na Landing Page com 6 verticais (Imóveis, Solar, Obras, Clínicas, Jurídico e Financeiro ERP), integração ao `TrialModal` com seleção de segmento e registro de lead segmentado no WhatsApp e Supabase.
 
 ---
 

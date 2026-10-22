@@ -58,6 +58,7 @@ export interface Organization {
   plan_id?: string
   subscription_status?: SubscriptionStatus
   trial_ends_at?: string | null
+  enabled_modules?: string[]
   created_at: string
   updated_at?: string
 }

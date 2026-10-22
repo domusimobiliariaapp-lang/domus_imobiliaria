@@ -49,6 +49,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         onClose={() => setSidebarOpen(false)}
         user={{ name: userName, role: userRole }}
         orgName={organization?.name}
+        enabledModules={organization?.enabled_modules}
         onLogout={handleLogout}
       />
       <div className="lg:pl-64">

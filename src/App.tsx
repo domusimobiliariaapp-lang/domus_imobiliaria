@@ -47,6 +47,10 @@ const LandingPage = lazy(() => import('@/pages/LandingPage').then(m => ({ defaul
 const TermsPage = lazy(() => import('@/pages/TermsPage').then(m => ({ default: m.TermsPage })))
 const PrivacyPage = lazy(() => import('@/pages/PrivacyPage').then(m => ({ default: m.PrivacyPage })))
 const PublicPortalXml = lazy(() => import('@/pages/PublicPortalXml').then(m => ({ default: m.PublicPortalXml })))
+const SolarQuotesAdmin = lazy(() => import('@/pages/solar/SolarQuotesAdmin').then(m => ({ default: m.SolarQuotesAdmin })))
+const SolarProjectsAdmin = lazy(() => import('@/pages/solar/SolarProjectsAdmin').then(m => ({ default: m.SolarProjectsAdmin })))
+const ObrasProjetosAdmin = lazy(() => import('@/pages/obras/ObrasProjetosAdmin').then(m => ({ default: m.ObrasProjetosAdmin })))
+const ObrasDiarioAdmin = lazy(() => import('@/pages/obras/ObrasDiarioAdmin').then(m => ({ default: m.ObrasDiarioAdmin })))
 import { getSubdomainInfo } from '@/lib/subdomain'
 
 function PageLoading() {
@@ -259,6 +263,20 @@ function AppRoutes() {
             <Route path="leases" element={<Navigate to="/admin/contracts" replace />} />
             <Route path="chamados" element={<AdminSupport />} />
             <Route path="equipe" element={<AdminTeam />} />
+
+            {/* Módulo Energia Solar */}
+            <Route path="solar/orcamentos" element={<SolarQuotesAdmin />} />
+            <Route path="solar/projetos" element={<SolarProjectsAdmin />} />
+            <Route path="solar/kits" element={<SolarQuotesAdmin />} />
+            <Route path="solar/os" element={<SolarProjectsAdmin />} />
+            <Route path="solar/fornecedores" element={<SolarQuotesAdmin />} />
+
+            {/* Módulo Engenharia & Obras */}
+            <Route path="obras/projetos" element={<ObrasProjetosAdmin />} />
+            <Route path="obras/diario" element={<ObrasDiarioAdmin />} />
+            <Route path="obras/medicoes" element={<ObrasProjetosAdmin />} />
+            <Route path="obras/cronograma" element={<ObrasProjetosAdmin />} />
+            <Route path="obras/compras" element={<ObrasProjetosAdmin />} />
           </Route>
         </Route>
 
