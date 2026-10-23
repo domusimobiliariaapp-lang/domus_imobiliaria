@@ -35,8 +35,8 @@ export const DOMUS_IMOB_PLANS: PlanItem[] = [
     name: 'Starter',
     badge: 'Até 35 Imóveis',
     description: 'Para corretores autônomos e imobiliárias boutique com até 35 contratos de locação.',
-    priceMonthly: 229,
-    priceAnnualMonthly: 189,
+    priceMonthly: 99.90,
+    priceAnnualMonthly: 89.90,
     features: [
       'Gestão de até 35 contratos de locação ativos',
       'Cobrança automática com chave PIX e boleto bancário',
@@ -59,8 +59,8 @@ export const DOMUS_IMOB_PLANS: PlanItem[] = [
     name: 'Profissional',
     badge: 'Mais Escolhido',
     description: 'Gestão imobiliária completa para fechar repasses no prazo e eliminar atendimentos repetitivos.',
-    priceMonthly: 489,
-    priceAnnualMonthly: 389,
+    priceMonthly: 299.90,
+    priceAnnualMonthly: 249.90,
     features: [
       'Tudo do plano Starter',
       'Até 150 contratos e imóveis ativos na carteira',
@@ -85,8 +85,8 @@ export const DOMUS_IMOB_PLANS: PlanItem[] = [
     name: 'Enterprise',
     badge: 'Sem Limites',
     description: 'Para grandes administradoras e redes com alto volume de locações e corretores em campo.',
-    priceMonthly: 889,
-    priceAnnualMonthly: 699,
+    priceMonthly: 599.90,
+    priceAnnualMonthly: 549.90,
     features: [
       'Imóveis, contratos e locações ILIMITADOS',
       'Usuários, corretores e operadores ilimitados',

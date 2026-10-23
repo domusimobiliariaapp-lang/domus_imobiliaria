@@ -58,7 +58,11 @@ export function DevPlans() {
       await saveLifetimeSettings(lifetimeSettings)
       addToast('Configurações da Licença Vitalícia salvas com sucesso!', 'success')
     } catch (err: any) {
-      addToast(`Erro ao salvar licença vitalícia: ${err.message}`, 'error')
+      if (err.message?.includes('schema cache') || err.message?.includes('does not exist')) {
+        addToast('Salvo no navegador! Execute o script SQL no Supabase para sincronizar com o banco.', 'warning')
+      } else {
+        addToast(`Erro ao salvar licença vitalícia: ${err.message}`, 'error')
+      }
     } finally {
       setSavingLifetime(false)
     }
@@ -107,11 +111,11 @@ export function DevPlans() {
         badge: plan.badge || null,
         active: Boolean(plan.active),
       })
-      addToast(`Plano "${plan.name}" salvo com sucesso!`, 'success')
+      addToast(`Plano "${plan.name}" salvo com sucesso no banco de dados!`, 'success')
       setIsDbSynced(true)
     } catch (err: any) {
       if (err.message?.includes('schema cache') || err.message?.includes('does not exist')) {
-        addToast('Aviso: Execute o script SQL da migração no Supabase para persistir as alterações.', 'error')
+        addToast('Alteração salva localmente! Execute o script SQL no Supabase para sincronizar com o banco.', 'warning')
         setIsDbSynced(false)
       } else {
         addToast(`Erro ao salvar plano: ${err.message}`, 'error')
@@ -154,11 +158,61 @@ END $$;
 
 INSERT INTO public.saas_plans (id, name, description, price_monthly, price_annual_monthly, max_properties, max_users, features, popular, badge)
 VALUES
-  ('starter', 'Starter', 'Para corretores autônomos e imobiliárias boutique com até 35 contratos de aluguel.', 229, 189, 35, 2, '{"subdomain": true, "portal": true, "crm": false, "vistorias": false, "custom_domain": false}'::jsonb, false, null),
-  ('pro', 'Profissional', 'Gestão completa para imobiliárias em expansão com automação de ponta a ponta.', 489, 389, 150, 6, '{"subdomain": true, "portal": true, "crm": true, "vistorias": true, "custom_domain": false}'::jsonb, true, 'Mais Escolhido'),
-  ('enterprise', 'Enterprise', 'Estrutura robusta para grandes carteiras, franquias e redes imobiliárias.', 980, 790, null, null, '{"subdomain": true, "portal": true, "crm": true, "vistorias": true, "custom_domain": true}'::jsonb, false, 'Sem Limites'),
-  ('lifetime', 'Licença Vitalícia', 'Acesso definitivo ao sistema em pagamento único. Sem mensalidade obrigatória.', 3490, 349, null, null, '{"subdomain": true, "portal": true, "crm": true, "vistorias": true, "custom_domain": true, "annual_maintenance": 490, "spots_total": 15, "spots_taken": 9}'::jsonb, true, 'Lote Fundador')
-ON CONFLICT (id) DO NOTHING;
+  ('starter', 'Starter', 'Para corretores autônomos e imobiliárias boutique com até 35 contratos de aluguel.', 99.90, 89.90, 35, 2, '{"subdomain": true, "portal": false, "crm": false, "vistorias": false, "custom_domain": false}'::jsonb, false, null),
+  ('pro', 'Profissional', 'Para imobiliárias com carteira ativa que precisam fechar repasses sem atraso.', 299.90, 249.90, 150, 6, '{"subdomain": true, "portal": true, "crm": true, "vistorias": true, "custom_domain": false}'::jsonb, true, 'Mais contratado'),
+  ('enterprise', 'Enterprise', 'Para administradoras com mais de 150 imóveis e múltiplos corretores em campo.', 599.90, 549.90, null, null, '{"subdomain": true, "portal": true, "crm": true, "vistorias": true, "custom_domain": true}'::jsonb, false, 'Grandes carteiras'),
+  ('lifetime', 'Licença Vitalícia', 'Acesso definitivo ao sistema em pagamento único. Sem mensalidade obrigatória.', 4500, 375, null, null, '{"subdomain": true, "portal": true, "crm": true, "vistorias": true, "custom_domain": true, "annual_maintenance": 490, "spots_total": 15, "spots_taken": 9}'::jsonb, true, 'Lote Fundador')
+ON CONFLICT (id) DO UPDATE SET
+  name = EXCLUDED.name,
+  description = EXCLUDED.description,
+  price_monthly = EXCLUDED.price_monthly,
+  price_annual_monthly = EXCLUDED.price_annual_monthly,
+  max_properties = EXCLUDED.max_properties,
+  max_users = EXCLUDED.max_users,
+  features = EXCLUDED.features,
+  popular = EXCLUDED.popular,
+  badge = EXCLUDED.badge,
+  active = EXCLUDED.active;
+
+-- RPC para o DEV atualizar valores e limites de um plano
+CREATE OR REPLACE FUNCTION public.dev_update_plan(
+  p_plan_id              TEXT,
+  p_price_monthly        NUMERIC,
+  p_price_annual_monthly NUMERIC,
+  p_max_properties       INTEGER,
+  p_max_users            INTEGER,
+  p_features             JSONB,
+  p_popular              BOOLEAN,
+  p_badge                TEXT,
+  p_active               BOOLEAN DEFAULT TRUE
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+BEGIN
+  IF NOT is_dev() THEN
+    RAISE EXCEPTION 'Apenas o DEV pode atualizar planos.';
+  END IF;
+
+  UPDATE public.saas_plans
+     SET price_monthly        = p_price_monthly,
+         price_annual_monthly = p_price_annual_monthly,
+         max_properties       = p_max_properties,
+         max_users            = p_max_users,
+         features             = p_features,
+         popular              = p_popular,
+         badge                = p_badge,
+         active               = p_active,
+         updated_at           = NOW()
+   WHERE id = p_plan_id;
+
+  RETURN jsonb_build_object('success', TRUE, 'plan_id', p_plan_id);
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.dev_update_plan TO authenticated;
 
 -- Tabela de Leads
 CREATE TABLE IF NOT EXISTS public.saas_leads (

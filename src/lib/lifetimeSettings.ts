@@ -19,8 +19,8 @@ export interface LifetimeSettings {
 
 export const DEFAULT_LIFETIME_SETTINGS: LifetimeSettings = {
   active: true,
-  price_cash: 3490,
-  price_installments: 349,
+  price_cash: 4500,
+  price_installments: 375,
   annual_maintenance: 490,
   spots_total: 15,
   spots_taken: 9,

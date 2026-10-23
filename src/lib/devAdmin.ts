@@ -330,17 +330,29 @@ export const devAdmin = {
       // Ignora erro de tabela não criada no schema cache
     }
 
+    // Fallback de cache do navegador se já foi editado
+    if (typeof window !== 'undefined') {
+      const cached = localStorage.getItem('domus_cached_saas_plans')
+      if (cached) {
+        try {
+          return JSON.parse(cached) as SaasPlan[]
+        } catch {
+          // ignore
+        }
+      }
+    }
+
     // Fallback padrão para exibição sem travar a interface
     return [
       {
         id: 'starter',
         name: 'Starter',
         description: 'Para corretores autônomos e imobiliárias boutique com até 35 contratos de aluguel.',
-        price_monthly: 229,
-        price_annual_monthly: 189,
+        price_monthly: 99.90,
+        price_annual_monthly: 89.90,
         max_properties: 35,
         max_users: 2,
-        features: { subdomain: true, portal: true, crm: false, vistorias: false, custom_domain: false },
+        features: { subdomain: true, portal: false, crm: false, vistorias: false, custom_domain: false },
         popular: false,
         badge: null,
         active: true,
@@ -348,27 +360,27 @@ export const devAdmin = {
       {
         id: 'pro',
         name: 'Profissional',
-        description: 'Gestão completa para imobiliárias em expansão com automação de ponta a ponta.',
-        price_monthly: 489,
-        price_annual_monthly: 389,
+        description: 'Para imobiliárias com carteira ativa que precisam fechar repasses sem atraso.',
+        price_monthly: 299.90,
+        price_annual_monthly: 249.90,
         max_properties: 150,
         max_users: 6,
         features: { subdomain: true, portal: true, crm: true, vistorias: true, custom_domain: false },
         popular: true,
-        badge: 'Mais Escolhido',
+        badge: 'Mais contratado',
         active: true,
       },
       {
         id: 'enterprise',
         name: 'Enterprise',
-        description: 'Estrutura robusta para grandes carteiras, franquias e redes imobiliárias.',
-        price_monthly: 980,
-        price_annual_monthly: 790,
+        description: 'Para administradoras com mais de 150 imóveis e múltiplos corretores em campo.',
+        price_monthly: 599.90,
+        price_annual_monthly: 549.90,
         max_properties: null,
         max_users: null,
         features: { subdomain: true, portal: true, crm: true, vistorias: true, custom_domain: true },
         popular: false,
-        badge: 'Sem Limites',
+        badge: 'Grandes carteiras',
         active: true,
       },
     ] as SaasPlan[]
@@ -376,6 +388,19 @@ export const devAdmin = {
 
   /** Atualiza valores, limites e recursos de um plano pelo painel DEV */
   updatePlan: async (plan: Partial<SaasPlan> & { id: string }) => {
+    // 1. Salva localmente no navegador para nunca perder as alterações
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('domus_cached_saas_plans')
+        const currentList: SaasPlan[] = cached ? JSON.parse(cached) : await devAdmin.getPlans()
+        const updatedList = currentList.map((p) => (p.id === plan.id ? { ...p, ...plan } : p))
+        localStorage.setItem('domus_cached_saas_plans', JSON.stringify(updatedList))
+      } catch {
+        // ignore
+      }
+    }
+
+    // 2. Persiste no Supabase via RPC
     const { data, error } = await supabase.rpc('dev_update_plan', {
       p_plan_id: plan.id,
       p_price_monthly: plan.price_monthly,
