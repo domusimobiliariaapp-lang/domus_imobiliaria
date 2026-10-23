@@ -19,7 +19,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { NumberTicker } from '@/components/ui/NumberTicker'
 import { LiveScreenShowcase } from '@/components/landing/LiveScreenShowcase'
-import { SolutionsCatalog } from '@/components/landing/SolutionsCatalog'
 import { PricingTable } from '@/components/landing/PricingTable'
 import { RoiCalculator } from '@/components/landing/RoiCalculator'
 import { FaqSection } from '@/components/landing/FaqSection'
@@ -30,11 +29,9 @@ import { DomusLogo } from '@/components/brand/DomusLogo'
 export function LandingPage() {
   const [isTrialOpen, setIsTrialOpen] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState('Profissional')
-  const [selectedModule, setSelectedModule] = useState('Imobiliária & Locações')
 
-  const openTrial = (planName = 'Profissional', moduleName = 'Imobiliária & Locações') => {
+  const openTrial = (planName = 'Profissional') => {
     setSelectedPlan(planName)
-    setSelectedModule(moduleName)
     setIsTrialOpen(true)
   }
 
@@ -62,12 +59,6 @@ export function LandingPage() {
 
           {/* Navegação Desktop */}
           <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-muted-foreground">
-            <button
-              onClick={() => scrollToSection('solutions')}
-              className="hover:text-foreground transition-colors cursor-pointer text-[#AD7B3B] font-semibold"
-            >
-              Soluções
-            </button>
             <button
               onClick={() => scrollToSection('showcase')}
               className="hover:text-foreground transition-colors cursor-pointer"
@@ -248,8 +239,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* CATÁLOGO DE SOLUÇÕES POR SEGMENTO */}
-      <SolutionsCatalog onSelectSolution={(solution) => openTrial('Profissional', solution)} />
+
 
       {/* SEÇÃO TOCANDO NA DOR DO CLIENTE (ANTES vs DEPOIS) */}
       <section className="py-16 sm:py-24 bg-gradient-to-b from-transparent via-[#17323D]/5 to-transparent">
@@ -582,10 +572,10 @@ export function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-10">
             <h2 className="text-3xl sm:text-4xl font-serif font-bold text-[#17323D] dark:text-[#EEECE5]">
-              Planos flexíveis para cada modelo de negócio
+              Planos transparentes para sua imobiliária
             </h2>
             <p className="mt-3 text-sm sm:text-base text-muted-foreground">
-              Contrate apenas o sistema que sua empresa precisa hoje ou leve a <strong>Suíte Unificada All-in-One</strong> com todos os 4 sistemas integrados com desconto especial. Teste por 3 dias sem compromisso.
+              Escolha o plano ideal para a quantidade de contratos da sua carteira. Sem taxa de adesão e com 3 dias de teste grátis.
             </p>
           </div>
 
@@ -691,7 +681,6 @@ export function LandingPage() {
         isOpen={isTrialOpen}
         onClose={() => setIsTrialOpen(false)}
         initialPlan={selectedPlan}
-        initialModule={selectedModule}
       />
     </div>
   )

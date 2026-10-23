@@ -41,6 +41,14 @@
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+  --color-impulse-gold: #F59E0B;
+  --color-impulse-dark: #0A0D14;
+  --color-impulse-dark-deep: #05070A;
+
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-info: #3B82F6;
 }
 
 :root {
@@ -101,6 +109,103 @@
   --popover: #1E2A2F;
   --popover-foreground: #EEECE5;
 }
+
+/* Tema dedicado de Alto Contraste para o Domus Solar */
+.solar-theme {
+  --background: #080B11;
+  --foreground: #F8FAFC;
+  --card: #0F1422;
+  --card-foreground: #F8FAFC;
+  --popover: #0F1422;
+  --popover-foreground: #F8FAFC;
+  --primary: #F59E0B;
+  --primary-foreground: #080B11;
+  --secondary: #1E293B;
+  --secondary-foreground: #F8FAFC;
+  --muted: #151C2C;
+  --muted-foreground: #94A3B8;
+  --border: #1E293B;
+  --input: #1E293B;
+  --ring: #F59E0B;
+  --radius: 8px;
+}
+
+.solar-theme h1, 
+.solar-theme h2, 
+.solar-theme h3, 
+.solar-theme h4 {
+  color: #F8FAFC !important;
+  font-family: var(--font-sans) !important;
+}
+
+.solar-theme .text-foreground {
+  color: #F8FAFC !important;
+}
+
+.solar-theme .text-muted-foreground {
+  color: #94A3B8 !important;
+}
+
+.solar-theme .bg-card {
+  background-color: #0F1422 !important;
+  color: #F8FAFC !important;
+}
+
+.solar-theme .border-border {
+  border-color: #1E293B !important;
+}
+
+.solar-theme input,
+.solar-theme select,
+.solar-theme textarea {
+  color: #F8FAFC !important;
+  background-color: #121829 !important;
+  border-color: #1E293B !important;
+}
+
+.solar-theme input::placeholder,
+.solar-theme textarea::placeholder {
+  color: #64748B !important;
+}
+
+.gradient-gold {
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important;
+  color: #080B11 !important;
+  font-weight: 700 !important;
+}
+
+.shadow-gold {
+  box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.35) !important;
+}
+
+.text-impulse-dark {
+  color: #080B11 !important;
+}
+
+.text-impulse-gold {
+  color: #F59E0B !important;
+}
+
+.bg-impulse-gold {
+  background-color: #F59E0B !important;
+}
+
+.border-impulse-gold {
+  border-color: #F59E0B !important;
+}
+
+.bg-impulse-dark {
+  background-color: #0F1422 !important;
+}
+
+.text-success { color: #10B981 !important; }
+.text-warning { color: #F59E0B !important; }
+.text-destructive { color: #EF4444 !important; }
+.border-l-success { border-left-color: #10B981 !important; }
+.border-l-warning { border-left-color: #F59E0B !important; }
+.border-l-destructive { border-left-color: #EF4444 !important; }
+.border-l-impulse-gold { border-left-color: #F59E0B !important; }
+
 
 @layer base {
   * {

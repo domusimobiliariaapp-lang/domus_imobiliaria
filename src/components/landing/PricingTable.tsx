@@ -7,22 +7,16 @@ import {
   Crown, 
   ShieldCheck, 
   Flame,
-  Building2,
-  Landmark,
-  HardHat,
-  Sun,
   ArrowRight
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { getLifetimeSettings, type LifetimeSettings, DEFAULT_LIFETIME_SETTINGS } from '@/lib/lifetimeSettings'
 
-export type PlanCategory = 'all' | 'imob' | 'financeiro' | 'obras' | 'solar'
-
 interface PricingTableProps {
   onSelectPlan: (planName: string) => void
 }
 
-interface PlanItem {
+export interface PlanItem {
   id: string
   name: string
   badge: string | null
@@ -35,8 +29,80 @@ interface PlanItem {
   popular: boolean
 }
 
+export const DOMUS_IMOB_PLANS: PlanItem[] = [
+  {
+    id: 'starter',
+    name: 'Starter',
+    badge: 'Até 35 Imóveis',
+    description: 'Para corretores autônomos e imobiliárias boutique com até 35 contratos de locação.',
+    priceMonthly: 229,
+    priceAnnualMonthly: 189,
+    features: [
+      'Gestão de até 35 contratos de locação ativos',
+      'Cobrança automática com chave PIX e boleto bancário',
+      'Subdomínio vitrine próprio (suaempresa.domus.com.br)',
+      'Cadastro de imóveis com fotos e fichas técnicas',
+      'Gestão cadastral de inquilinos e proprietários',
+      'Até 2 usuários da equipe com login próprio',
+      'Suporte por chamado em horário comercial',
+    ],
+    notIncluded: [
+      'Portal do inquilino com 2ª via sem senha',
+      'CRM com radar inteligente de clientes e imóveis',
+      'Vistoria fotográfica com laudo digital em PDF',
+    ],
+    ctaText: 'Testar Starter (3 dias)',
+    popular: false,
+  },
+  {
+    id: 'pro',
+    name: 'Profissional',
+    badge: 'Mais Escolhido',
+    description: 'Gestão imobiliária completa para fechar repasses no prazo e eliminar atendimentos repetitivos.',
+    priceMonthly: 489,
+    priceAnnualMonthly: 389,
+    features: [
+      'Tudo do plano Starter',
+      'Até 150 contratos e imóveis ativos na carteira',
+      'Portal do Inquilino e Proprietário com login OTP sem senha',
+      'Fechamento e repasses PIX aos proprietários com 1 clique',
+      'Régua de cobrança automática 3 dias antes do vencimento',
+      'CRM com funil de atendimento e radar de imóveis',
+      'Vistorias de entrada e saída com fotos e laudo em PDF',
+      'Reajustes anuais automáticos por IPCA e IGP-M',
+      'Até 6 usuários da equipe com controle de permissões',
+      'Suporte prioritário via WhatsApp',
+    ],
+    notIncluded: [
+      'Domínio personalizado próprio (.com.br exclusivo)',
+      'Migração de banco de dados assistida',
+    ],
+    ctaText: 'Testar Profissional (3 dias)',
+    popular: true,
+  },
+  {
+    id: 'enterprise',
+    name: 'Enterprise',
+    badge: 'Sem Limites',
+    description: 'Para grandes administradoras e redes com alto volume de locações e corretores em campo.',
+    priceMonthly: 889,
+    priceAnnualMonthly: 699,
+    features: [
+      'Imóveis, contratos e locações ILIMITADOS',
+      'Usuários, corretores e operadores ilimitados',
+      'Configuração de domínio próprio exclusivo (ex: www.suaimobiliaria.com.br)',
+      'Importação assistida de dados e contratos antigos',
+      'Treinamento prático e dedicado para toda a equipe',
+      'Logs de auditoria e segurança avançada',
+      'Canal de suporte direto com equipe técnica VIP',
+    ],
+    notIncluded: [],
+    ctaText: 'Falar com Especialista',
+    popular: false,
+  },
+]
+
 export function PricingTable({ onSelectPlan }: PricingTableProps) {
-  const [selectedCategory, setSelectedCategory] = useState<PlanCategory>('all')
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual' | 'lifetime'>('annual')
   const [lifetimeSettings, setLifetimeSettings] = useState<LifetimeSettings>(DEFAULT_LIFETIME_SETTINGS)
 
@@ -52,465 +118,9 @@ export function PricingTable({ onSelectPlan }: PricingTableProps) {
     loadSettings()
   }, [])
 
-  // Catálogo Completo de Planos por Especialidade e Suíte Unificada
-  const PLANS_BY_CATEGORY: Record<PlanCategory, PlanItem[]> = {
-    // 1. SUÍTE COMPLETA UNIFICADA (TODOS OS 4 SISTEMAS)
-    all: [
-      {
-        id: 'all_starter',
-        name: 'Starter All-in-One',
-        badge: 'Suíte Unificada',
-        description: 'Acesso unificado aos 4 sistemas Domus para pequenas empresas e corretores (até 35 contratos/obras).',
-        priceMonthly: 229,
-        priceAnnualMonthly: 189,
-        features: [
-          'Suíte Unificada Completa (4 Sistemas Integrados)',
-          '1. Gestão Imobiliária (até 35 imóveis e contratos)',
-          '2. Domus Finanças ERP (Contas a pagar/receber e conciliação)',
-          '3. Engenharia & Obras (Projetos e RDO Digital)',
-          '4. Energia Solar (Funil de homologação fotovoltaica)',
-          'Subdomínio próprio (suaempresa.domus.com.br)',
-          'Emissão de cobrança PIX/Boleto automática',
-          'Até 2 usuários com login próprio',
-          'Suporte por chamado em horário comercial',
-        ],
-        notIncluded: [
-          'Portal do inquilino com 2ª via sem senha',
-          'Pipeline Kanban de leads e visitas',
-          'Vistoria fotográfica com laudo digital',
-        ],
-        ctaText: 'Testar Suíte Unificada (3 dias)',
-        popular: false,
-      },
-      {
-        id: 'all_pro',
-        name: 'Profissional All-in-One',
-        badge: 'Mais Escolhido • 4 em 1',
-        description: 'Potência máxima para empresas com carteira ativa que exigem automação financeira, obras e solar.',
-        priceMonthly: 459,
-        priceAnnualMonthly: 379,
-        features: [
-          'Suíte Unificada Completa (4 Sistemas Integrados)',
-          '1. Gestão Imobiliária (até 150 imóveis e contratos)',
-          '2. Domus Finanças ERP Pro ilimitado com conciliação OFX',
-          '3. Engenharia & Obras com controle físico-financeiro',
-          '4. Energia Solar com esteira de homologação de usinas',
-          'Portal do Inquilino e Proprietário (acesso por código OTP)',
-          'CRM com funil de atendimento e agendamento de visitas',
-          'Vistoria de entrada e saída com fotos na nuvem',
-          'Cálculo e lote de repasses PIX aos proprietários',
-          'Reajustes automáticos por IPCA e IGP-M',
-          'Até 6 usuários da equipe com permissões separadas',
-          'Suporte prioritário via WhatsApp',
-        ],
-        notIncluded: [
-          'Domínio personalizado próprio (.com.br exclusivo)',
-          'Migração de banco de dados assistida',
-        ],
-        ctaText: 'Testar Plano Profissional (3 dias)',
-        popular: true,
-      },
-      {
-        id: 'all_enterprise',
-        name: 'Enterprise All-in-One',
-        badge: 'Sem Limites • Corporativo',
-        description: 'Para grandes administradoras, construtoras e integradores com múltiplos projetos e equipes.',
-        priceMonthly: 829,
-        priceAnnualMonthly: 690,
-        features: [
-          'Suíte Unificada Completa sem Limites (4 Sistemas)',
-          'Imóveis, contratos, obras e usinas solares ILIMITADOS',
-          'Usuários, corretores e engenheiros ilimitados',
-          'Domus Finanças ERP Multi-Empresas e filiais',
-          'Engenharia Avançada com medições e cronogramas físicos',
-          'Módulo Solar Completo com gestão de integradores parceiros',
-          'Configuração de domínio próprio (ex: www.suaempresa.com.br)',
-          'Importação assistida de dados e contratos antigos',
-          'Treinamento prático da equipe com especialista',
-          'Auditoria e log de ações no sistema',
-          'Canal de suporte direto com a equipe técnica VIP',
-        ],
-        notIncluded: [],
-        ctaText: 'Falar com Especialista',
-        popular: false,
-      },
-    ],
-
-    // 2. DOMUS FINANÇAS ERP (AVULSO)
-    financeiro: [
-      {
-        id: 'fin_starter',
-        name: 'Finanças Starter',
-        badge: 'Pequenas Empresas',
-        description: 'Controle financeiro essencial, contas a pagar/receber e fluxo de caixa diário.',
-        priceMonthly: 79,
-        priceAnnualMonthly: 59,
-        features: [
-          'Domus Finanças ERP Independente',
-          'Até 500 títulos lançados por mês',
-          'Contas a Pagar & Receber com régua de vencimentos',
-          'Fluxo de Caixa Diário e Mensal consolidado',
-          'DRE Gerencial simplificado em 1 clique',
-          'Até 2 usuários financeiros com acesso',
-          'Cobrança com Chave PIX e envio para WhatsApp',
-        ],
-        notIncluded: [
-          'Importação de Extrato Bancário (.OFX)',
-          'Conciliação bancária automática com 1 clique',
-          'Múltiplas filiais e centros de custo',
-        ],
-        ctaText: 'Testar Finanças Starter',
-        popular: false,
-      },
-      {
-        id: 'fin_pro',
-        name: 'Finanças Pro',
-        badge: 'Mais Popular ERP',
-        description: 'Automação bancária completa com leitura de OFX, conciliação e múltiplos bancos.',
-        priceMonthly: 149,
-        priceAnnualMonthly: 119,
-        features: [
-          'Domus Finanças ERP Pro Ilimitado',
-          'Títulos e lançamentos financeiros ilimitados',
-          'Leitura e importação de extratos (.OFX) de qualquer banco',
-          'Conciliação bancária inteligente em 1 clique',
-          'DRE Contábil e Financeiro completo para contabilidade',
-          'Controle de caixas físicos e múltiplas contas bancárias',
-          'Até 6 usuários da equipe com permissões restritas',
-          'Suporte prioritário via WhatsApp',
-        ],
-        notIncluded: [
-          'Módulo multi-empresas e filiais corporativas',
-        ],
-        ctaText: 'Testar Finanças Pro',
-        popular: true,
-      },
-      {
-        id: 'fin_vitalicio',
-        name: 'Finanças Vitalício',
-        badge: 'Pagamento Único • Sem Mensalidade',
-        description: 'Tenha o Domus Finanças ERP para sempre sem nunca mais pagar mensalidade.',
-        priceMonthly: 697, // Representa o pagamento único
-        priceAnnualMonthly: 697,
-        features: [
-          'Posse Vitalícia Definitiva do Domus Finanças ERP',
-          '100% Livre de Mensalidades para sempre',
-          'Tudo do Plano Finanças Pro incluso',
-          'Lançamentos, títulos e relatórios ilimitados',
-          'Conciliação Bancária OFX e DRE completo',
-          '1 ano de hospedagem e atualizações inclusas',
-          'No PIX com 10% OFF por R$ 627,30 à vista (ou 12x no cartão)',
-          'Garantia incondicional de 30 dias',
-        ],
-        notIncluded: [],
-        ctaText: 'Garantir Licença Vitalícia',
-        popular: false,
-      },
-    ],
-
-    // 3. ENGENHARIA & OBRAS (AVULSO)
-    obras: [
-      {
-        id: 'obras_starter',
-        name: 'Construtor Starter',
-        badge: 'Empreiteiros & Obras',
-        description: 'Ideal para engenheiros autônomos e pequenas construtoras com até 3 obras simultâneas.',
-        priceMonthly: 119,
-        priceAnnualMonthly: 95,
-        features: [
-          'Módulo Engenharia & Obras',
-          'Até 3 obras ativas na carteira',
-          'RDO Digital (Relatório Diário de Obra com fotos)',
-          'Registro de efetivo diário e condições climáticas',
-          'Controle de orçamento previsto vs executado',
-          'Até 3 usuários (engenheiros e mestres de obras)',
-          'Exportação de relatórios em PDF para clientes',
-        ],
-        notIncluded: [
-          'Medições físicas avançadas por etapa',
-          'Cronograma de Gantt físico-financeiro',
-        ],
-        ctaText: 'Testar Construtor Starter',
-        popular: false,
-      },
-      {
-        id: 'obras_pro',
-        name: 'Construtor Pro',
-        badge: 'Mais Escolhido Obras',
-        description: 'Controle de canteiro profissional com medições, cronograma físico e múltiplos canteiros.',
-        priceMonthly: 249,
-        priceAnnualMonthly: 199,
-        features: [
-          'Módulo Engenharia & Obras Pro',
-          'Até 15 obras e empreendimentos simultâneos',
-          'RDO Digital Ilimitado com armazenamento de fotos na nuvem',
-          'Medições de avanço físico por etapa da construção',
-          'Cronograma físico-financeiro interativo',
-          'Até 10 usuários com níveis de acesso de canteiro',
-          'Acompanhamento de compras de insumos e cotações',
-          'Suporte prioritário via WhatsApp',
-        ],
-        notIncluded: [
-          'Almoxarifado centralizado multi-obras',
-        ],
-        ctaText: 'Testar Construtor Pro',
-        popular: true,
-      },
-      {
-        id: 'obras_enterprise',
-        name: 'Construtor Enterprise',
-        badge: 'Grandes Construtoras',
-        description: 'Para construtoras, incorporadoras e gestoras de grandes empreendimentos.',
-        priceMonthly: 490,
-        priceAnnualMonthly: 390,
-        features: [
-          'Obras e contratos de construção ILIMITADOS',
-          'Usuários, mestres e engenheiros ilimitados',
-          'Gestão de compras, fornecedores e almoxarifado de canteiro',
-          'Medições com curva S e avanço físico integrado ao financeiro',
-          'Diários de obra com assinatura digital do responsável técnico',
-          'Treinamento da equipe de campo com especialista',
-        ],
-        notIncluded: [],
-        ctaText: 'Falar com Especialista',
-        popular: false,
-      },
-    ],
-
-    // 4. ENERGIA SOLAR (AVULSO)
-    solar: [
-      {
-        id: 'solar_starter',
-        name: 'Integrador Starter',
-        badge: 'Instaladores Solares',
-        description: 'Controle de esteira de homologação para integradores com até 10 usinas ativas.',
-        priceMonthly: 119,
-        priceAnnualMonthly: 95,
-        features: [
-          'Módulo Energia Solar Integrado',
-          'Até 10 usinas e projetos ativos no funil',
-          'Kanban de etapas (Documentação, Homologação, Vistoria e Conexão)',
-          'Acompanhamento por distribuidora de energia (Enel, CPFL, Cemig, etc.)',
-          'Cálculo de potência instalada total (kWp)',
-          'Até 3 usuários técnicos da equipe',
-        ],
-        notIncluded: [
-          'Gerador de propostas comerciais automáticas',
-          'Gestão de parceiros e vendedores externos',
-        ],
-        ctaText: 'Testar Integrador Solar',
-        popular: false,
-      },
-      {
-        id: 'solar_pro',
-        name: 'Solar Pro',
-        badge: 'Mais Escolhido Solar',
-        description: 'Funil acelerado para empresas de energia solar com até 50 projetos fotovoltaicos ativos.',
-        priceMonthly: 249,
-        priceAnnualMonthly: 199,
-        features: [
-          'Módulo Energia Solar Pro',
-          'Até 50 usinas e projetos solares simultâneos',
-          'Simulação de geração estimada e kits de inversores/painéis',
-          'Kanban técnico completo com histórico de trocas de medidor',
-          'Alertas de prazos de concessionárias para evitar atrasos',
-          'Até 10 usuários e técnicos credenciados',
-          'Suporte prioritário via WhatsApp',
-        ],
-        notIncluded: [
-          'Projetos ilimitados para grandes franquias',
-        ],
-        ctaText: 'Testar Solar Pro',
-        popular: true,
-      },
-      {
-        id: 'solar_enterprise',
-        name: 'Solar Enterprise',
-        badge: 'Grandes Integradores',
-        description: 'Para franquias, grandes instaladoras e cooperativas de geração distribuída.',
-        priceMonthly: 490,
-        priceAnnualMonthly: 390,
-        features: [
-          'Projetos fotovoltaicos e usinas ILIMITADAS',
-          'Usuários, instaladores e parceiros comerciais ilimitados',
-          'Gestão multi-distribuidoras em todo o território nacional',
-          'Controle de pós-venda, garantias e O&M (Operação e Manutenção)',
-          'Canal de suporte direto com a equipe técnica',
-        ],
-        notIncluded: [],
-        ctaText: 'Falar com Especialista',
-        popular: false,
-      },
-    ],
-
-    // 5. IMOBILIÁRIA & LOCAÇÕES (AVULSO)
-    imob: [
-      {
-        id: 'imob_starter',
-        name: 'Imobiliária Starter',
-        badge: 'Corretores Autônomos',
-        description: 'Gestão completa de contratos e repasses para carteiras com até 35 imóveis de aluguel.',
-        priceMonthly: 149,
-        priceAnnualMonthly: 119,
-        features: [
-          'Módulo Imobiliário & Locações',
-          'Até 35 imóveis na carteira de locação',
-          'Controle de contratos, vencimentos e reajustes',
-          'Subdomínio vitrine próprio (suaempresa.domus.com.br)',
-          'Emissão de cobrança e conciliação',
-          'Até 2 usuários da equipe com login próprio',
-        ],
-        notIncluded: [
-          'Portal do inquilino com 2ª via sem senha',
-          'CRM com radar de imóveis e visitas',
-          'Vistorias fotográficas com laudo digital',
-        ],
-        ctaText: 'Testar Imobiliária Starter',
-        popular: false,
-      },
-      {
-        id: 'imob_pro',
-        name: 'Imobiliária Pro',
-        badge: 'Mais Escolhido Imob',
-        description: 'Para imobiliárias com carteira ativa que precisam fechar repasses PIX sem atraso.',
-        priceMonthly: 299,
-        priceAnnualMonthly: 249,
-        features: [
-          'Módulo Imobiliário Pro',
-          'Até 150 imóveis e contratos na carteira',
-          'Portal do Inquilino e Proprietário com acesso via código OTP',
-          'CRM com funil de atendimento e radar de imóveis',
-          'Vistoria de entrada e saída com fotos na nuvem',
-          'Cálculo e lote de repasses PIX aos proprietários',
-          'Reajustes automáticos por IPCA e IGP-M',
-          'Até 6 usuários com permissões separadas',
-        ],
-        notIncluded: [
-          'Domínio personalizado próprio (.com.br exclusivo)',
-        ],
-        ctaText: 'Testar Imobiliária Pro',
-        popular: true,
-      },
-      {
-        id: 'imob_enterprise',
-        name: 'Imobiliária Enterprise',
-        badge: 'Grandes Administradoras',
-        description: 'Para administradoras com grandes carteiras e múltiplos corretores em campo.',
-        priceMonthly: 590,
-        priceAnnualMonthly: 490,
-        features: [
-          'Imóveis e contratos de locação ILIMITADOS',
-          'Usuários e corretores ilimitados',
-          'Configuração de domínio próprio (.com.br exclusivo)',
-          'Importação assistida de contratos antigos',
-          'Auditoria e log de ações no sistema',
-          'Suporte direto com equipe técnica VIP',
-        ],
-        notIncluded: [],
-        ctaText: 'Falar com Especialista',
-        popular: false,
-      },
-    ],
-  }
-
-  const currentPlans = PLANS_BY_CATEGORY[selectedCategory] || PLANS_BY_CATEGORY.all
-
-  const CATEGORIES = [
-    { 
-      id: 'all' as PlanCategory, 
-      label: 'Suíte Unificada (4 em 1)', 
-      icon: Sparkles, 
-      highlight: true,
-      badge: 'Mais Vendido' 
-    },
-    { 
-      id: 'imob' as PlanCategory, 
-      label: 'Imobiliária & Locações', 
-      icon: Building2 
-    },
-    { 
-      id: 'financeiro' as PlanCategory, 
-      label: 'Domus Finanças ERP', 
-      icon: Landmark 
-    },
-    { 
-      id: 'obras' as PlanCategory, 
-      label: 'Engenharia & Obras', 
-      icon: HardHat 
-    },
-    { 
-      id: 'solar' as PlanCategory, 
-      label: 'Energia Solar', 
-      icon: Sun 
-    },
-  ]
-
   return (
     <div className="w-full space-y-8">
-      {/* 1. SELETOR DE CATEGORIA / MÓDULO DESEJADO */}
-      <div className="flex flex-col items-center justify-center space-y-3">
-        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-          Escolha o tipo de solução ideal para sua empresa:
-        </span>
-        <div className="inline-flex flex-wrap items-center justify-center p-1.5 rounded-2xl bg-card border border-border shadow-xs gap-1.5 max-w-full">
-          {CATEGORIES.map((cat) => {
-            const Icon = cat.icon
-            const isSelected = selectedCategory === cat.id
-            return (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={`relative px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-2 cursor-pointer ${
-                  isSelected
-                    ? cat.highlight 
-                      ? 'bg-[#17323D] text-[#C5A880] shadow-sm'
-                      : 'bg-[#17323D] text-white shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                }`}
-              >
-                <Icon className={`w-4 h-4 ${isSelected && cat.highlight ? 'text-[#C5A880]' : ''}`} />
-                <span>{cat.label}</span>
-                {cat.badge && (
-                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold uppercase ${
-                    isSelected ? 'bg-[#C5A880] text-[#17323D]' : 'bg-amber-500/15 text-amber-600'
-                  }`}>
-                    {cat.badge}
-                  </span>
-                )}
-              </button>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* BANNER PERSUASIVO SE ESTIVER VENDO PLANO AVULSO */}
-      {selectedCategory !== 'all' && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="max-w-4xl mx-auto p-4 rounded-xl bg-gradient-to-r from-[#17323D]/10 via-[#C5A880]/15 to-transparent border border-[#C5A880]/40 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
-        >
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-[#17323D] text-[#C5A880] rounded-lg">
-              <Sparkles className="w-4 h-4" />
-            </div>
-            <div>
-              <strong className="text-foreground font-bold">Dica de Economia:</strong>{' '}
-              <span className="text-muted-foreground">
-                Se você precisa de mais de um sistema, a <strong>Suíte Unificada All-in-One</strong> inclui Imobiliária + Finanças ERP + Engenharia + Solar com até <strong>65% de desconto</strong>.
-              </span>
-            </div>
-          </div>
-          <button
-            onClick={() => setSelectedCategory('all')}
-            className="text-xs font-bold text-[#17323D] dark:text-[#C5A880] hover:underline flex items-center gap-1 shrink-0"
-          >
-            Ver Suíte Unificada <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </motion.div>
-      )}
-
-      {/* 2. SELETOR DE CICLO: MENSAL / ANUAL / VITALÍCIO */}
+      {/* SELETOR DE CICLO: MENSAL / ANUAL / VITALÍCIO */}
       <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
         <div className="inline-flex flex-wrap items-center justify-center p-1 rounded-xl bg-card border border-border shadow-xs gap-1">
           <button
@@ -526,7 +136,7 @@ export function PricingTable({ onSelectPlan }: PricingTableProps) {
                 transition={{ type: 'spring', bounce: 0.15, duration: 0.4 }}
               />
             )}
-            <span className="relative z-10">Mensal sem compromisso</span>
+            <span className="relative z-10">Mensal sem fidelidade</span>
           </button>
           <button
             onClick={() => setBillingCycle('annual')}
@@ -568,7 +178,7 @@ export function PricingTable({ onSelectPlan }: PricingTableProps) {
         </div>
       </div>
 
-      {/* 3. CONTEÚDO DOS PLANOS: OU VITALÍCIO OU GRID CONFORME SELEÇÃO */}
+      {/* CONTEÚDO DOS PLANOS */}
       {billingCycle === 'lifetime' && lifetimeSettings.active ? (
         /* CARD EXCLUSIVO DE LICENÇA VITALÍCIA */
         <motion.div
@@ -589,10 +199,10 @@ export function PricingTable({ onSelectPlan }: PricingTableProps) {
                 Oferta Especial de Lançamento • Vagas Limitadas
               </span>
               <h3 className="text-3xl sm:text-4xl font-serif font-bold text-foreground">
-                {lifetimeSettings.headline}
+                Domus Imobiliária Vitalício
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed max-w-xl">
-                {lifetimeSettings.description}
+                Tenha o Domus na sua imobiliária para sempre. Sem mensalidades, sem travas por quantidade de imóveis e com posse definitiva do sistema.
               </p>
             </div>
 
@@ -630,31 +240,28 @@ export function PricingTable({ onSelectPlan }: PricingTableProps) {
             <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-foreground/90 space-y-1.5">
               <strong className="text-amber-800 dark:text-amber-300 flex items-center gap-1.5 font-semibold">
                 <ShieldCheck className="w-4 h-4" />
-                Por que a Licença Vitalícia é o melhor investimento para o seu negócio?
+                Por que a Licença Vitalícia é o melhor investimento para sua imobiliária?
               </strong>
               <p className="text-muted-foreground leading-relaxed">
-                Em sistemas comuns de mensalidade recorrente (R$ 600/mês), você gasta <strong>R$ 21.600</strong> em 3 anos e o sistema nunca é seu. Com o Domus Vitalício, você investe uma única vez e garante os sistemas para sempre.
+                Em softwares tradicionais com mensalidades que sobem todo ano, você gasta mais de <strong>R$ 20.000</strong> em 3 anos e o sistema nunca é seu. Com o Domus Vitalício, você investe uma única vez e garante a operação completa da sua imobiliária sem custos mensais recorrentes.
               </p>
             </div>
 
             {/* O que está incluso */}
             <div className="space-y-3 pt-2">
               <span className="text-xs font-semibold text-foreground uppercase tracking-wider block">
-                Tudo o que sua empresa precisa sem travas:
+                Tudo o que sua imobiliária precisa sem travas:
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs text-foreground/90">
                 {[
-                  'Acesso Vitalício aos 4 Sistemas Integrados',
-                  'Gestão Imobiliária & Locações completa ilimitada',
-                  'Domus Finanças ERP Pro com DRE e conciliação',
-                  'Engenharia & Obras (Projetos e RDO Digital)',
-                  'Energia Solar (Homologação de usinas fotovoltaicas)',
-                  'Imóveis, contratos, obras e usinas ilimitados',
-                  'Usuários, corretores e engenheiros ilimitados',
+                  'Acesso Vitalício Completo ao Domus Imobiliária',
+                  'Gestão de locações, contratos e vendas sem limites',
                   'Portal do Inquilino e Proprietário com código OTP',
-                  'Assinatura Eletrônica de Contratos com validade jurídica',
-                  'Feed XML integrado para portais imobiliários',
-                  '1 ano de hospedagem em nuvem e suporte técnico VIP inclusos',
+                  'Régua de cobrança automática por PIX e boleto',
+                  'Fechamento e repasses PIX aos proprietários com extrato',
+                  'Vistorias fotográficas com geração de laudos em PDF',
+                  'CRM imobiliário com radar de clientes e imóveis',
+                  '1 ano de infraestrutura em nuvem e suporte técnico VIP inclusos',
                 ].map((item, idx) => (
                   <div key={idx} className="flex items-center gap-2">
                     <Check className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -685,10 +292,10 @@ export function PricingTable({ onSelectPlan }: PricingTableProps) {
           </div>
         </motion.div>
       ) : (
-        /* GRID DE PLANOS MENSAIS E ANUAIS TRADICIONAIS DO SEGMENTO SELECIONADO */
+        /* GRID DE PLANOS MENSAIS E ANUAIS TRADICIONAIS */
         <>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 items-stretch">
-            {currentPlans.map((p, idx) => {
+            {DOMUS_IMOB_PLANS.map((p, idx) => {
               const currentPrice = billingCycle === 'annual' ? p.priceAnnualMonthly : p.priceMonthly
               return (
                 <motion.div
@@ -704,22 +311,10 @@ export function PricingTable({ onSelectPlan }: PricingTableProps) {
                   } p-6 sm:p-8`}
                 >
                   {p.popular && (
-                    <>
-                      <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full text-xs font-semibold bg-[#AD7B3B] text-white flex items-center gap-1.5 shadow-md">
-                        <Sparkles className="w-3.5 h-3.5" />
-                        <span>{p.badge}</span>
-                      </div>
-
-                      {/* Faixa revelada no hover solicitada pelo cliente */}
-                      <div className="overflow-hidden max-h-0 group-hover:max-h-12 transition-all duration-300 ease-in-out -mt-2 mb-2">
-                        <div className="py-1 px-2.5 rounded-lg bg-[#AD7B3B]/15 border border-[#AD7B3B]/40 text-center">
-                          <span className="text-[11px] font-bold text-[#AD7B3B] tracking-wider uppercase flex items-center justify-center gap-1">
-                            <Sparkles className="w-3 h-3" />
-                            Melhor Custo-Benefício da Categoria
-                          </span>
-                        </div>
-                      </div>
-                    </>
+                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full text-xs font-semibold bg-[#AD7B3B] text-white flex items-center gap-1.5 shadow-md">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>{p.badge}</span>
+                    </div>
                   )}
 
                   <div>
@@ -755,13 +350,11 @@ export function PricingTable({ onSelectPlan }: PricingTableProps) {
                           </motion.span>
                         </AnimatePresence>
                         <span className="text-xs text-muted-foreground font-normal">
-                          {p.id === 'fin_vitalicio' ? ' (pagamento único)' : '/ mês'}
+                          / mês
                         </span>
                       </div>
                       <span className="text-[11px] text-muted-foreground block mt-1">
-                        {p.id === 'fin_vitalicio'
-                          ? 'Acesso perpétuo sem mensalidades'
-                          : billingCycle === 'annual'
+                        {billingCycle === 'annual'
                           ? 'Cobrado anualmente em 12 parcelas'
                           : 'Cobrança mensal, cancele quando desejar'}
                       </span>
@@ -819,7 +412,7 @@ export function PricingTable({ onSelectPlan }: PricingTableProps) {
                 </div>
                 <div>
                   <h4 className="text-base font-serif font-bold text-foreground flex items-center gap-2">
-                    Prefere ter a Suíte Completa sem pagar mensalidade todo mês?
+                    Prefere ter o sistema da sua imobiliária sem pagar mensalidade todo mês?
                     <span className="text-xs font-sans px-2 py-0.5 rounded-full bg-[#AD7B3B] text-white">
                       Lote Fundador
                     </span>

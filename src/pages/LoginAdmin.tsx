@@ -34,9 +34,13 @@ export function LoginAdmin() {
       const { data: { user } } = await supabase.auth.getUser()
       const role = (user?.app_metadata as Record<string, unknown> | undefined)?.role as string | undefined
       setTimeout(() => {
-        if (role === 'dev') navigate('/dev', { replace: true })
-        else if (role === 'cliente') navigate('/portal/dashboard', { replace: true })
-        else navigate('/admin', { replace: true })
+        if (role === 'dev') {
+          navigate('/dev', { replace: true })
+        } else if (role === 'cliente') {
+          navigate('/portal/dashboard', { replace: true })
+        } else {
+          navigate('/admin', { replace: true })
+        }
       }, 400)
     }
   }

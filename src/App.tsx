@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useParams, useLocation } from 'react-router-dom'
 import { lazy, Suspense, type ReactNode } from 'react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider, useAuth } from '@/hooks/useAuth'
 import { ToastProvider } from '@/components/ui/toast'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
@@ -47,22 +48,6 @@ const LandingPage = lazy(() => import('@/pages/LandingPage').then(m => ({ defaul
 const TermsPage = lazy(() => import('@/pages/TermsPage').then(m => ({ default: m.TermsPage })))
 const PrivacyPage = lazy(() => import('@/pages/PrivacyPage').then(m => ({ default: m.PrivacyPage })))
 const PublicPortalXml = lazy(() => import('@/pages/PublicPortalXml').then(m => ({ default: m.PublicPortalXml })))
-const SolarQuotesAdmin = lazy(() => import('@/pages/solar/SolarQuotesAdmin').then(m => ({ default: m.SolarQuotesAdmin })))
-const SolarProjectsAdmin = lazy(() => import('@/pages/solar/SolarProjectsAdmin').then(m => ({ default: m.SolarProjectsAdmin })))
-const SolarKitsAdmin = lazy(() => import('@/pages/solar/SolarKitsAdmin').then(m => ({ default: m.SolarKitsAdmin })))
-const SolarServiceOrdersAdmin = lazy(() => import('@/pages/solar/SolarServiceOrdersAdmin').then(m => ({ default: m.SolarServiceOrdersAdmin })))
-const SolarSuppliersAdmin = lazy(() => import('@/pages/solar/SolarSuppliersAdmin').then(m => ({ default: m.SolarSuppliersAdmin })))
-
-const ObrasProjetosAdmin = lazy(() => import('@/pages/obras/ObrasProjetosAdmin').then(m => ({ default: m.ObrasProjetosAdmin })))
-const ObrasDiarioAdmin = lazy(() => import('@/pages/obras/ObrasDiarioAdmin').then(m => ({ default: m.ObrasDiarioAdmin })))
-const ObrasMedicoesAdmin = lazy(() => import('@/pages/obras/ObrasMedicoesAdmin').then(m => ({ default: m.ObrasMedicoesAdmin })))
-const ObrasCronogramaAdmin = lazy(() => import('@/pages/obras/ObrasCronogramaAdmin').then(m => ({ default: m.ObrasCronogramaAdmin })))
-const ObrasComprasAdmin = lazy(() => import('@/pages/obras/ObrasComprasAdmin').then(m => ({ default: m.ObrasComprasAdmin })))
-
-// Novo Sistema Independente: Domus Finanças ERP (Venda Mensal ou Licença Vitalícia)
-const FinanceiroLanding = lazy(() => import('@/pages/financeiro/FinanceiroLanding').then(m => ({ default: m.FinanceiroLanding })))
-const FinanceiroDashboard = lazy(() => import('@/pages/financeiro/FinanceiroDashboard').then(m => ({ default: m.FinanceiroDashboard })))
-
 import { getSubdomainInfo } from '@/lib/subdomain'
 
 function PageLoading() {
@@ -192,9 +177,12 @@ function AppRoutes() {
         <Route path="/termos" element={<TermsPage />} />
         <Route path="/privacidade" element={<PrivacyPage />} />
 
-        {/* Novo Sistema Independente: Domus Finanças ERP (Venda Mensal ou Licença Vitalícia) */}
-        <Route path="/financeiro" element={<FinanceiroLanding />} />
-        <Route path="/financeiro/app" element={<FinanceiroDashboard />} />
+        {/* Redirecionamentos de rotas auxiliares para o Financeiro da imobiliária */}
+        <Route path="/financeiro" element={<Navigate to="/admin/financial" replace />} />
+        <Route path="/financeiro/*" element={<Navigate to="/admin/financial" replace />} />
+        <Route path="/financial" element={<Navigate to="/admin/financial" replace />} />
+        <Route path="/solar" element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path="/solar/*" element={<Navigate to="/admin/dashboard" replace />} />
 
         {/* Public login routes */}
         <Route path="/login" element={<LoginAdmin />} />
@@ -280,19 +268,6 @@ function AppRoutes() {
             <Route path="chamados" element={<AdminSupport />} />
             <Route path="equipe" element={<AdminTeam />} />
 
-            {/* Módulo Energia Solar */}
-            <Route path="solar/orcamentos" element={<SolarQuotesAdmin />} />
-            <Route path="solar/projetos" element={<SolarProjectsAdmin />} />
-            <Route path="solar/kits" element={<SolarKitsAdmin />} />
-            <Route path="solar/os" element={<SolarServiceOrdersAdmin />} />
-            <Route path="solar/fornecedores" element={<SolarSuppliersAdmin />} />
-
-            {/* Módulo Engenharia & Obras */}
-            <Route path="obras/projetos" element={<ObrasProjetosAdmin />} />
-            <Route path="obras/diario" element={<ObrasDiarioAdmin />} />
-            <Route path="obras/medicoes" element={<ObrasMedicoesAdmin />} />
-            <Route path="obras/cronograma" element={<ObrasCronogramaAdmin />} />
-            <Route path="obras/compras" element={<ObrasComprasAdmin />} />
           </Route>
         </Route>
 
@@ -332,16 +307,28 @@ function AppRoutes() {
   )
 }
 
+const appQueryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutos
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
 function App() {
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <ToastProvider>
-          <BrowserRouter>
-            <AppRoutes />
-          </BrowserRouter>
-        </ToastProvider>
-      </AuthProvider>
+      <QueryClientProvider client={appQueryClient}>
+        <AuthProvider>
+          <ToastProvider>
+            <BrowserRouter>
+              <AppRoutes />
+            </BrowserRouter>
+          </ToastProvider>
+        </AuthProvider>
+      </QueryClientProvider>
     </ErrorBoundary>
   )
 }

@@ -8,15 +8,10 @@ import {
   Sparkles, 
   ArrowUpRight, 
   Building2, 
-  SunMedium, 
-  HardHat, 
-  SlidersHorizontal, 
   LayoutDashboard,
   ChevronDown,
   Landmark
 } from 'lucide-react'
-
-export type SystemModuleKey = 'imobiliaria' | 'solar' | 'engenharia' | 'odonto' | 'financeiro'
 
 interface NavItem {
   href: string
@@ -29,7 +24,6 @@ interface NavGroup {
   id: string
   label: string
   icon: React.ComponentType<{ className?: string }>
-  requiredModule?: SystemModuleKey
   collapsible?: boolean
   items: NavItem[]
 }
@@ -44,9 +38,8 @@ const navGroups: NavGroup[] = [
   },
   {
     id: 'imobiliaria',
-    label: 'Imobiliária',
+    label: 'Locações & Imóveis',
     icon: Building2,
-    requiredModule: 'imobiliaria',
     collapsible: true,
     items: [
       { href: '/admin/properties', label: 'Imóveis' },
@@ -59,54 +52,16 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    id: 'solar',
-    label: 'Energia Solar',
-    icon: SunMedium,
-    requiredModule: 'solar',
-    collapsible: true,
-    items: [
-      { href: '/admin/solar/orcamentos', label: 'Orçamentos & Simulação' },
-      { href: '/admin/solar/projetos', label: 'Projetos & Usinas' },
-      { href: '/admin/solar/kits', label: 'Kits & Inversores' },
-      { href: '/admin/solar/os', label: 'Ordens de Serviço' },
-      { href: '/admin/solar/fornecedores', label: 'Fornecedores' },
-    ],
-  },
-  {
-    id: 'engenharia',
-    label: 'Engenharia & Obras',
-    icon: HardHat,
-    requiredModule: 'engenharia',
-    collapsible: true,
-    items: [
-      { href: '/admin/obras/projetos', label: 'Obras & Contratos' },
-      { href: '/admin/obras/diario', label: 'Diário de Obra (RDO)' },
-      { href: '/admin/obras/medicoes', label: 'Medições' },
-      { href: '/admin/obras/cronograma', label: 'Cronograma Físico' },
-      { href: '/admin/obras/compras', label: 'Compras & Insumos' },
-    ],
-  },
-  {
-    id: 'financeiro_erp',
-    label: 'Finanças ERP',
-    icon: Landmark,
-    requiredModule: 'financeiro',
-    collapsible: true,
-    items: [
-      { href: '/financeiro/app', label: 'Painel ERP Financeiro' },
-    ],
-  },
-  {
     id: 'gestao',
-    label: 'Gestão Corporativa',
-    icon: SlidersHorizontal,
+    label: 'Financeiro & Jurídico',
+    icon: Landmark,
     collapsible: true,
     items: [
-      { href: '/admin/financial', label: 'Financeiro' },
-      { href: '/admin/legal', label: 'Jurídico' },
+      { href: '/admin/financial', label: 'Cobrança & Repasses' },
+      { href: '/admin/legal', label: 'Jurídico & Contratos' },
       { href: '/admin/administrative', label: 'Administrativo' },
       { href: '/admin/chamados', label: 'Chamados' },
-      { href: '/admin/upgrade', label: 'Plano & Módulos', onlyAdmin: true },
+      { href: '/admin/upgrade', label: 'Meu Plano', onlyAdmin: true },
       { href: '/admin/equipe', label: 'Equipe & Acessos', onlyAdmin: true },
     ],
   },
@@ -119,8 +74,6 @@ interface DomusSidebarProps {
   onLogout: () => void
   /** Imobiliária / Empresa do usuário. Sem ela, mostra a marca padrão do Domus. */
   orgName?: string
-  /** Módulos ativos contratados pela empresa */
-  enabledModules?: string[]
 }
 
 export function DomusSidebar({ 
@@ -128,28 +81,18 @@ export function DomusSidebar({
   onClose, 
   user, 
   onLogout, 
-  orgName,
-  enabledModules = ['imobiliaria']
+  orgName
 }: DomusSidebarProps) {
   const location = useLocation()
   const planLimits = usePlanLimits()
 
-  // Determina quais módulos da organização estão ativos
-  const activeModules = React.useMemo(() => {
-    if (!enabledModules || enabledModules.length === 0) return ['imobiliaria']
-    return enabledModules
-  }, [enabledModules])
-
   // Guarda estado aberto/fechado de cada submenu
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
-    const initialState: Record<string, boolean> = {
+    return {
       overview: true,
       imobiliaria: true,
-      solar: true,
-      engenharia: true,
-      gestao: false,
+      gestao: true,
     }
-    return initialState
   })
 
   // Auto-expande o grupo correspondente à rota atual
@@ -178,12 +121,6 @@ export function DomusSidebar({
   const percentUsed = planLimits.maxProperties
     ? Math.min(100, Math.round((planLimits.currentPropertiesCount / planLimits.maxProperties) * 100))
     : 0
-
-  // Filtra apenas grupos que a organização possui contratado
-  const visibleGroups = navGroups.filter((group) => {
-    if (!group.requiredModule) return true
-    return activeModules.includes(group.requiredModule)
-  })
 
   return (
     <>
@@ -226,7 +163,7 @@ export function DomusSidebar({
 
           {/* Navigation com Submenus Suspensos */}
           <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-3" aria-label="Navegação principal">
-            {visibleGroups.map((group) => {
+            {navGroups.map((group) => {
               const visibleItems = group.items.filter((i) => !i.onlyAdmin || user.role === 'admin')
               if (visibleItems.length === 0) return null
 
