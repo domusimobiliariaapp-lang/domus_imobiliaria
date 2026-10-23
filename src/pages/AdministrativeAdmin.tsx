@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useLocation } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -106,6 +107,7 @@ export function AdministrativeAdmin() {
   const [address, setAddress] = useState<CompanyAddress>(EMPTY_ADDRESS)
   const [loadingSettings, setLoadingSettings] = useState(true)
   const [saving, setSaving] = useState(false)
+  const location = useLocation()
   const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [tab, setTab] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -114,6 +116,17 @@ export function AdministrativeAdmin() {
     }
     return 'visao_geral'
   })
+
+  // Sincroniza a aba ativa quando a URL mudar (ex: ?tab=configuracoes)
+  useEffect(() => {
+    const p = new URLSearchParams(location.search).get('tab')
+    if (p === 'dominio' || p === 'configuracoes' || p === 'visao_geral') {
+      setTab(p)
+    }
+  }, [location.search])
+
+  const [pixKey, setPixKey] = useState('')
+  const [pixType, setPixType] = useState('cnpj')
   const [cepMessage, setCepMessage] = useState<string>('')
   const [lookingUpCep, setLookingUpCep] = useState(false)
   const lastFetchedCep = useRef<string | null>(null)
@@ -128,6 +141,13 @@ export function AdministrativeAdmin() {
       if (!orgId) {
         setLoadingSettings(false)
         return
+      }
+
+      if (typeof window !== 'undefined') {
+        const savedPix = localStorage.getItem(`domus_pix_key_${orgId}`)
+        if (savedPix) setPixKey(savedPix)
+        const savedType = localStorage.getItem(`domus_pix_type_${orgId}`)
+        if (savedType) setPixType(savedType)
       }
 
       const { data, error } = await supabase
@@ -353,6 +373,13 @@ export function AdministrativeAdmin() {
       return
     }
 
+    // Salva a chave PIX da imobiliária
+    if (typeof window !== 'undefined' && orgId) {
+      localStorage.setItem(`domus_pix_key_${orgId}`, pixKey)
+      localStorage.setItem(`domus_pix_type_${orgId}`, pixType)
+      localStorage.setItem(`domus_onboarding_pix_${orgId}`, 'true')
+    }
+
     // O menu lê organizations.name via useAuth. Sem este refresh, o topo
     // continuaria mostrando o nome antigo até a próxima carga da página.
     await refreshProfile()
@@ -517,6 +544,29 @@ export function AdministrativeAdmin() {
                     {lookingUpCep && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                     {cepMessage || 'O CEP preenche o logradouro, o bairro, a cidade e a UF.'}
                   </p>
+                </div>
+                <div className="space-y-1">
+                  <Label>Tipo de Chave PIX</Label>
+                  <select
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                    value={pixType}
+                    onChange={(e) => setPixType(e.target.value)}
+                  >
+                    <option value="cnpj">CNPJ</option>
+                    <option value="cpf">CPF</option>
+                    <option value="email">E-mail</option>
+                    <option value="telefone">Celular</option>
+                    <option value="aleatoria">Chave Aleatória (EVP)</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <Label>Chave PIX da Imobiliária</Label>
+                  <Input
+                    value={pixKey}
+                    onChange={(e) => setPixKey(e.target.value)}
+                    placeholder="Ex: financeiro@imobiliaria.com.br"
+                  />
+                  <p className="text-xs text-muted-foreground">Usada para cobrança de aluguéis e repasses aos proprietários.</p>
                 </div>
                 <div className="space-y-1">
                   <Label>Taxa Administrativa (%)</Label>

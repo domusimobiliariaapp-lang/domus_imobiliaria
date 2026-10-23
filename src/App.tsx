@@ -262,6 +262,7 @@ function AppRoutes() {
             <Route path="financial" element={<FinancialAdmin />} />
             <Route path="legal" element={<LegalAdmin />} />
             <Route path="administrative" element={<AdministrativeAdmin />} />
+            <Route path="configuracoes" element={<Navigate to="/admin/administrative?tab=configuracoes" replace />} />
             <Route path="upgrade" element={<AdminUpgrade />} />
             {/* Locações e Contratos são a mesma tabela (leases). Unificar evita duas telas divergentes. */}
             <Route path="leases" element={<Navigate to="/admin/contracts" replace />} />

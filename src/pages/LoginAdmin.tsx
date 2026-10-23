@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Lock, Mail, Eye, EyeOff, ArrowRight, ShieldCheck, Check } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
@@ -8,7 +8,9 @@ import { useAuth } from '@/hooks/useAuth'
 import { DomusLogo } from '@/components/brand/DomusLogo'
 
 export function LoginAdmin() {
-  const [email, setEmail] = useState('')
+  const [searchParams] = useSearchParams()
+  const emailFromUrl = searchParams.get('email') || ''
+  const [email, setEmail] = useState(emailFromUrl)
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(true)

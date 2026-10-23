@@ -16,6 +16,7 @@ import { usePayments } from '@/hooks/useSupabase'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { NumberTicker } from '@/components/ui/NumberTicker'
+import { OnboardingChecklist } from '@/components/dashboard/OnboardingChecklist'
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('pt-BR', {
@@ -288,8 +289,12 @@ export function DashboardAdmin() {
         </div>
       </div>
 
+      {/* Checklist de Primeiros Passos (Onboarding Interativo) */}
+      <OnboardingChecklist
+        totalProperties={stats?.total_properties || 0}
+        totalLeases={stats?.active_leases || 0}
+      />
 
-      {/* Stats Row */}
       {/* Stats Row com NumberTicker vivo */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard

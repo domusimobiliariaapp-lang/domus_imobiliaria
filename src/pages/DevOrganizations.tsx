@@ -340,6 +340,7 @@ export function DevOrganizations() {
                     <option value="starter">Starter (até 35 imóveis)</option>
                     <option value="pro">Profissional (até 150)</option>
                     <option value="enterprise">Enterprise (ilimitado)</option>
+                    <option value="lifetime">Licença Vitalícia (Sem Mensalidade)</option>
                   </select>
                 </div>
 
@@ -628,6 +629,7 @@ export function DevOrganizations() {
                   <option value="starter">Starter (até 35 imóveis)</option>
                   <option value="pro">Profissional (até 150 imóveis)</option>
                   <option value="enterprise">Enterprise (ilimitado)</option>
+                  <option value="lifetime">Licença Vitalícia (Sem Mensalidade)</option>
                 </select>
               </div>
 

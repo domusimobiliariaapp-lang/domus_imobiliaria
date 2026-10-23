@@ -2,8 +2,9 @@ import { CRUDPage } from '@/components/CRUDPage'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { DollarSign, AlertCircle, TrendingUp, TrendingDown, Clock, FileText, Calculator, Wallet, PieChart } from 'lucide-react'
+import { DollarSign, AlertCircle, TrendingUp, TrendingDown, Clock, FileText, Calculator, Wallet, PieChart, MessageSquare } from 'lucide-react'
 import { usePayments, useUpdateEntity, useProperties, useLeases, useSales, useProfiles } from '@/hooks/useSupabase'
+import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/integrations/supabase/client'
 import type { Payment, Lease, Profile } from '@/types'
 import { StatusBadge } from '@/components/ui/status-badge'
@@ -17,6 +18,7 @@ import {
   type RepasseLocacao,
   type ComissaoVenda,
 } from '@/lib/repasse'
+import { getWhatsAppBillingUrl, getWhatsAppRepasseUrl } from '@/lib/whatsappBilling'
 import { LancamentosTab } from '@/components/LancamentosTab'
 import { FluxoCaixaTab } from '@/components/FluxoCaixaTab'
 import { DreGerencialTab } from '@/components/DreGerencialTab'
@@ -36,6 +38,7 @@ const FILTER_STATUS = PAYMENT_STATUSES
 // com um pagamento, e misturar as duas coisas aqui só sobreporia o CRUDPage.
 
 export function FinancialAdmin() {
+  const { organization } = useAuth()
   const { data: payments, error, refetch } = usePayments()
   const { data: properties } = useProperties()
   const { data: leases } = useLeases()
@@ -399,7 +402,7 @@ export function FinancialAdmin() {
           </div>
 
           {/* Payments Table */}
-          <CRUDPage<Payment & { lease?: Lease; tenant?: Profile }>
+          <CRUDPage<Payment & { lease?: Lease; tenant?: Profile; property?: { id: string; title: string } }>
             title="Pagamentos"
             subtitle="Gerencie os pagamentos de aluguéis"
             columns={columns}
@@ -410,16 +413,22 @@ export function FinancialAdmin() {
                 .order('due_date', { ascending: false })
               if (erro) throw new Error(erro.message)
 
-              const [{ data: contratos }, { data: pessoas }] = await Promise.all([
+              const [{ data: contratos }, { data: pessoas }, { data: imoveis }] = await Promise.all([
                 supabase.from('leases').select('id, property_id, monthly_rent'),
-                supabase.from('profiles').select('id, full_name'),
+                supabase.from('profiles').select('id, full_name, phone'),
+                supabase.from('properties').select('id, title'),
               ])
 
-              return (lista || []).map((pagamento) => ({
-                ...pagamento,
-                lease: contratos?.find((l) => l.id === pagamento.lease_id),
-                tenant: pessoas?.find((p) => p.id === pagamento.tenant_id),
-              }))
+              return (lista || []).map((pagamento) => {
+                const contrato = contratos?.find((l) => l.id === pagamento.lease_id)
+                const imovel = imoveis?.find((p) => p.id === contrato?.property_id)
+                return {
+                  ...pagamento,
+                  lease: contrato,
+                  property: imovel,
+                  tenant: pessoas?.find((p) => p.id === pagamento.tenant_id),
+                }
+              })
             }}
             createItem={handleCreate}
             updateItem={handleUpdate}
@@ -436,23 +445,43 @@ export function FinancialAdmin() {
               </div>
             }
             emptyStateMessage="Nenhum pagamento registrado"
-            renderActions={(item: any) => (
-              <div className="flex items-center gap-1">
-                {item.status !== 'pago' && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleMarkAsPaid(item)}
-                    className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
-                    title="Marcar como Pago"
+            renderActions={(item: any) => {
+              const waUrl = getWhatsAppBillingUrl({
+                recipientName: item.tenant?.full_name || 'Cliente',
+                recipientPhone: item.tenant?.phone,
+                amount: Number(item.amount) || 0,
+                dueDate: item.due_date,
+                propertyTitle: item.property?.title,
+                agencyName: organization?.name,
+              })
+
+              return (
+                <div className="flex items-center gap-1">
+                  <a
+                    href={waUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center h-8 w-8 rounded-md text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors"
+                    title="Cobrar via WhatsApp com 1 Clique (Grátis)"
                   >
-                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  </Button>
-                )}
-              </div>
-            )}
+                    <MessageSquare className="h-4 w-4" />
+                  </a>
+                  {item.status !== 'pago' && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleMarkAsPaid(item)}
+                      className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                      title="Marcar como Pago"
+                    >
+                      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    </Button>
+                  )}
+                </div>
+              )
+            }}
           />
         </TabsContent>
 

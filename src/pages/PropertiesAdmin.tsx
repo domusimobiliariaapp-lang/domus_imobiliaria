@@ -1,5 +1,5 @@
 import { CRUDPage } from '@/components/CRUDPage'
-import { Home, AlertCircle, Share2, Edit2, Trash2, Printer, Globe } from 'lucide-react'
+import { Home, AlertCircle, Share2, Edit2, Trash2, Printer, Globe, FileSpreadsheet } from 'lucide-react'
 import { useProperties, useCreateEntity, useUpdateEntity, useDeleteEntity } from '@/hooks/useSupabase'
 import type { Property } from '@/types'
 import { Button } from '@/components/ui/button'
@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/components/ui/toast'
 import { PropertyModal } from '@/components/PropertyModal'
+import { PropertyImportModal } from '@/components/PropertyImportModal'
 import { PortalIntegrationsTab } from '@/components/PortalIntegrationsTab'
 import { PropertyCard3D } from '@/components/ui/PropertyCard3D'
 import * as React from 'react'
@@ -56,6 +57,7 @@ export function PropertiesAdmin() {
   const { remove } = useDeleteEntity('properties')
   const [tab, setTab] = useState('lista')
   const [modalOpen, setModalOpen] = useState(false)
+  const [importModalOpen, setImportModalOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<Property | null>(null)
   const [saving, setSaving] = useState(false)
   const [listVersion, setListVersion] = useState(0)
@@ -204,17 +206,31 @@ export function PropertiesAdmin() {
 
   return (
     <div className="space-y-6">
-      {/* Tabs */}
-      <Tabs value={tab} onValueChange={setTab}>
-        <TabsList>
-          <TabsTrigger value="lista">Lista</TabsTrigger>
-          <TabsTrigger value="portais" className="gap-2">
-            <Globe className="h-4 w-4" />
-            Portais & Feed XML
-          </TabsTrigger>
-          <TabsTrigger value="relatorio">Relatório</TabsTrigger>
-        </TabsList>
-      </Tabs>
+      {/* Header com Tabs e Ação de Importar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <Tabs value={tab} onValueChange={setTab}>
+          <TabsList>
+            <TabsTrigger value="lista">Lista</TabsTrigger>
+            <TabsTrigger value="portais" className="gap-2">
+              <Globe className="h-4 w-4" />
+              Portais & Feed XML
+            </TabsTrigger>
+            <TabsTrigger value="relatorio">Relatório</TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        {tab === 'lista' && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setImportModalOpen(true)}
+            className="text-xs h-9 gap-1.5 cursor-pointer shadow-xs border-[#AD7B3B]/40 text-[#AD7B3B] hover:bg-[#AD7B3B]/10 self-start sm:self-auto"
+          >
+            <FileSpreadsheet className="w-4 h-4" />
+            <span>Importar Carteira (CSV)</span>
+          </Button>
+        )}
+      </div>
 
       {tab === 'lista' ? (
         <div className="space-y-6">
@@ -267,6 +283,16 @@ export function PropertiesAdmin() {
         item={editingItem}
         onSave={handleSave}
         saving={saving}
+      />
+
+      {/* Property Import Modal */}
+      <PropertyImportModal
+        open={importModalOpen}
+        onOpenChange={setImportModalOpen}
+        onSuccess={() => {
+          refetch()
+          setListVersion((v) => v + 1)
+        }}
       />
     </div>
   )

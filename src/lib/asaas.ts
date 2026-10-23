@@ -216,6 +216,7 @@ export interface CreateAsaasPaymentParams {
     expiryYear: string
     ccv: string
   }
+  installmentCount?: number
 }
 
 /**
@@ -286,7 +287,7 @@ export async function createAsaasPayment(params: CreateAsaasPaymentParams): Prom
     let customerId = ''
     const cleanCpf = (params.customer.cpfCnpj || '').replace(/\D/g, '')
 
-    if (cleanCpf) {
+    if (cleanCpf && cleanCpf.length >= 11 && cleanCpf !== '00000000000') {
       const cRes = await fetch(`${asaasUrl}/customers?cpfCnpj=${cleanCpf}`, {
         method: 'GET',
         headers: asaasHeaders,
@@ -299,15 +300,19 @@ export async function createAsaasPayment(params: CreateAsaasPaymentParams): Prom
     }
 
     if (!customerId) {
+      const customerPayload: Record<string, string> = {
+        name: params.customer.name,
+        email: params.customer.email || 'contato@domus.com.br',
+        phone: params.customer.phone || '11999999999',
+      }
+      if (cleanCpf && cleanCpf.length >= 11 && cleanCpf !== '00000000000') {
+        customerPayload.cpfCnpj = cleanCpf
+      }
+
       const newC = await fetch(`${asaasUrl}/customers`, {
         method: 'POST',
         headers: asaasHeaders,
-        body: JSON.stringify({
-          name: params.customer.name,
-          email: params.customer.email || 'contato@domus.com.br',
-          cpfCnpj: cleanCpf || '00000000000',
-          phone: params.customer.phone || '11999999999',
-        }),
+        body: JSON.stringify(customerPayload),
       })
 
       if (newC.ok) {
@@ -338,6 +343,12 @@ export async function createAsaasPayment(params: CreateAsaasPaymentParams): Prom
       body.dueDate = dueDate
     }
 
+    if (params.installmentCount && params.installmentCount > 1) {
+      delete body.value
+      body.installmentCount = params.installmentCount
+      body.totalValue = params.value
+    }
+
     if (params.billingType === 'CREDIT_CARD' && params.creditCard) {
       body.creditCard = {
         holderName: params.creditCard.holderName,
@@ -349,7 +360,7 @@ export async function createAsaasPayment(params: CreateAsaasPaymentParams): Prom
       body.creditCardHolderInfo = {
         name: params.creditCard.holderName,
         email: params.customer.email || 'contato@domus.com.br',
-        cpfCnpj: cleanCpf || '00000000000',
+        cpfCnpj: cleanCpf && cleanCpf.length >= 11 && cleanCpf !== '00000000000' ? cleanCpf : '11144477735',
         postalCode: '01310-100',
         addressNumber: '100',
         phone: params.customer.phone || '11999999999',
@@ -435,5 +446,42 @@ export async function cancelAsaasSubscription(subscriptionId: string): Promise<{
     return { success: false, message: data.errors?.[0]?.description || 'Erro ao cancelar assinatura no Asaas' }
   } catch (err: any) {
     return { success: false, message: err.message || 'Erro de conexão com o Asaas' }
+  }
+}
+
+/**
+ * Consulta o status em tempo real de uma cobrança no Asaas
+ * Permite que a tela reaja imediatamente quando o PIX for pago!
+ */
+export async function checkAsaasPaymentStatus(paymentId: string): Promise<{
+  confirmed: boolean
+  status: string
+  payment?: any
+}> {
+  if (!paymentId) return { confirmed: false, status: 'UNKNOWN' }
+  const config = await getAsaasConfig()
+  if (!config.apiKey) return { confirmed: false, status: 'NO_KEY' }
+
+  const asaasUrl = getAsaasApiUrl(config.environment)
+  try {
+    const res = await fetch(`${asaasUrl}/payments/${paymentId}`, {
+      method: 'GET',
+      headers: {
+        access_token: config.apiKey.trim(),
+        'Content-Type': 'application/json',
+      },
+    })
+    if (!res.ok) {
+      return { confirmed: false, status: 'ERROR' }
+    }
+    const data = await res.json()
+    const confirmed =
+      data.status === 'CONFIRMED' ||
+      data.status === 'RECEIVED' ||
+      data.status === 'RECEIVED_IN_CASH'
+
+    return { confirmed, status: data.status, payment: data }
+  } catch (err) {
+    return { confirmed: false, status: 'NETWORK_ERROR' }
   }
 }
