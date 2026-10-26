@@ -11,6 +11,12 @@
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
+  # Se um arquivo estático (assets, JS, CSS, imagens) não existir, retorna 404 real em vez de index.html
+  RewriteCond %{REQUEST_URI} ^/assets/ [OR]
+  RewriteCond %{REQUEST_URI} \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ [NC]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule ^ - [R=404,L]
+
   # SPA Fallback: todas as rotas do React Router vão para o index.html
   RewriteRule ^ index.html [L]
 </IfModule>
