@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgMaskGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1B3A47"/>
+      <stop offset="50%" stop-color="#17323D"/>
+      <stop offset="100%" stop-color="#0E2028"/>
+    </linearGradient>
+    <linearGradient id="domusGoldMask" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FCE5B0"/>
+      <stop offset="45%" stop-color="#D4A359"/>
+      <stop offset="100%" stop-color="#966427"/>
+    </linearGradient>
+    <linearGradient id="domusPillarMask" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFF5E0"/>
+      <stop offset="50%" stop-color="#AD7B3B"/>
+      <stop offset="100%" stop-color="#6E4817"/>
+    </linearGradient>
+    <filter id="shadowMask" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000000" flood-opacity="0.35"/>
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#AD7B3B" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Fundo 100% preenchido para zona de máscara Android sem cantos arredondados -->
+  <rect width="512" height="512" fill="url(#bgMaskGrad)"/>
+
+  <!-- Símbolo Arquitetônico dentro da Safe Zone (80% central) -->
+  <g transform="translate(128, 128) scale(8)" filter="url(#shadowMask)">
+    <!-- Prisma do Telhado / Pórtico -->
+    <path d="M16 4.5L5 13.5V17L16 8L27 17V13.5L16 4.5Z" fill="url(#domusGoldMask)"/>
+    <!-- Arco / Abóbada Central -->
+    <path d="M11 15V26.5H14.5V18.5C14.5 17.6716 15.1716 17 16 17C16.8284 17 17.5 17.6716 17.5 18.5V26.5H21V15C21 12.2386 18.7614 10 16 10C13.2386 10 11 12.2386 11 15Z" fill="url(#domusPillarMask)"/>
+    <!-- Base estrutural -->
+    <circle cx="16" cy="22.5" r="1.3" fill="#FFF5E0"/>
+  </g>
+</svg>

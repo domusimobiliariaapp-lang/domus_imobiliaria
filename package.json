@@ -76,6 +76,7 @@
     "leaflet": "^1.9.4",
     "oxlint": "^1.81.0",
     "postcss": "^8.5.28",
+    "sharp": "^0.35.5",
     "supabase": "^2.117.0",
     "tailwindcss": "^4.3.3",
     "tailwindcss-animate": "^1.0.7",

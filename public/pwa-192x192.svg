@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <defs>
+    <linearGradient id="bgGrad192" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1B3A47"/>
+      <stop offset="50%" stop-color="#17323D"/>
+      <stop offset="100%" stop-color="#0E2028"/>
+    </linearGradient>
+    <linearGradient id="domusGold192" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FCE5B0"/>
+      <stop offset="45%" stop-color="#D4A359"/>
+      <stop offset="100%" stop-color="#966427"/>
+    </linearGradient>
+    <linearGradient id="domusPillar192" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFF5E0"/>
+      <stop offset="50%" stop-color="#AD7B3B"/>
+      <stop offset="100%" stop-color="#6E4817"/>
+    </linearGradient>
+    <filter id="shadow192" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.35"/>
+      <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#AD7B3B" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Fundo oficial Domus em petróleo nobre -->
+  <rect width="192" height="192" rx="42" fill="url(#bgGrad192)"/>
+  <rect x="3" y="3" width="186" height="186" rx="39" fill="none" stroke="#AD7B3B" stroke-width="1.5" stroke-opacity="0.35"/>
+
+  <!-- Símbolo Arquitetônico Monograma Domus -->
+  <g transform="translate(36, 36) scale(3.75)" filter="url(#shadow192)">
+    <!-- Prisma do Telhado / Pórtico -->
+    <path d="M16 4.5L5 13.5V17L16 8L27 17V13.5L16 4.5Z" fill="url(#domusGold192)"/>
+    <!-- Arco / Abóbada Central -->
+    <path d="M11 15V26.5H14.5V18.5C14.5 17.6716 15.1716 17 16 17C16.8284 17 17.5 17.6716 17.5 18.5V26.5H21V15C21 12.2386 18.7614 10 16 10C13.2386 10 11 12.2386 11 15Z" fill="url(#domusPillar192)"/>
+    <!-- Base estrutural -->
+    <circle cx="16" cy="22.5" r="1.3" fill="#FFF5E0"/>
+  </g>
+</svg>
