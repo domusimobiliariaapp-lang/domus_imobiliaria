@@ -48,11 +48,30 @@ Crie os seguintes registros DNS apontando para o seu serviço de hospedagem (ex:
 | **CNAME** | `www` | `cname.vercel-dns.com` | Redirecionamento `www.gestaodomus.com.br` |
 | **CNAME** | `*` | `cname.vercel-dns.com` | **Wildcard: captura qualquer subdomínio dinamicamente** (`*.gestaodomus.com.br`) |
 
-### Passo 2: Configurar Domínio na Plataforma de Hospedagem (Ex: Vercel)
+### Passo 2: Configurar Domínio na Plataforma de Hospedagem
+
+#### A. Se for Hospedar na Hostinger (hPanel / Cloud / Compartilhada)
+1. **Publicação dos Arquivos**:
+   - Execute o build local: `npm run build`
+   - Compacte todo o conteúdo dentro da pasta `dist/` em um arquivo `.zip` (incluindo o arquivo `.htaccess`, a pasta `assets/` e o `index.html`).
+   - No painel da Hostinger (**hPanel**), acesse **Arquivos > Gerenciador de Arquivos** e abra a pasta **`public_html`**.
+   - Faça upload do `.zip` e clique em **Extrair**.
+   - O arquivo `.htaccess` (já gerado na compilação) cuidará automaticamente de redirecionar todas as rotas do React Router (`/login`, `/admin`, `/:slug/imoveis`) para o `index.html` e forçar o HTTPS.
+
+2. **Wildcard de Subdomínios na Hostinger**:
+   - No hPanel, vá em **Avançado > Editor de Zona DNS**:
+     - Crie ou verifique o registro **CNAME** com Nome `*` apontando para `@` (ou para o IP da sua hospedagem com registro **A**).
+   - Em **Sites > Subdomínios**:
+     - Crie o subdomínio `*` apontando para a pasta raiz `public_html` (caso queira que todos os subdomínios compartilhem os mesmos arquivos da vitrine).
+
+3. **Certificado de Segurança SSL (HTTPS)**:
+   - Em **Segurança > SSL**, certifique-se de que o certificado SSL gratuito Let's Encrypt está ativo para o domínio e para os subdomínios.
+
+#### B. Se for Vercel / Cloudflare Pages
 1. Nas configurações do projeto (**Settings > Domains**):
    * Adicione `gestaodomus.com.br`
    * Adicione `*.gestaodomus.com.br` (Wildcard Domain)
-2. A plataforma emitirá automaticamente um **Certificado SSL Wildcard (Let's Encrypt)** gratuito, garantindo que qualquer subdomínio criado (ex: `nova-imobiliaria.gestaodomus.com.br`) já abra com cadeado de segurança HTTPS ativo.
+2. A plataforma emitirá automaticamente um **Certificado SSL Wildcard (Let's Encrypt)** gratuito.
 
 ---
 
