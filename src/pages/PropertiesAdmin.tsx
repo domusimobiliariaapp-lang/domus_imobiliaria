@@ -15,6 +15,7 @@ import { SharePropertyModal } from '@/components/properties/SharePropertyModal'
 import { exportPropertiesCsv } from '@/lib/exportCsv'
 import { PropertyCard3D } from '@/components/ui/PropertyCard3D'
 import * as React from 'react'
+import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { supabase } from '@/integrations/supabase/client'
 
