@@ -21,6 +21,8 @@ describe('extractSubdomain', () => {
   })
 
   it('retorna null para domínio principal em produção', () => {
+    expect(extractSubdomain('gestaodomus.com.br')).toBeNull()
+    expect(extractSubdomain('www.gestaodomus.com.br')).toBeNull()
     expect(extractSubdomain('domus.com.br')).toBeNull()
     expect(extractSubdomain('www.domus.com.br')).toBeNull()
     expect(extractSubdomain('domusapp.com')).toBeNull()
@@ -28,15 +30,18 @@ describe('extractSubdomain', () => {
   })
 
   it('extrai subdomínio de organização em domínio de produção brasileiro (.com.br)', () => {
+    expect(extractSubdomain('aurora.gestaodomus.com.br')).toBe('aurora')
+    expect(extractSubdomain('prime.gestaodomus.com.br')).toBe('prime')
+    expect(extractSubdomain('imob-nova.gestaodomus.com.br')).toBe('imob-nova')
     expect(extractSubdomain('aurora.domus.com.br')).toBe('aurora')
-    expect(extractSubdomain('prime.domus.com.br')).toBe('prime')
-    expect(extractSubdomain('imob-nova.domus.com.br')).toBe('imob-nova')
   })
 
   it('ignora subdomínios de sistema reservados em produção', () => {
-    expect(extractSubdomain('app.domus.com.br')).toBeNull()
-    expect(extractSubdomain('api.domus.com.br')).toBeNull()
-    expect(extractSubdomain('dev.domus.com.br')).toBeNull()
-    expect(extractSubdomain('staging.domus.com.br')).toBeNull()
+    expect(extractSubdomain('app.gestaodomus.com.br')).toBeNull()
+    expect(extractSubdomain('api.gestaodomus.com.br')).toBeNull()
+    expect(extractSubdomain('dev.gestaodomus.com.br')).toBeNull()
+    expect(extractSubdomain('staging.gestaodomus.com.br')).toBeNull()
+    expect(extractSubdomain('admin.gestaodomus.com.br')).toBeNull()
+    expect(extractSubdomain('portal.gestaodomus.com.br')).toBeNull()
   })
 })

@@ -1,6 +1,6 @@
 # Arquitetura de Subdomínios & Configuração de Domínio — Domus SaaS
 
-Este documento descreve como o suporte a subdomínios por cliente/imobiliária foi implementado no Domus e como configurar quando você comprar o domínio oficial do sistema (ex: `domusimob.com.br` ou `domusapp.com.br`).
+Este documento descreve como o suporte a subdomínios por cliente/imobiliária foi implementado no Domus e como configurar no domínio oficial do sistema: **`gestaodomus.com.br`**.
 
 ---
 
@@ -9,12 +9,12 @@ Este documento descreve como o suporte a subdomínios por cliente/imobiliária f
 O sistema possui dois modos de acesso baseados na URL:
 
 ### A. Domínio Principal (Landing Page Comercial)
-* **Exemplos:** `domus.com.br`, `www.domus.com.br`, `localhost:5173`
+* **Exemplos:** `gestaodomus.com.br`, `www.gestaodomus.com.br`, `localhost:5173`
 * **Rota `/`:** Carrega a **Landing Page Comercial** com apresentação do sistema, demonstração de telas reais, simulador de ROI, tabela de preços e formulário de teste grátis (trial de 14 dias).
 * **Botão "Acessar Sistema":** Leva para `/login` (login da equipe interna).
 
 ### B. Subdomínio da Imobiliária (Tenant / Multi-tenant)
-* **Exemplos:** `aurora.domus.com.br`, `prime.domus.com.br`, `aurora.localhost:5173`
+* **Exemplos:** `aurora.gestaodomus.com.br`, `prime.gestaodomus.com.br`, `aurora.localhost:5173`
 * **Rota `/`:** Redireciona e abre imediatamente a **Vitrine Pública de Imóveis** daquela imobiliária (`/aurora/imoveis`).
 * **Rota `/portal` ou `/portal/login`:** Identifica automaticamente a organização e abre o Portal do Inquilino/Proprietário sem que o cliente precise digitar o slug manualmente.
 
@@ -37,24 +37,22 @@ Para testar localmente:
 
 ---
 
-## 3. Guia de Configuração Quando Comprar o Domínio
+## 3. Guia de Configuração no Domínio `gestaodomus.com.br`
 
-Quando você registrar seu domínio (ex: no Registro.br, GoDaddy, Hostinger ou Cloudflare):
-
-### Passo 1: Configurar DNS Wildcard no Provedor de Domínio
+### Passo 1: Configurar DNS Wildcard no Registro.br / Provedor de Domínio
 Crie os seguintes registros DNS apontando para o seu serviço de hospedagem (ex: Vercel, Cloudflare Pages ou servidor VPS):
 
 | Tipo | Nome (Host) | Valor / Destino | Finalidade |
 | :--- | :--- | :--- | :--- |
-| **A** ou **CNAME** | `@` | IP ou `cname.vercel-dns.com` | Domínio raiz (`domus.com.br`) |
-| **CNAME** | `www` | `cname.vercel-dns.com` | Redirecionamento `www` |
-| **CNAME** | `*` | `cname.vercel-dns.com` | **Wildcard: captura qualquer subdomínio dinamicamente** (`*.domus.com.br`) |
+| **A** ou **CNAME** | `@` | IP do servidor ou `cname.vercel-dns.com` | Domínio raiz (`gestaodomus.com.br`) |
+| **CNAME** | `www` | `cname.vercel-dns.com` | Redirecionamento `www.gestaodomus.com.br` |
+| **CNAME** | `*` | `cname.vercel-dns.com` | **Wildcard: captura qualquer subdomínio dinamicamente** (`*.gestaodomus.com.br`) |
 
 ### Passo 2: Configurar Domínio na Plataforma de Hospedagem (Ex: Vercel)
 1. Nas configurações do projeto (**Settings > Domains**):
-   * Adicione `domus.com.br`
-   * Adicione `*.domus.com.br` (Wildcard Domain)
-2. A Vercel (ou Cloudflare) emitirá automaticamente um **Certificado SSL Wildcard (Let's Encrypt)** gratuito, garantindo que qualquer subdomínio criado (ex: `nova-imobiliaria.domus.com.br`) já abra com cadeado de segurança HTTPS ativo.
+   * Adicione `gestaodomus.com.br`
+   * Adicione `*.gestaodomus.com.br` (Wildcard Domain)
+2. A plataforma emitirá automaticamente um **Certificado SSL Wildcard (Let's Encrypt)** gratuito, garantindo que qualquer subdomínio criado (ex: `nova-imobiliaria.gestaodomus.com.br`) já abra com cadeado de segurança HTTPS ativo.
 
 ---
 

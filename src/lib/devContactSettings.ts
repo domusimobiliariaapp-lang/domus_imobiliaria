@@ -13,7 +13,7 @@ export interface DevContactSettings {
 
 export const DEFAULT_DEV_CONTACT_SETTINGS: DevContactSettings = {
   whatsapp: '11999999999',
-  email: 'contato@domus.com.br',
+  email: 'contato@gestaodomus.com.br',
   phone: '(11) 3000-0000',
   company_name: 'Domus Tecnologia & Sistemas',
   support_hours: 'Segunda a Sexta, das 09h às 18h',

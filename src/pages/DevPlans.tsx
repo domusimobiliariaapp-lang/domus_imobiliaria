@@ -562,7 +562,7 @@ GRANT ALL ON public.saas_leads TO anon, authenticated, service_role;
                       onChange={(e) => handleFeatureToggle(p.id, 'subdomain', e.target.checked)}
                       className="rounded border-input text-[#AD7B3B] focus:ring-[#AD7B3B]"
                     />
-                    <span>Subdomínio Próprio (.domus.com.br)</span>
+                    <span>Subdomínio Próprio (.gestaodomus.com.br)</span>
                   </label>
 
                   <label className="flex items-center gap-2 cursor-pointer text-xs">

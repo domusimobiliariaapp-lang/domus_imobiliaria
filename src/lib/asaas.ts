@@ -302,7 +302,7 @@ export async function createAsaasPayment(params: CreateAsaasPaymentParams): Prom
     if (!customerId) {
       const customerPayload: Record<string, string> = {
         name: params.customer.name,
-        email: params.customer.email || 'contato@domus.com.br',
+        email: params.customer.email || 'contato@gestaodomus.com.br',
         phone: params.customer.phone || '11999999999',
       }
       if (cleanCpf && cleanCpf.length >= 11 && cleanCpf !== '00000000000') {
@@ -359,7 +359,7 @@ export async function createAsaasPayment(params: CreateAsaasPaymentParams): Prom
       }
       body.creditCardHolderInfo = {
         name: params.creditCard.holderName,
-        email: params.customer.email || 'contato@domus.com.br',
+        email: params.customer.email || 'contato@gestaodomus.com.br',
         cpfCnpj: cleanCpf && cleanCpf.length >= 11 && cleanCpf !== '00000000000' ? cleanCpf : '11144477735',
         postalCode: '01310-100',
         addressNumber: '100',

@@ -271,7 +271,7 @@ export function AdminUpgrade() {
         planId: selectedPlanForCheckout.id,
         customer: {
           name: profile?.full_name || organization.name || 'Cliente Domus',
-          email: organization.email || profile?.email || 'financeiro@domus.com.br',
+          email: organization.email || profile?.email || 'financeiro@gestaodomus.com.br',
           cpfCnpj: cleanDoc || '00000000000',
           phone: payerPhone || organization.phone || organization.whatsapp || '11999999999',
         },
@@ -319,7 +319,7 @@ export function AdminUpgrade() {
         planId: selectedPlanForCheckout.id,
         customer: {
           name: profile?.full_name || organization.name || 'Cliente Domus',
-          email: organization.email || profile?.email || 'financeiro@domus.com.br',
+          email: organization.email || profile?.email || 'financeiro@gestaodomus.com.br',
           cpfCnpj: cleanDoc,
           phone: payerPhone || organization.phone || organization.whatsapp || '11999999999',
         },
@@ -446,7 +446,7 @@ export function AdminUpgrade() {
         isRecurring: selectedPlanForCheckout.id !== 'lifetime',
         customer: {
           name: cardHolder,
-          email: organization.email || profile?.email || 'financeiro@domus.com.br',
+          email: organization.email || profile?.email || 'financeiro@gestaodomus.com.br',
           cpfCnpj: cardCpf || organization.cnpj || '00000000000',
           phone: organization.phone || organization.whatsapp || '11999999999',
         },

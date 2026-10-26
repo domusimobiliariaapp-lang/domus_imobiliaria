@@ -121,7 +121,7 @@ export function DevContact() {
                 type="email"
                 value={settings.email}
                 onChange={(e) => setSettings({ ...settings, email: e.target.value })}
-                placeholder="contato@domus.com.br"
+                placeholder="contato@gestaodomus.com.br"
                 className="h-10 text-sm"
               />
               <span className="text-[11px] text-muted-foreground">

@@ -40,7 +40,7 @@ export const DOMUS_IMOB_PLANS: PlanItem[] = [
     features: [
       'Gestão de até 35 contratos de locação ativos',
       'Cobrança automática com chave PIX e boleto bancário',
-      'Subdomínio vitrine próprio (suaempresa.domus.com.br)',
+      'Subdomínio vitrine próprio (suaempresa.gestaodomus.com.br)',
       'Cadastro de imóveis com fotos e fichas técnicas',
       'Gestão cadastral de inquilinos e proprietários',
       'Até 2 usuários da equipe com login próprio',

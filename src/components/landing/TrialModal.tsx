@@ -355,7 +355,7 @@ export function TrialModal({ isOpen, onClose, initialPlan = 'Profissional' }: Tr
         message =
           `Olá! Acabei de reservar a *Licença Vitalícia* para a minha imobiliária *${agencyName || 'minha empresa'}*!\n` +
           `• Forma de Pagamento: *${selectedInstallments}x de R$ ${installmentValue} no Cartão de Crédito*\n` +
-          `• Subdomínio reservado: *${subdomain ? `${subdomain}.domus.com.br` : 'não informado'}*\n` +
+          `• Subdomínio reservado: *${subdomain ? `${subdomain}.gestaodomus.com.br` : 'não informado'}*\n` +
           `• Responsável: *${name}* (${email})\n` +
           `• WhatsApp: *${phone}*\n\n` +
           `Por favor, me envie o link de pagamento no cartão para liberação imediata do sistema!`
@@ -363,7 +363,7 @@ export function TrialModal({ isOpen, onClose, initialPlan = 'Profissional' }: Tr
         message =
           `Olá! Acabei de garantir a *Licença Vitalícia* para a minha imobiliária *${agencyName || 'minha empresa'}*!\n` +
           `• Valor à vista: *R$ ${new Intl.NumberFormat('pt-BR').format(lifetimeSettings.price_cash)} no PIX*\n` +
-          `• Subdomínio reservado: *${subdomain ? `${subdomain}.domus.com.br` : 'não informado'}*\n` +
+          `• Subdomínio reservado: *${subdomain ? `${subdomain}.gestaodomus.com.br` : 'não informado'}*\n` +
           `• Responsável: *${name}* (${email})\n\n` +
           `Gostaria de confirmar o envio do comprovante para liberação imediata!`
       }
@@ -372,7 +372,7 @@ export function TrialModal({ isOpen, onClose, initialPlan = 'Profissional' }: Tr
         `Olá! Quero testar a plataforma por 3 dias para a *${agencyName || 'minha imobiliária'}*.\n` +
         `• Plano: *${plan}*\n` +
         `• Porte: *${portfolioSize}*\n` +
-        `• Subdomínio desejado: *${subdomain ? `${subdomain}.domus.com.br` : 'não definido'}*\n` +
+        `• Subdomínio desejado: *${subdomain ? `${subdomain}.gestaodomus.com.br` : 'não definido'}*\n` +
         `• Responsável: *${name}*`
     }
     window.open(getDevWhatsAppUrl(message), '_blank')
@@ -623,7 +623,7 @@ export function TrialModal({ isOpen, onClose, initialPlan = 'Profissional' }: Tr
                         className="w-full py-1.5 bg-transparent text-xs focus:outline-none font-mono"
                       />
                       <span className="pr-2.5 text-[11px] text-muted-foreground font-mono select-none">
-                        .domus.com.br
+                        .gestaodomus.com.br
                       </span>
                     </div>
                   </div>
@@ -765,7 +765,7 @@ export function TrialModal({ isOpen, onClose, initialPlan = 'Profissional' }: Tr
                 </div>
                 <div className="flex items-center justify-between py-1 border-b border-border/50">
                   <span className="text-muted-foreground">Endereço da Vitrine:</span>
-                  <span className="font-mono text-foreground font-medium">{subdomain}.domus.com.br</span>
+                  <span className="font-mono text-foreground font-medium">{subdomain}.gestaodomus.com.br</span>
                 </div>
                 <div className="flex items-center justify-between py-1">
                   <span className="text-muted-foreground">Status do Plano:</span>
@@ -814,7 +814,7 @@ export function TrialModal({ isOpen, onClose, initialPlan = 'Profissional' }: Tr
                 </h3>
                 <p className="text-xs text-muted-foreground max-w-sm mx-auto">
                   Parabéns, <strong>{name}</strong>! O endereço{' '}
-                  <span className="font-mono font-semibold text-foreground">{subdomain}.domus.com.br</span> foi reservado para a <strong>{agencyName}</strong>.
+                  <span className="font-mono font-semibold text-foreground">{subdomain}.gestaodomus.com.br</span> foi reservado para a <strong>{agencyName}</strong>.
                 </p>
               </div>
 
@@ -884,7 +884,7 @@ export function TrialModal({ isOpen, onClose, initialPlan = 'Profissional' }: Tr
                             </p>
                           )}
                           <p className="text-[11px] text-muted-foreground">
-                            Seu ambiente foi reservado para ativação em <strong>{subdomain}.domus.com.br</strong>.
+                            Seu ambiente foi reservado para ativação em <strong>{subdomain}.gestaodomus.com.br</strong>.
                           </p>
                           {asaasInvoiceUrl && (
                             <div className="pt-1">

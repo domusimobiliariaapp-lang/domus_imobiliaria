@@ -2,7 +2,7 @@
  * Utilitário de resolução de subdomínios e multi-tenancy por URL.
  *
  * Suporta:
- * 1. Produção: imobiliaria.domus.com.br -> slug = 'imobiliaria'
+ * 1. Produção: imobiliaria.gestaodomus.com.br -> slug = 'imobiliaria'
  * 2. Desenvolvimento local: imobiliaria.localhost:5173 -> slug = 'imobiliaria'
  *    (Chrome/Edge/Firefox resolvem *.localhost nativamente para 127.0.0.1)
  * 3. Domínios reservados: www, app, api, dev, admin, preview, staging
@@ -28,14 +28,14 @@ export interface SubdomainInfo {
   isSubdomain: boolean
   /** O slug da organização se presente */
   slug: string | null
-  /** Se é o domínio principal (ex: domus.com.br ou localhost) */
+  /** Se é o domínio principal (ex: gestaodomus.com.br ou localhost) */
   isMainDomain: boolean
 }
 
 /**
  * Extrai o slug do subdomínio a partir do hostname.
  *
- * @param hostname Ex: 'aurora.domus.com.br', 'aurora.localhost', 'domus.com.br', 'localhost'
+ * @param hostname Ex: 'aurora.gestaodomus.com.br', 'aurora.localhost', 'gestaodomus.com.br', 'localhost'
  */
 export function extractSubdomain(hostname: string = window.location.hostname): string | null {
   if (!hostname) return null

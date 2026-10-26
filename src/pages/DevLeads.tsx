@@ -94,7 +94,7 @@ export function DevLeads() {
     const fullPhone = cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`
     const text = encodeURIComponent(
       `Olá ${lead.name}, tudo bem? Sou da equipe do Domus Imobiliária!\n\n` +
-      `Vi seu interesse em testar o Domus por 3 dias para a *${lead.agency_name}* (subdomínio *${lead.subdomain}.domus.com.br*).\n\n` +
+      `Vi seu interesse em testar o Domus por 3 dias para a *${lead.agency_name}* (subdomínio *${lead.subdomain}.gestaodomus.com.br*).\n\n` +
       `Você gostaria que eu libere o seu ambiente agora para você experimentar a emissão de boletos e gestão de imóveis?`
     )
     window.open(`https://wa.me/${fullPhone}?text=${text}`, '_blank')
@@ -347,7 +347,7 @@ export function DevLeads() {
 
                         <td className="py-3.5 px-4 font-mono text-xs">
                           <span className="px-2 py-0.5 rounded bg-muted text-foreground">
-                            {lead.subdomain}.domus.com.br
+                            {lead.subdomain}.gestaodomus.com.br
                           </span>
                         </td>
 
@@ -445,7 +445,7 @@ export function DevLeads() {
             <form onSubmit={handleConvertLead} className="space-y-4 mt-2">
               <div className="p-3 rounded-lg bg-muted/60 text-xs space-y-1">
                 <p><strong>Imobiliária:</strong> {convertingLead.agency_name}</p>
-                <p><strong>Subdomínio:</strong> {orgSlug}.domus.com.br</p>
+                <p><strong>Subdomínio:</strong> {orgSlug}.gestaodomus.com.br</p>
                 <p><strong>Carteira informada:</strong> {convertingLead.portfolio_size} imóveis</p>
               </div>
 

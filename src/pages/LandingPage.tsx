@@ -150,7 +150,7 @@ export function LandingPage() {
             transition={{ duration: 0.45, delay: 0.2 }}
             className="mt-6 text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed"
           >
-            Você emite a cobrança, o inquilino paga por PIX ou boleto, o Domus desconta sua taxa de administração e o dinheiro do proprietário vai com comprovante pronto. Tudo no link da sua imobiliária (<span className="font-mono text-xs font-semibold text-foreground">suaempresa.domus.com.br</span>).
+            Você emite a cobrança, o inquilino paga por PIX ou boleto, o Domus desconta sua taxa de administração e o dinheiro do proprietário vai com comprovante pronto. Tudo no link da sua imobiliária (<span className="font-mono text-xs font-semibold text-foreground">suaempresa.gestaodomus.com.br</span>).
           </motion.p>
 
           {/* Botões do Hero */}
@@ -413,7 +413,7 @@ export function LandingPage() {
                 <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                   <div className="flex items-center gap-2 text-[#AD7B3B] font-mono text-xs font-semibold">
                     <Globe2 className="w-4 h-4" />
-                    <span>suaempresa.domus.com.br/imoveis</span>
+                    <span>suaempresa.gestaodomus.com.br/imoveis</span>
                   </div>
                   <h4 className="text-sm font-semibold text-white mt-2">Catálogo de Imóveis</h4>
                   <p className="text-xs text-muted/70 mt-1">
@@ -424,7 +424,7 @@ export function LandingPage() {
                 <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                   <div className="flex items-center gap-2 text-[#AD7B3B] font-mono text-xs font-semibold">
                     <KeyRound className="w-4 h-4" />
-                    <span>suaempresa.domus.com.br/portal</span>
+                    <span>suaempresa.gestaodomus.com.br/portal</span>
                   </div>
                   <h4 className="text-sm font-semibold text-white mt-2">Área do Cliente sem Senha</h4>
                   <p className="text-xs text-muted/70 mt-1">

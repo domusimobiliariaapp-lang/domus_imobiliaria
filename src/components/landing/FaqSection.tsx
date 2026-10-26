@@ -9,7 +9,7 @@ export function FaqSection() {
     {
       question: 'Como funciona o subdomínio da minha imobiliária?',
       answer:
-        'Você escolhe o nome curto da sua empresa (ex: horizonte). A vitrine pública e a área de clientes ficam disponíveis imediatamente em horizonte.domus.com.br. Você divulga esse link no WhatsApp, redes sociais e anúncios. Se preferir usar um domínio próprio (ex: www.imobiliariahorizonte.com.br), o plano Enterprise permite apontar o DNS diretamente.',
+        'Você escolhe o nome curto da sua empresa (ex: horizonte). A vitrine pública e a área de clientes ficam disponíveis imediatamente em horizonte.gestaodomus.com.br. Você divulga esse link no WhatsApp, redes sociais e anúncios. Se preferir usar um domínio próprio (ex: www.imobiliariahorizonte.com.br), o plano Enterprise permite apontar o DNS diretamente.',
     },
     {
       question: 'Preciso colocar cartão de crédito para fazer o teste de 3 dias?',

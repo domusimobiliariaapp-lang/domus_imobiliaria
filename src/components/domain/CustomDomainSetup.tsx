@@ -290,11 +290,11 @@ export function CustomDomainSetup() {
                 <div className="p-3 rounded-lg bg-background border border-border space-y-1">
                   <span className="text-[11px] text-muted-foreground block">Destino / Valor:</span>
                   <div className="flex items-center justify-between font-mono font-bold text-emerald-600 dark:text-emerald-400 truncate">
-                    <span className="truncate">cname.domus.com.br</span>
+                    <span className="truncate">cname.gestaodomus.com.br</span>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => copyToClipboard('cname.domus.com.br', 'Destino')}
+                      onClick={() => copyToClipboard('cname.gestaodomus.com.br', 'Destino')}
                       className="h-6 w-6 p-0 shrink-0"
                     >
                       {copiedField === 'Destino' ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}

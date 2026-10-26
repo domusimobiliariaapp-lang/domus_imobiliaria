@@ -130,10 +130,10 @@ export function LiveScreenShowcase({ onOpenTrial }: LiveScreenShowcaseProps) {
             <span className="text-emerald-600 dark:text-emerald-400 font-bold">https://</span>
             <span className="text-foreground font-medium">
               {activeTab === 'subdomain'
-                ? 'aurora.domus.com.br/imoveis'
+                ? 'aurora.gestaodomus.com.br/imoveis'
                 : activeTab === 'portal'
-                ? 'aurora.domus.com.br/portal'
-                : 'app.domus.com.br/admin/' + (activeTab === 'dashboard' ? 'dashboard' : activeTab === 'contracts' ? 'contracts' : activeTab === 'crm' ? 'crm' : 'financial')}
+                ? 'aurora.gestaodomus.com.br/portal'
+                : 'app.gestaodomus.com.br/admin/' + (activeTab === 'dashboard' ? 'dashboard' : activeTab === 'contracts' ? 'contracts' : activeTab === 'crm' ? 'crm' : 'financial')}
             </span>
           </div>
 
@@ -968,7 +968,7 @@ export function LiveScreenShowcase({ onOpenTrial }: LiveScreenShowcaseProps) {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-400 font-mono font-medium">
-                      aurora.domus.com.br
+                      aurora.gestaodomus.com.br
                     </span>
                   </div>
                 </div>

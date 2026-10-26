@@ -398,7 +398,7 @@ export function OnboardingChecklist({ totalProperties, totalLeases }: Onboarding
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
                   Sua vitrine pública já está publicada na web em{' '}
-                  <span className="font-mono font-semibold text-foreground">{slug}.domus.com.br</span>.
+                  <span className="font-mono font-semibold text-foreground">{slug}.gestaodomus.com.br</span>.
                   Preparamos um checklist interativo para você começar a operar em poucos minutos:
                 </DialogDescription>
               </div>
