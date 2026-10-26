@@ -43,6 +43,7 @@ const navGroups: NavGroup[] = [
     collapsible: true,
     items: [
       { href: '/admin/properties', label: 'Imóveis' },
+      { href: '/admin/properties?tab=portais', label: 'Portais & Feed XML' },
       { href: '/admin/crm', label: 'CRM & Radar' },
       { href: '/admin/contracts', label: 'Locações' },
       { href: '/admin/sales', label: 'Vendas' },

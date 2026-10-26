@@ -1,6 +1,7 @@
 import { CRUDPage } from '@/components/CRUDPage'
-import { Home, AlertCircle, Share2, Edit2, Trash2, Printer, Globe, FileSpreadsheet } from 'lucide-react'
+import { Home, AlertCircle, Share2, Edit2, Trash2, Printer, Globe, FileSpreadsheet, Download } from 'lucide-react'
 import { useProperties, useCreateEntity, useUpdateEntity, useDeleteEntity } from '@/hooks/useSupabase'
+import { useAuth } from '@/hooks/useAuth'
 import type { Property } from '@/types'
 import { Button } from '@/components/ui/button'
 import { StatusBadge } from '@/components/ui/status-badge'
@@ -10,9 +11,11 @@ import { useToast } from '@/components/ui/toast'
 import { PropertyModal } from '@/components/PropertyModal'
 import { PropertyImportModal } from '@/components/PropertyImportModal'
 import { PortalIntegrationsTab } from '@/components/PortalIntegrationsTab'
+import { SharePropertyModal } from '@/components/properties/SharePropertyModal'
+import { exportPropertiesCsv } from '@/lib/exportCsv'
 import { PropertyCard3D } from '@/components/ui/PropertyCard3D'
 import * as React from 'react'
-import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { supabase } from '@/integrations/supabase/client'
 
 type PropertyType = Property['type']
@@ -51,13 +54,31 @@ const FILTER_PURPOSE = [
 ]
 
 export function PropertiesAdmin() {
+  const { organization } = useAuth()
   const { data: properties = [], error, refetch } = useProperties()
   const { create } = useCreateEntity('properties')
   const { update } = useUpdateEntity('properties')
-  const { remove } = useDeleteEntity('properties')
-  const [tab, setTab] = useState('lista')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const tabFromUrl = searchParams.get('tab') || 'lista'
+  const [tab, setTab] = React.useState(tabFromUrl)
+
+  React.useEffect(() => {
+    const current = searchParams.get('tab') || 'lista'
+    setTab(current)
+  }, [searchParams])
+
+  const handleTabChange = (newTab: string) => {
+    setTab(newTab)
+    if (newTab === 'lista') {
+      searchParams.delete('tab')
+      setSearchParams(searchParams, { replace: true })
+    } else {
+      setSearchParams({ tab: newTab }, { replace: true })
+    }
+  }
   const [modalOpen, setModalOpen] = useState(false)
   const [importModalOpen, setImportModalOpen] = useState(false)
+  const [sharingProperty, setSharingProperty] = useState<Property | null>(null)
   const [editingItem, setEditingItem] = useState<Property | null>(null)
   const [saving, setSaving] = useState(false)
   const [listVersion, setListVersion] = useState(0)
@@ -157,14 +178,8 @@ export function PropertiesAdmin() {
     setModalOpen(true)
   }
 
-  const handleShare = async (property: Property) => {
-    const shareUrl = `${window.location.origin}/imovel/${property.id}`
-    try {
-      await navigator.clipboard.writeText(shareUrl)
-      addToast('Link copiado com sucesso!', 'success')
-    } catch {
-      window.open(shareUrl, '_blank')
-    }
+  const handleShare = (property: Property) => {
+    setSharingProperty(property)
   }
 
   const changeViewMode = (mode: 'list' | 'cards') => {
@@ -208,7 +223,7 @@ export function PropertiesAdmin() {
     <div className="space-y-6">
       {/* Header com Tabs e Ação de Importar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <Tabs value={tab} onValueChange={setTab}>
+        <Tabs value={tab} onValueChange={handleTabChange}>
           <TabsList>
             <TabsTrigger value="lista">Lista</TabsTrigger>
             <TabsTrigger value="portais" className="gap-2">
@@ -220,15 +235,28 @@ export function PropertiesAdmin() {
         </Tabs>
 
         {tab === 'lista' && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setImportModalOpen(true)}
-            className="text-xs h-9 gap-1.5 cursor-pointer shadow-xs border-[#AD7B3B]/40 text-[#AD7B3B] hover:bg-[#AD7B3B]/10 self-start sm:self-auto"
-          >
-            <FileSpreadsheet className="w-4 h-4" />
-            <span>Importar Carteira (CSV)</span>
-          </Button>
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => exportPropertiesCsv(properties, organization?.slug || 'domus')}
+              className="text-xs h-9 gap-1.5 cursor-pointer shadow-xs border-emerald-600/40 text-emerald-700 hover:bg-emerald-50"
+              title="Exportar planilha de imóveis em formato Excel/CSV"
+            >
+              <Download className="w-4 h-4" />
+              <span>Exportar Excel</span>
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setImportModalOpen(true)}
+              className="text-xs h-9 gap-1.5 cursor-pointer shadow-xs border-[#AD7B3B]/40 text-[#AD7B3B] hover:bg-[#AD7B3B]/10"
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+              <span>Importar CSV</span>
+            </Button>
+          </div>
         )}
       </div>
 
@@ -294,6 +322,17 @@ export function PropertiesAdmin() {
           setListVersion((v) => v + 1)
         }}
       />
+
+      {/* Share Property Modal */}
+      {sharingProperty && (
+        <SharePropertyModal
+          open={!!sharingProperty}
+          onOpenChange={(open) => !open && setSharingProperty(null)}
+          property={sharingProperty}
+          slug={organization?.slug || 'domus'}
+          orgName={organization?.name}
+        />
+      )}
     </div>
   )
 }

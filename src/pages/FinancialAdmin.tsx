@@ -22,6 +22,7 @@ import { getWhatsAppBillingUrl, getWhatsAppRepasseUrl } from '@/lib/whatsappBill
 import { LancamentosTab } from '@/components/LancamentosTab'
 import { FluxoCaixaTab } from '@/components/FluxoCaixaTab'
 import { DreGerencialTab } from '@/components/DreGerencialTab'
+import { ExtratoProprietarioModal } from '@/components/financial/ExtratoProprietarioModal'
 
 type PaymentStatus = Payment['status']
 
@@ -44,9 +45,9 @@ export function FinancialAdmin() {
   const { data: leases } = useLeases()
   const { data: sales } = useSales()
   const { data: profiles } = useProfiles()
-  const { update } = useUpdateEntity('payments')
-
   const [activeTab, setActiveTab] = React.useState('lancamentos')
+  const [selectedRepasse, setSelectedRepasse] = React.useState<RepasseLocacao | null>(null)
+  const [extratoModalOpen, setExtratoModalOpen] = React.useState(false)
 
   // Calculate stats for payments tab
   const stats = React.useMemo(() => {
@@ -634,6 +635,7 @@ export function FinancialAdmin() {
                         <th className="text-right py-2 px-3 font-medium text-muted-foreground">Despesa</th>
                         <th className="text-right py-2 px-3 font-medium text-muted-foreground">Receita</th>
                         <th className="text-center py-2 px-3 font-medium text-muted-foreground">Repasse pago?</th>
+                        <th className="text-right py-2 px-3 font-medium text-muted-foreground">Extrato</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -652,6 +654,21 @@ export function FinancialAdmin() {
                             ) : (
                               <span className="text-xs text-muted-foreground">Não</span>
                             )}
+                          </td>
+                          <td className="py-2 px-3 text-right">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedRepasse(r)
+                                setExtratoModalOpen(true)
+                              }}
+                              className="h-7 text-xs gap-1 border-[#AD7B3B]/40 hover:bg-[#AD7B3B]/10 text-[#AD7B3B]"
+                              title="Gerar Extrato / Prestação de Contas em PDF para o Proprietário"
+                            >
+                              <FileText className="w-3.5 h-3.5" />
+                              <span>Extrato PDF</span>
+                            </Button>
                           </td>
                         </tr>
                       ))}
@@ -757,6 +774,20 @@ export function FinancialAdmin() {
           <DreGerencialTab />
         </TabsContent>
       </Tabs>
+
+      {/* MODAL DE PRESTAÇÃO DE CONTAS / EXTRATO DO PROPRIETÁRIO */}
+      {selectedRepasse && (
+        <ExtratoProprietarioModal
+          open={extratoModalOpen}
+          onOpenChange={setExtratoModalOpen}
+          repasse={selectedRepasse}
+          organization={organization}
+          property={(properties || []).find((p) => p.id === (leases || []).find((l) => l.id === selectedRepasse.termos[0]?.lease_id)?.property_id)}
+          landlord={(profiles || []).find((p) => p.id === (leases || []).find((l) => l.id === selectedRepasse.termos[0]?.lease_id)?.landlord_id)}
+          tenant={(profiles || []).find((p) => p.id === (leases || []).find((l) => l.id === selectedRepasse.termos[0]?.lease_id)?.tenant_id)}
+          periodoStr={`${new Date(periodoRepasse.inicio).toLocaleDateString('pt-BR')} até ${new Date(periodoRepasse.fim).toLocaleDateString('pt-BR')}`}
+        />
+      )}
     </div>
   )
 }

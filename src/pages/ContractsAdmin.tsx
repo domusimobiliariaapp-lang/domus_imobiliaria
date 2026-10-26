@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { FileText, AlertCircle, ScrollText, Printer, Send, CheckCircle2, FileSignature, Calculator } from 'lucide-react'
+import { FileText, AlertCircle, ScrollText, Printer, Send, CheckCircle2, FileSignature, Calculator, Download } from 'lucide-react'
 import { useLeases, useCreateEntity, useUpdateEntity, useDeleteEntity, useProperties, useProfiles } from '@/hooks/useSupabase'
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/integrations/supabase/client'
@@ -13,6 +13,7 @@ import { FeeTermsEditor } from '@/components/FeeTermsEditor'
 import { DigitalSignatureModal } from '@/components/DigitalSignatureModal'
 import { TenantCreditAndGuaranteeModal } from '@/components/TenantCreditAndGuaranteeModal'
 import { formatCurrencyInput, parseCurrencyInput, onlyNumbers } from '@/lib/inputMasks'
+import { exportContractsCsv } from '@/lib/exportCsv'
 import type { Lease, Property } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -568,6 +569,18 @@ export function ContractsAdmin() {
       title="Contratos"
       subtitle="Cadastre e gerencie os contratos de locação"
       columns={columns}
+      extraHeaderActions={
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => exportContractsCsv(leases || [], organization?.slug || 'domus')}
+          className="h-9 gap-1.5 cursor-pointer shadow-xs border-emerald-600/40 text-emerald-700 hover:bg-emerald-50 text-xs"
+          title="Exportar contratos para planilha Excel/CSV"
+        >
+          <Download className="w-4 h-4" />
+          <span>Exportar Excel</span>
+        </Button>
+      }
       fetchData={async () => {
         const { data: dbLeases, error: errLeases } = await supabase
           .from('leases')

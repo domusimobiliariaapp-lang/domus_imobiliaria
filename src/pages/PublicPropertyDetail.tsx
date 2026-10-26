@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { Home, MapPin, Bed, Bath, Car, ArrowLeft, Calendar, Square, FileImage, Share2, Check, ShieldCheck, MessageCircle } from 'lucide-react'
+import { Home, MapPin, Bed, Bath, Car, ArrowLeft, Calendar, Square, FileImage, Share2, Check, ShieldCheck, MessageCircle, Copy } from 'lucide-react'
 import { usePublicProperty } from '@/hooks/useSupabase'
 import { useSEO } from '@/hooks/useSEO'
 import { PropertyGallery } from '@/components/PropertyGallery'
+import { SharePropertyModal } from '@/components/properties/SharePropertyModal'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import type { PropertyType, PropertyStatus } from '@/types'
@@ -46,6 +47,7 @@ export function PublicPropertyDetail() {
   const { data: property, loading, error } = usePublicProperty(slug ?? null, id ?? null)
   const [contact, setContact] = useState<{ whatsapp: string; email: string }>({ whatsapp: '', email: '' })
   const [copiedLink, setCopiedLink] = useState(false)
+  const [shareModalOpen, setShareModalOpen] = useState(false)
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -255,12 +257,12 @@ export function PublicPropertyDetail() {
             <Button
               variant="outline"
               size="sm"
-              onClick={shareOnWhatsApp}
-              className="bg-white/80 border-border/60 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 text-xs gap-1.5 shadow-2xs cursor-pointer"
-              title="Compartilhar direto no WhatsApp"
+              onClick={() => setShareModalOpen(true)}
+              className="bg-white/80 border-border/60 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 text-xs gap-1.5 shadow-2xs cursor-pointer font-medium"
+              title="Compartilhar ficha completa no WhatsApp"
             >
-              <MessageCircle className="h-3.5 w-3.5 text-emerald-600" />
-              <span>WhatsApp</span>
+              <Share2 className="h-3.5 w-3.5 text-emerald-600" />
+              <span>Compartilhar no WhatsApp</span>
             </Button>
             <Button
               variant="outline"
@@ -268,7 +270,7 @@ export function PublicPropertyDetail() {
               onClick={handleShare}
               className="bg-white/80 border-border/60 hover:bg-white text-xs gap-1.5 shadow-2xs cursor-pointer"
             >
-              {copiedLink ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Share2 className="h-3.5 w-3.5 text-[#AD7B3B]" />}
+              {copiedLink ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5 text-[#AD7B3B]" />}
               {copiedLink ? 'Link copiado!' : 'Copiar link'}
             </Button>
           </div>
@@ -514,6 +516,16 @@ export function PublicPropertyDetail() {
                     </svg>
                     Enviar E-mail
                   </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full border-emerald-300 bg-emerald-50/50 hover:bg-emerald-100 text-emerald-800 font-medium"
+                    size="lg"
+                    onClick={() => setShareModalOpen(true)}
+                  >
+                    <Share2 className="h-4 w-4 mr-2 text-emerald-600" />
+                    Compartilhar no WhatsApp
+                  </Button>
                 </div>
 
                 <div className="mt-4 pt-4 border-t border-border/40 text-xs text-muted-foreground text-center">
@@ -541,6 +553,15 @@ export function PublicPropertyDetail() {
             <a className="mt-3 text-sm font-medium text-[#AD7B3B] underline" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`} target="_blank" rel="noreferrer">Pesquisar o endereço no Google Maps</a>
           </div>}
         </section>
+
+        {slug && property && (
+          <SharePropertyModal
+            open={shareModalOpen}
+            onOpenChange={setShareModalOpen}
+            property={property}
+            slug={slug}
+          />
+        )}
       </main>
     </div>
   )

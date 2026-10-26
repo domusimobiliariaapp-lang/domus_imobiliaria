@@ -4,8 +4,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { User, AlertCircle, Loader2 } from 'lucide-react'
+import { User, AlertCircle, Loader2, Download } from 'lucide-react'
 import { useProfiles } from '@/hooks/useSupabase'
+import { useAuth } from '@/hooks/useAuth'
 import type { Client } from '@/types'
 import { Button } from '@/components/ui/button'
 import { StatusBadge } from '@/components/ui/status-badge'
@@ -13,6 +14,7 @@ import { useToast } from '@/components/ui/toast'
 import { formatCpfCnpj, formatBrazilianPhone, toBrazilianE164, onlyDigits, formatCep } from '@/lib/inputMasks'
 import { lookupCep } from '@/lib/cepLookup'
 import { createClient, updateClient } from '@/lib/clientCreate'
+import { exportClientsCsv } from '@/lib/exportCsv'
 import { supabase } from '@/integrations/supabase/client'
 
 type TipoRelacao = NonNullable<Client['tipo_relacao']>
@@ -71,8 +73,10 @@ export function ClientsAdmin() {
    * O filtro por role é o que separa cliente de equipe: a mesma tabela guarda os
    * dois, e a lista de clientes sem isso mostraria os próprios corretores.
    */
+  const { organization } = useAuth()
   const { error, refetch } = useProfiles()
   const { addToast } = useToast()
+  const [clientsList, setClientsList] = React.useState<Client[]>([])
 
   // O endereço em partes vive dentro do formData, que o CRUDPage já recria a
   // cada tecla. Um estado separado aqui dessincronizaria os dois.
@@ -443,6 +447,18 @@ export function ClientsAdmin() {
       title="Clientes"
       subtitle="Gerencie os clientes da imobiliária"
       columns={columns}
+      extraHeaderActions={
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => exportClientsCsv(clientsList, organization?.slug || 'domus')}
+          className="h-9 gap-1.5 cursor-pointer shadow-xs border-emerald-600/40 text-emerald-700 hover:bg-emerald-50 text-xs"
+          title="Exportar clientes para planilha Excel/CSV"
+        >
+          <Download className="w-4 h-4" />
+          <span>Exportar Excel</span>
+        </Button>
+      }
       fetchData={async () => {
         // O refetch precisa devolver os dados, não só disparar.
         //
@@ -457,7 +473,9 @@ export function ClientsAdmin() {
           .select('*')
           .order('created_at', { ascending: false })
         if (error) throw new Error(error.message)
-        return ((data || []) as Client[]).filter((p) => p.role === 'cliente')
+        const list = ((data || []) as Client[]).filter((p) => p.role === 'cliente')
+        setClientsList(list)
+        return list
       }}
       createItem={handleCreate}
       updateItem={handleUpdate}

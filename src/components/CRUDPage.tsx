@@ -70,6 +70,7 @@ export interface CRUDPageProps<T> {
     onValueChange: (value: string) => void
     items: { value: string; label: string }[]
   }
+  extraHeaderActions?: React.ReactNode
 }
 
 export function CRUDPage<T extends Record<string, any>>({
@@ -97,6 +98,7 @@ export function CRUDPage<T extends Record<string, any>>({
   tabs,
   onCreate,
   persistState = true,
+  extraHeaderActions,
 }: CRUDPageProps<T>) {
   // Use localStorage to persist modal state across page refreshes
   const STORAGE_KEY = `crudpage_${title.toLowerCase().replace(/\s+/g, '_')}_state`
@@ -302,6 +304,7 @@ export function CRUDPage<T extends Record<string, any>>({
             <button type="button" onClick={() => changeViewMode('list')} aria-label="Exibir lista" aria-pressed={currentViewMode === 'list'} className={`flex items-center gap-1.5 rounded px-2.5 py-1.5 text-sm ${currentViewMode === 'list' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}><List className="h-4 w-4" /><span className="hidden sm:inline">Lista</span></button>
             <button type="button" onClick={() => changeViewMode('cards')} aria-label="Exibir cards" aria-pressed={currentViewMode === 'cards'} className={`flex items-center gap-1.5 rounded px-2.5 py-1.5 text-sm ${currentViewMode === 'cards' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}><LayoutGrid className="h-4 w-4" /><span className="hidden sm:inline">Cards</span></button>
           </div>}
+          {extraHeaderActions}
           <Button onClick={handleOpenCreate} className="bg-[#AD7B3B] hover:bg-[#AD7B3B]/90 text-white">
             <Plus className="h-4 w-4 mr-2" />
             Novo

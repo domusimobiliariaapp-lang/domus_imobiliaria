@@ -17,6 +17,7 @@ import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { NumberTicker } from '@/components/ui/NumberTicker'
 import { OnboardingChecklist } from '@/components/dashboard/OnboardingChecklist'
+import { SmartAlertsCard } from '@/components/dashboard/SmartAlertsCard'
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('pt-BR', {
@@ -293,6 +294,12 @@ export function DashboardAdmin() {
       <OnboardingChecklist
         totalProperties={stats?.total_properties || 0}
         totalLeases={stats?.active_leases || 0}
+      />
+
+      {/* Alertas Inteligentes Prioritários */}
+      <SmartAlertsCard
+        leases={leases || null}
+        payments={payments || null}
       />
 
       {/* Stats Row com NumberTicker vivo */}
