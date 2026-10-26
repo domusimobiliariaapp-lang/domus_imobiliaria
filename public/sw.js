@@ -84,11 +84,30 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Assets estáticos (JS, CSS, imagens, fontes): Cache-First com revalidação
+  // Assets de código (.js, .css, /assets/): Network-First para garantir que novas versões nunca fiquem presas em cache antigo
+  if (url.pathname.endsWith('.js') || url.pathname.endsWith('.css') || url.pathname.startsWith('/assets/')) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          const ct = response.headers.get('content-type') || '';
+          // Se o servidor respondeu com text/html para um .js (ex: 404 reescrito para index.html), NÃO salva no cache
+          if (response.status === 200 && !ct.includes('text/html')) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          }
+          return response;
+        })
+        .catch(async () => {
+          const cached = await caches.match(request);
+          if (cached) return cached;
+          return new Response('Asset indisponível offline', { status: 503, statusText: 'Offline' });
+        })
+    );
+    return;
+  }
+
+  // Mídia e Fontes (.woff2, .png, .svg, .webp): Cache-First com fallback para rede
   if (
-    url.pathname.startsWith('/assets/') ||
-    url.pathname.endsWith('.js') ||
-    url.pathname.endsWith('.css') ||
     url.pathname.endsWith('.woff2') ||
     url.pathname.endsWith('.png') ||
     url.pathname.endsWith('.svg') ||
@@ -96,15 +115,16 @@ self.addEventListener('fetch', (event) => {
   ) {
     event.respondWith(
       caches.match(request).then((cachedResponse) => {
-        const fetchPromise = fetch(request).then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            const responseClone = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
-          }
-          return networkResponse;
-        }).catch(() => null);
-
-        return cachedResponse || fetchPromise;
+        return (
+          cachedResponse ||
+          fetch(request).then((response) => {
+            if (response && response.status === 200) {
+              const clone = response.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+            }
+            return response;
+          })
+        );
       })
     );
   }

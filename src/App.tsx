@@ -7,47 +7,60 @@ import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { AdminLayout } from '@/components/layout/AdminLayout'
 import { PortalLayout } from '@/components/layout/PortalLayout'
 
-// Code-splitting via React.lazy() para isolar chunks (Admin, Dev, Portal e Vitrine Pública)
-const LoginAdmin = lazy(() => import('@/pages/LoginAdmin').then(m => ({ default: m.LoginAdmin })))
-const LoginPortal = lazy(() => import('@/pages/LoginPortal').then(m => ({ default: m.LoginPortal })))
-const DashboardAdmin = lazy(() => import('@/pages/DashboardAdmin').then(m => ({ default: m.DashboardAdmin })))
-const ClientsAdmin = lazy(() => import('@/pages/ClientsAdmin').then(m => ({ default: m.ClientsAdmin })))
-const RenewalsAdmin = lazy(() => import('@/pages/RenewalsAdmin').then(m => ({ default: m.RenewalsAdmin })))
-const PropertiesAdmin = lazy(() => import('@/pages/PropertiesAdmin').then(m => ({ default: m.PropertiesAdmin })))
-const CrmAdmin = lazy(() => import('@/pages/CrmAdmin').then(m => ({ default: m.CrmAdmin })))
-const InspectionsAdmin = lazy(() => import('@/pages/InspectionsAdmin').then(m => ({ default: m.InspectionsAdmin })))
-const SalesAdmin = lazy(() => import('@/pages/SalesAdmin').then(m => ({ default: m.SalesAdmin })))
-const ContractsAdmin = lazy(() => import('@/pages/ContractsAdmin').then(m => ({ default: m.ContractsAdmin })))
-const FinancialAdmin = lazy(() => import('@/pages/FinancialAdmin').then(m => ({ default: m.FinancialAdmin })))
-const LegalAdmin = lazy(() => import('@/pages/LegalAdmin').then(m => ({ default: m.LegalAdmin })))
-const AdministrativeAdmin = lazy(() => import('@/pages/AdministrativeAdmin').then(m => ({ default: m.AdministrativeAdmin })))
-const AdminSupport = lazy(() => import('@/pages/AdminSupport').then(m => ({ default: m.AdminSupport })))
-const AdminTeam = lazy(() => import('@/pages/AdminTeam').then(m => ({ default: m.AdminTeam })))
-const AdminUpgrade = lazy(() => import('@/pages/AdminUpgrade').then(m => ({ default: m.AdminUpgrade })))
+// Páginas essenciais importadas diretamente para imunizar contra falhas de carregamento dinâmico
+import { LandingPage } from '@/pages/LandingPage'
+import { LoginAdmin } from '@/pages/LoginAdmin'
+import { LoginPortal } from '@/pages/LoginPortal'
+import { DashboardAdmin } from '@/pages/DashboardAdmin'
+import { PropertiesAdmin } from '@/pages/PropertiesAdmin'
+import { ContractsAdmin } from '@/pages/ContractsAdmin'
+import { SalesAdmin } from '@/pages/SalesAdmin'
+import { ClientsAdmin } from '@/pages/ClientsAdmin'
+
+// Helper com auto-recarregamento: caso uma versão nova do app tenha sido publicada e o browser tente baixar um chunk renomeado, recarrega a página automaticamente
+function lazyRetry<T extends React.ComponentType<any>>(factory: () => Promise<{ default: T }>) {
+  return lazy(async () => {
+    try {
+      return await factory()
+    } catch {
+      window.location.reload()
+      return new Promise<{ default: T }>(() => {})
+    }
+  })
+}
+
+const RenewalsAdmin = lazyRetry(() => import('@/pages/RenewalsAdmin').then(m => ({ default: m.RenewalsAdmin })))
+const CrmAdmin = lazyRetry(() => import('@/pages/CrmAdmin').then(m => ({ default: m.CrmAdmin })))
+const InspectionsAdmin = lazyRetry(() => import('@/pages/InspectionsAdmin').then(m => ({ default: m.InspectionsAdmin })))
+const FinancialAdmin = lazyRetry(() => import('@/pages/FinancialAdmin').then(m => ({ default: m.FinancialAdmin })))
+const LegalAdmin = lazyRetry(() => import('@/pages/LegalAdmin').then(m => ({ default: m.LegalAdmin })))
+const AdministrativeAdmin = lazyRetry(() => import('@/pages/AdministrativeAdmin').then(m => ({ default: m.AdministrativeAdmin })))
+const AdminSupport = lazyRetry(() => import('@/pages/AdminSupport').then(m => ({ default: m.AdminSupport })))
+const AdminTeam = lazyRetry(() => import('@/pages/AdminTeam').then(m => ({ default: m.AdminTeam })))
+const AdminUpgrade = lazyRetry(() => import('@/pages/AdminUpgrade').then(m => ({ default: m.AdminUpgrade })))
 import { PlanFeatureGate } from '@/components/auth/PlanFeatureGate'
-const PortalDashboard = lazy(() => import('@/pages/portal/PortalDashboard').then(m => ({ default: m.PortalDashboard })))
-const PortalProperties = lazy(() => import('@/pages/portal/PortalProperties').then(m => ({ default: m.PortalProperties })))
-const PortalLeases = lazy(() => import('@/pages/portal/PortalLeases').then(m => ({ default: m.PortalLeases })))
-const PortalPayments = lazy(() => import('@/pages/portal/PortalPayments').then(m => ({ default: m.PortalPayments })))
-const PortalDocuments = lazy(() => import('@/pages/portal/PortalDocuments').then(m => ({ default: m.PortalDocuments })))
-const PortalRepasses = lazy(() => import('@/pages/portal/PortalRepasses').then(m => ({ default: m.PortalRepasses })))
-const PublicPropertyDetail = lazy(() => import('@/pages/PublicPropertyDetail').then(m => ({ default: m.PublicPropertyDetail })))
-const PublicProperties = lazy(() => import('@/pages/PublicProperties').then(m => ({ default: m.PublicProperties })))
-const DevOrganizations = lazy(() => import('@/pages/DevOrganizations').then(m => ({ default: m.DevOrganizations })))
-const DevLayout = lazy(() => import('@/pages/DevLayout').then(m => ({ default: m.DevLayout })))
-const DevUsers = lazy(() => import('@/pages/DevUsers').then(m => ({ default: m.DevUsers })))
-const DevTickets = lazy(() => import('@/pages/DevTickets').then(m => ({ default: m.DevTickets })))
-const DevErrors = lazy(() => import('@/pages/DevErrors').then(m => ({ default: m.DevErrors })))
-const DevAudit = lazy(() => import('@/pages/DevAudit').then(m => ({ default: m.DevAudit })))
-const DevPlans = lazy(() => import('@/pages/DevPlans').then(m => ({ default: m.DevPlans })))
-const DevLeads = lazy(() => import('@/pages/DevLeads').then(m => ({ default: m.DevLeads })))
-const DevAsaas = lazy(() => import('@/pages/DevAsaas').then(m => ({ default: m.DevAsaas })))
-const DevContact = lazy(() => import('@/pages/DevContact').then(m => ({ default: m.DevContact })))
-const ChangePassword = lazy(() => import('@/pages/ChangePassword').then(m => ({ default: m.ChangePassword })))
-const LandingPage = lazy(() => import('@/pages/LandingPage').then(m => ({ default: m.LandingPage })))
-const TermsPage = lazy(() => import('@/pages/TermsPage').then(m => ({ default: m.TermsPage })))
-const PrivacyPage = lazy(() => import('@/pages/PrivacyPage').then(m => ({ default: m.PrivacyPage })))
-const PublicPortalXml = lazy(() => import('@/pages/PublicPortalXml').then(m => ({ default: m.PublicPortalXml })))
+const PortalDashboard = lazyRetry(() => import('@/pages/portal/PortalDashboard').then(m => ({ default: m.PortalDashboard })))
+const PortalProperties = lazyRetry(() => import('@/pages/portal/PortalProperties').then(m => ({ default: m.PortalProperties })))
+const PortalLeases = lazyRetry(() => import('@/pages/portal/PortalLeases').then(m => ({ default: m.PortalLeases })))
+const PortalPayments = lazyRetry(() => import('@/pages/portal/PortalPayments').then(m => ({ default: m.PortalPayments })))
+const PortalDocuments = lazyRetry(() => import('@/pages/portal/PortalDocuments').then(m => ({ default: m.PortalDocuments })))
+const PortalRepasses = lazyRetry(() => import('@/pages/portal/PortalRepasses').then(m => ({ default: m.PortalRepasses })))
+const PublicPropertyDetail = lazyRetry(() => import('@/pages/PublicPropertyDetail').then(m => ({ default: m.PublicPropertyDetail })))
+const PublicProperties = lazyRetry(() => import('@/pages/PublicProperties').then(m => ({ default: m.PublicProperties })))
+const DevOrganizations = lazyRetry(() => import('@/pages/DevOrganizations').then(m => ({ default: m.DevOrganizations })))
+const DevLayout = lazyRetry(() => import('@/pages/DevLayout').then(m => ({ default: m.DevLayout })))
+const DevUsers = lazyRetry(() => import('@/pages/DevUsers').then(m => ({ default: m.DevUsers })))
+const DevTickets = lazyRetry(() => import('@/pages/DevTickets').then(m => ({ default: m.DevTickets })))
+const DevErrors = lazyRetry(() => import('@/pages/DevErrors').then(m => ({ default: m.DevErrors })))
+const DevAudit = lazyRetry(() => import('@/pages/DevAudit').then(m => ({ default: m.DevAudit })))
+const DevPlans = lazyRetry(() => import('@/pages/DevPlans').then(m => ({ default: m.DevPlans })))
+const DevLeads = lazyRetry(() => import('@/pages/DevLeads').then(m => ({ default: m.DevLeads })))
+const DevAsaas = lazyRetry(() => import('@/pages/DevAsaas').then(m => ({ default: m.DevAsaas })))
+const DevContact = lazyRetry(() => import('@/pages/DevContact').then(m => ({ default: m.DevContact })))
+const ChangePassword = lazyRetry(() => import('@/pages/ChangePassword').then(m => ({ default: m.ChangePassword })))
+const TermsPage = lazyRetry(() => import('@/pages/TermsPage').then(m => ({ default: m.TermsPage })))
+const PrivacyPage = lazyRetry(() => import('@/pages/PrivacyPage').then(m => ({ default: m.PrivacyPage })))
+const PublicPortalXml = lazyRetry(() => import('@/pages/PublicPortalXml').then(m => ({ default: m.PublicPortalXml })))
 import { getSubdomainInfo } from '@/lib/subdomain'
 
 function PageLoading() {
