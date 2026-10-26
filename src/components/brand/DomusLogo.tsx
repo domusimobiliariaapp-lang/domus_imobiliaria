@@ -38,43 +38,49 @@ export function DomusLogo({
         <div className="absolute inset-0 rounded-[inherit] bg-gradient-to-tr from-[#AD7B3B]/20 via-transparent to-white/10 pointer-events-none" />
 
         <svg
-          viewBox="0 0 32 32"
+          viewBox="0 0 40 40"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="w-3/5 h-3/5 relative z-10 transition-transform duration-300 group-hover:scale-105"
+          className="w-4/5 h-4/5 relative z-10 transition-transform duration-300 group-hover:scale-105"
         >
-          {/* Definição de gradientes metálicos em ouro líquido */}
           <defs>
-            <linearGradient id="domusGold" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#F5D78F" />
-              <stop offset="45%" stopColor="#D4A359" />
+            <linearGradient id="logoGold" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#FCE5B0" />
+              <stop offset="50%" stopColor="#D4A359" />
               <stop offset="100%" stopColor="#966427" />
             </linearGradient>
-            <linearGradient id="domusPillar" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#FFF2D6" />
-              <stop offset="50%" stopColor="#AD7B3B" />
-              <stop offset="100%" stopColor="#5E3E14" />
+            <linearGradient id="logoPillar" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#FCE5B0" />
+              <stop offset="100%" stopColor="#AD7B3B" />
             </linearGradient>
-            <filter id="goldGlow" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="1" stdDeviation="1" floodColor="#AD7B3B" floodOpacity="0.4" />
-            </filter>
           </defs>
 
-          {/* Prisma do Telhado / Pórtico Arquitetônico */}
-          <path
-            d="M16 4.5L5 13.5V17L16 8L27 17V13.5L16 4.5Z"
-            fill="url(#domusGold)"
-            filter="url(#goldGlow)"
+          {/* Telhado / Frontão — traço grosso visível */}
+          <polyline
+            points="20,6 4,19 4,23 20,10 36,23 36,19"
+            fill="url(#logoGold)"
+            stroke="none"
           />
 
-          {/* Arco / Abóbada Central do "Domus" com perspectiva moderna */}
+          {/* Pilar esquerdo */}
+          <rect x="8" y="21" width="7" height="13" rx="1.5" fill="url(#logoPillar)" />
+
+          {/* Pilar direito */}
+          <rect x="25" y="21" width="7" height="13" rx="1.5" fill="url(#logoPillar)" />
+
+          {/* Arco central preenchido */}
           <path
-            d="M11 15V26.5H14.5V18.5C14.5 17.6716 15.1716 17 16 17C16.8284 17 17.5 17.6716 17.5 18.5V26.5H21V15C21 12.2386 18.7614 10 16 10C13.2386 10 11 12.2386 11 15Z"
-            fill="url(#domusPillar)"
+            d="M15 34 V26 Q15 19 20 19 Q25 19 25 26 V34 Z"
+            fill="url(#logoPillar)"
+          />
+          {/* Abertura do arco (buraco) */}
+          <path
+            d="M17.5 34 V27 Q17.5 22 20 22 Q22.5 22 22.5 27 V34 Z"
+            fill="#0A171C"
           />
 
-          {/* Base estrutural com ponto de ancoragem */}
-          <circle cx="16" cy="22.5" r="1.3" fill="#FFF2D6" />
+          {/* Ponto de luz no vértice do arco */}
+          <circle cx="20" cy="22.5" r="2" fill="#FCE5B0" opacity="0.9" />
         </svg>
       </div>
 
