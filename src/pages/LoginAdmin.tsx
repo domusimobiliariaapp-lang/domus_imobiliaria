@@ -127,15 +127,15 @@ export function LoginAdmin() {
             </motion.div>
           )}
 
-          {/* Formulário Neumórfico Real */}
+          {/* Formulário com Alto Contraste e Acessibilidade Total */}
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Input E-mail */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-[#17323D] dark:text-[#EEECE5] block pl-1">
-                E-mail
+              <label htmlFor="email" className="text-xs font-bold text-[#17323D] dark:text-[#EEECE5] block pl-0.5">
+                E-mail Profissional
               </label>
-              <div className="w-full h-12 rounded-2xl neumorph-inset flex items-center px-4 transition-all focus-within:ring-2 focus-within:ring-[#AD7B3B]/40">
-                <Mail className="w-4 h-4 text-[#6B6375] mr-3 shrink-0" />
+              <div className="w-full h-12 rounded-xl bg-[#FAF9F5] dark:bg-[#0E1E24] border-2 border-[#D4D0C8] dark:border-[#2D4A51] flex items-center px-3.5 transition-all focus-within:border-[#AD7B3B] focus-within:bg-white dark:focus-within:bg-[#0E1E24] focus-within:ring-2 focus-within:ring-[#AD7B3B]/30 shadow-xs">
+                <Mail className="w-4 h-4 text-[#AD7B3B] mr-2.5 shrink-0" />
                 <input
                   id="email"
                   type="email"
@@ -145,18 +145,18 @@ export function LoginAdmin() {
                   placeholder="seu@imobiliaria.com.br"
                   disabled={loading}
                   autoComplete="email"
-                  className="w-full bg-transparent text-sm text-[#17323D] dark:text-white placeholder:text-muted-foreground focus:outline-none font-medium"
+                  className="w-full bg-transparent text-sm text-[#17323D] dark:text-white placeholder:text-[#8D8A82] dark:placeholder:text-[#6A7F88] focus:outline-none font-medium"
                 />
               </div>
             </div>
 
             {/* Input Senha */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-[#17323D] dark:text-[#EEECE5] block pl-1">
-                Senha
+              <label htmlFor="password" className="text-xs font-bold text-[#17323D] dark:text-[#EEECE5] block pl-0.5">
+                Senha de Acesso
               </label>
-              <div className="w-full h-12 rounded-2xl neumorph-inset flex items-center px-4 transition-all focus-within:ring-2 focus-within:ring-[#AD7B3B]/40">
-                <Lock className="w-4 h-4 text-[#6B6375] mr-3 shrink-0" />
+              <div className="w-full h-12 rounded-xl bg-[#FAF9F5] dark:bg-[#0E1E24] border-2 border-[#D4D0C8] dark:border-[#2D4A51] flex items-center px-3.5 transition-all focus-within:border-[#AD7B3B] focus-within:bg-white dark:focus-within:bg-[#0E1E24] focus-within:ring-2 focus-within:ring-[#AD7B3B]/30 shadow-xs">
+                <Lock className="w-4 h-4 text-[#AD7B3B] mr-2.5 shrink-0" />
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
@@ -166,7 +166,7 @@ export function LoginAdmin() {
                   placeholder="••••••••"
                   disabled={loading}
                   autoComplete="current-password"
-                  className="w-full bg-transparent text-sm text-[#17323D] dark:text-white placeholder:text-muted-foreground focus:outline-none font-medium"
+                  className="w-full bg-transparent text-sm text-[#17323D] dark:text-white placeholder:text-[#8D8A82] dark:placeholder:text-[#6A7F88] focus:outline-none font-medium"
                 />
                 <button
                   type="button"
@@ -181,26 +181,24 @@ export function LoginAdmin() {
 
             {/* Lembrar-me */}
             <div className="flex items-center justify-between text-xs pt-1 px-1">
-              <label className="flex items-center gap-2 cursor-pointer select-none text-[#6B6375] dark:text-muted-foreground font-medium">
-                <div
-                  onClick={() => setRememberMe(!rememberMe)}
-                  className={`w-4 h-4 rounded neumorph-inset flex items-center justify-center transition-all ${
-                    rememberMe ? 'text-[#AD7B3B] font-bold' : 'text-transparent'
-                  }`}
-                >
-                  <Check className="w-3 h-3 stroke-[3]" />
-                </div>
+              <label className="flex items-center gap-2 cursor-pointer select-none text-[#5B6D74] dark:text-[#A3A098] font-medium">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-4 h-4 rounded border-2 border-[#D4D0C8] dark:border-[#2D4A51] accent-[#AD7B3B] cursor-pointer"
+                />
                 Lembrar neste navegador
               </label>
             </div>
 
-            {/* Botão de Entrar Neumórfico */}
+            {/* Botão de Entrar com Alto Destaque */}
             <div className="pt-2">
               <motion.button
                 whileTap={{ scale: 0.98 }}
                 type="submit"
                 disabled={loading}
-                className="w-full h-12 rounded-2xl neumorph-btn-primary font-semibold text-white hover:bg-[#1f4250] text-sm tracking-wide cursor-pointer flex items-center justify-center gap-2 transition-all shadow-md"
+                className="w-full h-12 rounded-xl bg-[#17323D] hover:bg-[#1f4250] font-bold text-white text-sm tracking-wide cursor-pointer flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg disabled:opacity-50"
               >
                 {loading ? (
                   <div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />

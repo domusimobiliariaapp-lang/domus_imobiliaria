@@ -294,23 +294,29 @@ export function CRUDPage<T extends Record<string, any>>({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-serif font-medium text-primary">{title}</h1>
-          {subtitle && <p className="text-muted-foreground mt-1">{subtitle}</p>}
+      {(title || subtitle || renderCard || extraHeaderActions || handleOpenCreate) && (
+        <div className={`flex flex-col sm:flex-row ${title ? 'sm:items-center justify-between' : 'justify-end'} gap-3`}>
+          {title && (
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-serif font-medium text-primary">{title}</h1>
+              {subtitle && <p className="text-muted-foreground mt-1 text-sm">{subtitle}</p>}
+            </div>
+          )}
+          <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+            {renderCard && (
+              <div role="group" aria-label="Modo de visualização" className="flex rounded-md border border-border bg-background p-1">
+                <button type="button" onClick={() => changeViewMode('list')} aria-label="Exibir lista" aria-pressed={currentViewMode === 'list'} className={`flex items-center gap-1.5 rounded px-2.5 py-1.5 text-xs sm:text-sm ${currentViewMode === 'list' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}><List className="h-4 w-4" /><span className="hidden sm:inline">Lista</span></button>
+                <button type="button" onClick={() => changeViewMode('cards')} aria-label="Exibir cards" aria-pressed={currentViewMode === 'cards'} className={`flex items-center gap-1.5 rounded px-2.5 py-1.5 text-xs sm:text-sm ${currentViewMode === 'cards' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}><LayoutGrid className="h-4 w-4" /><span className="hidden sm:inline">Cards</span></button>
+              </div>
+            )}
+            {extraHeaderActions}
+            <Button onClick={handleOpenCreate} className="bg-[#AD7B3B] hover:bg-[#AD7B3B]/90 text-white shrink-0">
+              <Plus className="h-4 w-4 mr-1.5" />
+              Novo
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          {renderCard && <div role="group" aria-label="Modo de visualização" className="flex rounded-md border border-border bg-background p-1">
-            <button type="button" onClick={() => changeViewMode('list')} aria-label="Exibir lista" aria-pressed={currentViewMode === 'list'} className={`flex items-center gap-1.5 rounded px-2.5 py-1.5 text-sm ${currentViewMode === 'list' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}><List className="h-4 w-4" /><span className="hidden sm:inline">Lista</span></button>
-            <button type="button" onClick={() => changeViewMode('cards')} aria-label="Exibir cards" aria-pressed={currentViewMode === 'cards'} className={`flex items-center gap-1.5 rounded px-2.5 py-1.5 text-sm ${currentViewMode === 'cards' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}><LayoutGrid className="h-4 w-4" /><span className="hidden sm:inline">Cards</span></button>
-          </div>}
-          {extraHeaderActions}
-          <Button onClick={handleOpenCreate} className="bg-[#AD7B3B] hover:bg-[#AD7B3B]/90 text-white">
-            <Plus className="h-4 w-4 mr-2" />
-            Novo
-          </Button>
-        </div>
-      </div>
+      )}
 
       {/* Tabs */}
       {tabs && (
@@ -319,7 +325,7 @@ export function CRUDPage<T extends Record<string, any>>({
           onValueChange={tabs.onValueChange}
           className="w-full"
         >
-          <TabsList>
+          <TabsList className="w-full sm:w-auto overflow-x-auto flex justify-start">
             {tabs.items.map((item) => (
               <TabsTrigger key={item.value} value={item.value}>
                 {item.label}
@@ -331,59 +337,61 @@ export function CRUDPage<T extends Record<string, any>>({
 
       {/* Toolbar */}
       <Card>
-        <CardContent className="pt-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <CardContent className="p-3 sm:p-4">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
               <Input
                 placeholder="Buscar..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-10"
+                className="pl-9 h-10 w-full"
               />
             </div>
 
-            {filters?.status && (
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
-                  {filters.status.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
+            <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
+              {filters?.status && (
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-full sm:w-[150px] h-10">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Todos</SelectItem>
+                    {filters.status.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
 
-            {filters?.type && (
-              <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
-                  {filters.type.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
+              {filters?.type && (
+                <Select value={typeFilter} onValueChange={setTypeFilter}>
+                  <SelectTrigger className="w-full sm:w-[150px] h-10">
+                    <SelectValue placeholder="Tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Todos</SelectItem>
+                    {filters.type.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
 
-            {filters?.category && (
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
-                  {filters.category.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
+              {filters?.category && (
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <SelectTrigger className="w-full sm:w-[150px] h-10">
+                    <SelectValue placeholder="Categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Todos</SelectItem>
+                    {filters.category.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>

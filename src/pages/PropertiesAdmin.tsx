@@ -1,6 +1,6 @@
 import { CRUDPage } from '@/components/CRUDPage'
 import { Home, AlertCircle, Share2, Edit2, Trash2, Printer, Globe, FileSpreadsheet, Download } from 'lucide-react'
-import { useProperties, useCreateEntity, useUpdateEntity } from '@/hooks/useSupabase'
+import { useProperties, useCreateEntity, useUpdateEntity, useDeleteEntity } from '@/hooks/useSupabase'
 import { useAuth } from '@/hooks/useAuth'
 import type { Property } from '@/types'
 import { Button } from '@/components/ui/button'
@@ -59,6 +59,7 @@ export function PropertiesAdmin() {
   const { data: properties = [], error, refetch } = useProperties()
   const { create } = useCreateEntity('properties')
   const { update } = useUpdateEntity('properties')
+  const { remove } = useDeleteEntity('properties')
   const [searchParams, setSearchParams] = useSearchParams()
   const tabFromUrl = searchParams.get('tab') || 'lista'
   const [tab, setTab] = React.useState(tabFromUrl)

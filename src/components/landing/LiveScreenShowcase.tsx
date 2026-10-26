@@ -111,24 +111,24 @@ export function LiveScreenShowcase({ onOpenTrial }: LiveScreenShowcaseProps) {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.4 }}
-        className="mt-4 rounded-2xl border border-border bg-card shadow-2xl overflow-hidden"
+        className="mt-4 rounded-2xl border border-[#D4D0C8] dark:border-[#2D4A51] bg-white dark:bg-[#102027] shadow-2xl overflow-hidden"
       >
         {/* Barra superior de navegador */}
-        <div className="bg-[#EEECE5]/90 dark:bg-[#12232B] px-4 py-3 border-b border-border flex items-center justify-between text-xs">
+        <div className="bg-[#EEECE5] dark:bg-[#0B171C] px-4 py-3 border-b border-[#D4D0C8] dark:border-[#2D4A51] flex items-center justify-between text-xs">
           <div className="flex items-center gap-2">
             <div className="flex gap-1.5">
               <div className="w-3 h-3 rounded-full bg-[#E06C75]/80" />
               <div className="w-3 h-3 rounded-full bg-[#E5C07B]/80" />
               <div className="w-3 h-3 rounded-full bg-[#98C379]/80" />
             </div>
-            <span className="hidden sm:inline-block text-muted-foreground font-mono text-[11px] ml-2">
+            <span className="hidden sm:inline-block text-[#5B6D74] dark:text-[#A3A098] font-mono text-[11px] ml-2">
               Domus Imobiliária • Painel Operacional
             </span>
           </div>
 
-          <div className="flex items-center gap-2 px-3 py-1 rounded-md bg-background/80 border border-border text-[11px] font-mono text-muted-foreground max-w-[280px] sm:max-w-md truncate">
-            <span className="text-emerald-600 dark:text-emerald-400 font-bold">https://</span>
-            <span className="text-foreground font-medium">
+          <div className="flex items-center gap-2 px-3 py-1 rounded-md bg-white/90 dark:bg-[#17323D] border border-[#D4D0C8] dark:border-[#2D4A51] text-[11px] font-mono text-[#2D4A51] dark:text-[#D4D0C8] max-w-[280px] sm:max-w-md truncate">
+            <span className="text-emerald-700 dark:text-emerald-400 font-bold">https://</span>
+            <span className="text-[#17323D] dark:text-[#EEECE5] font-semibold">
               {activeTab === 'subdomain'
                 ? 'aurora.gestaodomus.com.br/imoveis'
                 : activeTab === 'portal'
@@ -138,7 +138,7 @@ export function LiveScreenShowcase({ onOpenTrial }: LiveScreenShowcaseProps) {
           </div>
 
           <div className="flex items-center gap-2 text-muted-foreground">
-            <span className="inline-flex items-center gap-1.5 text-[11px] text-emerald-600 font-medium">
+            <span className="inline-flex items-center gap-1.5 text-[11px] text-emerald-700 dark:text-emerald-400 font-semibold">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               Ao vivo
             </span>
@@ -146,7 +146,7 @@ export function LiveScreenShowcase({ onOpenTrial }: LiveScreenShowcaseProps) {
         </div>
 
         {/* Conteúdo com AnimatePresence para transição suave entre abas */}
-        <div className="p-4 sm:p-6 bg-background/40 min-h-[470px]">
+        <div className="p-4 sm:p-6 bg-[#FAF9F5] dark:bg-[#0E1E24] min-h-[470px]">
           <AnimatePresence mode="wait">
             {/* TELA 1: DASHBOARD DE LOCAÇÕES INTERATIVO & FOCADO NA DOR DO CLIENTE */}
             {activeTab === 'dashboard' && (
@@ -159,53 +159,53 @@ export function LiveScreenShowcase({ onOpenTrial }: LiveScreenShowcaseProps) {
                 className="space-y-6"
               >
                 {/* Cabeçalho do Dashboard com Abas de Visão */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#D4D0C8] dark:border-[#2D4A51]">
                   <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-xl font-serif text-[#17323D] dark:text-[#EEECE5]">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-xl font-serif font-bold text-[#17323D] dark:text-[#EEECE5]">
                         Carteira de Locação em Tempo Real
                       </h3>
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-400">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                         Sem Inadimplência Crítica
                       </span>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">
+                    <p className="text-xs text-[#5B6D74] dark:text-[#A3A098] mt-0.5 font-medium">
                       Repasses automáticos programados, réguas de cobrança ativas e vacância controlada.
                     </p>
                   </div>
 
                   {/* Sub-abas de visualização do dashboard */}
-                  <div className="flex items-center gap-1.5 p-1 rounded-xl bg-muted/60 border border-border">
+                  <div className="flex items-center gap-1 p-1 rounded-xl bg-[#E5E3DC] dark:bg-[#17323D] border border-[#D4D0C8] dark:border-[#2D4A51] overflow-x-auto">
                     <button
                       onClick={() => setDashboardSubView('cashflow')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
                         dashboardSubView === 'cashflow'
-                          ? 'bg-[#17323D] text-white shadow-xs'
-                          : 'text-muted-foreground hover:text-foreground'
+                          ? 'bg-[#17323D] text-white shadow-xs dark:bg-[#AD7B3B]'
+                          : 'text-[#2D4A51] dark:text-[#D4D0C8] hover:text-[#17323D] dark:hover:text-white'
                       }`}
                     >
                       Fluxo & Repasses
                     </button>
                     <button
                       onClick={() => setDashboardSubView('donut')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
                         dashboardSubView === 'donut'
-                          ? 'bg-[#17323D] text-white shadow-xs'
-                          : 'text-muted-foreground hover:text-foreground'
+                          ? 'bg-[#17323D] text-white shadow-xs dark:bg-[#AD7B3B]'
+                          : 'text-[#2D4A51] dark:text-[#D4D0C8] hover:text-[#17323D] dark:hover:text-white'
                       }`}
                     >
                       Tipologias & Vacância
                     </button>
                     <button
                       onClick={() => setDashboardSubView('actions')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1 ${
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1 whitespace-nowrap cursor-pointer ${
                         dashboardSubView === 'actions'
                           ? 'bg-[#AD7B3B] text-white shadow-xs'
-                          : 'text-muted-foreground hover:text-foreground'
+                          : 'text-[#2D4A51] dark:text-[#D4D0C8] hover:text-[#17323D] dark:hover:text-white'
                       }`}
                     >
-                      <Zap className="w-3 h-3" />
+                      <Zap className="w-3 h-3 text-[#AD7B3B] dark:text-amber-300" />
                       <span>Ações Imediatas</span>
                     </button>
                   </div>
@@ -213,54 +213,54 @@ export function LiveScreenShowcase({ onOpenTrial }: LiveScreenShowcaseProps) {
 
                 {/* 4 Cards de Métricas com Number Ticker */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                  <div className="p-4 rounded-xl bg-card border border-border shadow-xs hover:border-[#AD7B3B]/40 transition-colors">
-                    <div className="flex items-center justify-between text-muted-foreground text-xs">
+                  <div className="p-4 rounded-xl bg-white dark:bg-[#17323D] border border-[#D4D0C8] dark:border-[#2D4A51] shadow-xs hover:border-[#AD7B3B]/60 transition-colors">
+                    <div className="flex items-center justify-between text-[#5B6D74] dark:text-[#A3A098] text-xs font-medium">
                       <span>Aluguel Bruto Recebido</span>
                       <DollarSign className="w-4 h-4 text-[#AD7B3B]" />
                     </div>
                     <div className="text-xl sm:text-2xl font-serif font-bold text-[#17323D] dark:text-[#EEECE5] mt-2">
                       <NumberTicker value={148520} prefix="R$ " />
                     </div>
-                    <p className="text-[11px] text-emerald-600 flex items-center gap-1 mt-1 font-medium">
+                    <p className="text-[11px] text-emerald-700 dark:text-emerald-400 flex items-center gap-1 mt-1 font-semibold">
                       <TrendingUp className="w-3 h-3" /> +8,4% no trimestre
                     </p>
                   </div>
 
-                  <div className="p-4 rounded-xl bg-card border border-border shadow-xs hover:border-[#AD7B3B]/40 transition-colors">
-                    <div className="flex items-center justify-between text-muted-foreground text-xs">
+                  <div className="p-4 rounded-xl bg-white dark:bg-[#17323D] border border-[#D4D0C8] dark:border-[#2D4A51] shadow-xs hover:border-[#AD7B3B]/60 transition-colors">
+                    <div className="flex items-center justify-between text-[#5B6D74] dark:text-[#A3A098] text-xs font-medium">
                       <span>Contratos Ativos</span>
-                      <Building2 className="w-4 h-4 text-[#17323D] dark:text-[#AD7B3B]" />
+                      <Building2 className="w-4 h-4 text-[#AD7B3B]" />
                     </div>
                     <div className="text-xl sm:text-2xl font-serif font-bold text-[#17323D] dark:text-[#EEECE5] mt-2">
                       <NumberTicker value={142} suffix=" contratos" />
                     </div>
-                    <p className="text-[11px] text-muted-foreground mt-1">
+                    <p className="text-[11px] text-[#5B6D74] dark:text-[#A3A098] mt-1 font-medium">
                       Apenas 2 imóveis vagos (1,4%)
                     </p>
                   </div>
 
-                  <div className="p-4 rounded-xl bg-card border border-border shadow-xs hover:border-[#AD7B3B]/40 transition-colors">
-                    <div className="flex items-center justify-between text-muted-foreground text-xs">
+                  <div className="p-4 rounded-xl bg-white dark:bg-[#17323D] border border-[#D4D0C8] dark:border-[#2D4A51] shadow-xs hover:border-[#AD7B3B]/60 transition-colors">
+                    <div className="flex items-center justify-between text-[#5B6D74] dark:text-[#A3A098] text-xs font-medium">
                       <span>Taxa de Administração</span>
                       <Receipt className="w-4 h-4 text-[#AD7B3B]" />
                     </div>
-                    <div className="text-xl sm:text-2xl font-serif font-bold text-[#AD7B3B] mt-2">
+                    <div className="text-xl sm:text-2xl font-serif font-bold text-[#AD7B3B] dark:text-[#F3C068] mt-2">
                       <NumberTicker value={14852} prefix="R$ " />
                     </div>
-                    <p className="text-[11px] text-muted-foreground mt-1">
+                    <p className="text-[11px] text-[#5B6D74] dark:text-[#A3A098] mt-1 font-medium">
                       Lucro líquido retido na conta
                     </p>
                   </div>
 
-                  <div className="p-4 rounded-xl bg-card border border-border shadow-xs hover:border-[#AD7B3B]/40 transition-colors">
-                    <div className="flex items-center justify-between text-muted-foreground text-xs">
+                  <div className="p-4 rounded-xl bg-white dark:bg-[#17323D] border border-[#D4D0C8] dark:border-[#2D4A51] shadow-xs hover:border-[#AD7B3B]/60 transition-colors">
+                    <div className="flex items-center justify-between text-[#5B6D74] dark:text-[#A3A098] text-xs font-medium">
                       <span>Inadimplência</span>
-                      <AlertCircle className="w-4 h-4 text-emerald-600" />
+                      <AlertCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                     </div>
-                    <div className="text-xl sm:text-2xl font-serif font-bold text-emerald-600 mt-2">
+                    <div className="text-xl sm:text-2xl font-serif font-bold text-emerald-700 dark:text-emerald-400 mt-2">
                       <NumberTicker value={1.4} suffix="%" decimals={1} />
                     </div>
-                    <p className="text-[11px] text-muted-foreground mt-1">
+                    <p className="text-[11px] text-[#5B6D74] dark:text-[#A3A098] mt-1 font-medium">
                       Régua de cobrança automática ativa
                     </p>
                   </div>

@@ -94,7 +94,7 @@ export function DomusLogo({
           </span>
 
           {showBadge && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold tracking-wider uppercase bg-[#AD7B3B]/10 text-[#AD7B3B] border border-[#AD7B3B]/25 shadow-xs">
+            <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold tracking-wider uppercase bg-[#AD7B3B]/10 text-[#AD7B3B] border border-[#AD7B3B]/25 shadow-xs">
               <span className="w-1.5 h-1.5 rounded-full bg-[#AD7B3B] animate-pulse" />
               <span>SaaS</span>
             </span>
@@ -102,7 +102,7 @@ export function DomusLogo({
         </div>
 
         {showTagline && (
-          <p className="text-[10px] tracking-wide text-muted-foreground font-medium mt-1">
+          <p className="hidden sm:block text-[10px] tracking-wide text-muted-foreground font-medium mt-1">
             Gestão Imobiliária & Locações
           </p>
         )}

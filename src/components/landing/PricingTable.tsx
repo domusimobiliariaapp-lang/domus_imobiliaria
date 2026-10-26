@@ -122,17 +122,17 @@ export function PricingTable({ onSelectPlan }: PricingTableProps) {
     <div className="w-full space-y-8">
       {/* SELETOR DE CICLO: MENSAL / ANUAL / VITALÍCIO */}
       <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-        <div className="inline-flex flex-wrap items-center justify-center p-1 rounded-xl bg-card border border-border shadow-xs gap-1">
+        <div className="inline-flex flex-wrap items-center justify-center p-1.5 rounded-xl bg-white dark:bg-[#12232B] border border-[#D4D0C8] dark:border-[#2D4A51] shadow-xs gap-1">
           <button
             onClick={() => setBillingCycle('monthly')}
-            className={`relative px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors cursor-pointer ${
-              billingCycle === 'monthly' ? 'text-white' : 'text-muted-foreground hover:text-foreground'
+            className={`relative px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-colors cursor-pointer ${
+              billingCycle === 'monthly' ? 'text-white' : 'text-[#2D4A51] dark:text-[#D4D0C8] hover:text-[#17323D] dark:hover:text-white'
             }`}
           >
             {billingCycle === 'monthly' && (
               <motion.div
                 layoutId="cycle-indicator"
-                className="absolute inset-0 bg-[#17323D] rounded-lg shadow-xs"
+                className="absolute inset-0 bg-[#17323D] dark:bg-[#AD7B3B] rounded-lg shadow-xs"
                 transition={{ type: 'spring', bounce: 0.15, duration: 0.4 }}
               />
             )}
@@ -140,14 +140,14 @@ export function PricingTable({ onSelectPlan }: PricingTableProps) {
           </button>
           <button
             onClick={() => setBillingCycle('annual')}
-            className={`relative px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-2 cursor-pointer ${
-              billingCycle === 'annual' ? 'text-white' : 'text-muted-foreground hover:text-foreground'
+            className={`relative px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-colors flex items-center gap-2 cursor-pointer ${
+              billingCycle === 'annual' ? 'text-white' : 'text-[#2D4A51] dark:text-[#D4D0C8] hover:text-[#17323D] dark:hover:text-white'
             }`}
           >
             {billingCycle === 'annual' && (
               <motion.div
                 layoutId="cycle-indicator"
-                className="absolute inset-0 bg-[#17323D] rounded-lg shadow-xs"
+                className="absolute inset-0 bg-[#17323D] dark:bg-[#AD7B3B] rounded-lg shadow-xs"
                 transition={{ type: 'spring', bounce: 0.15, duration: 0.4 }}
               />
             )}
@@ -160,8 +160,8 @@ export function PricingTable({ onSelectPlan }: PricingTableProps) {
           {lifetimeSettings.active && (
             <button
               onClick={() => setBillingCycle('lifetime')}
-              className={`relative px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1.5 cursor-pointer ${
-                billingCycle === 'lifetime' ? 'text-white' : 'text-amber-700 dark:text-amber-400 hover:text-foreground'
+              className={`relative px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-colors flex items-center gap-1.5 cursor-pointer ${
+                billingCycle === 'lifetime' ? 'text-white' : 'text-[#AD7B3B] dark:text-[#F3C068] hover:text-[#17323D] dark:hover:text-white'
               }`}
             >
               {billingCycle === 'lifetime' && (
@@ -306,8 +306,8 @@ export function PricingTable({ onSelectPlan }: PricingTableProps) {
                   whileHover={{ y: -6, transition: { duration: 0.2 } }}
                   className={`group rounded-2xl flex flex-col justify-between transition-all duration-300 relative ${
                     p.popular
-                      ? 'border-2 border-[#AD7B3B] bg-card shadow-xl ring-2 ring-[#AD7B3B]/20 scale-[1.02] z-10'
-                      : 'border border-border bg-card/80 shadow-sm hover:shadow-lg'
+                      ? 'border-2 border-[#AD7B3B] bg-white dark:bg-[#152730] shadow-xl ring-2 ring-[#AD7B3B]/20 scale-[1.02] z-10'
+                      : 'border border-[#D4D0C8] dark:border-[#2D4A51] bg-white dark:bg-[#12232B] shadow-sm hover:shadow-lg'
                   } p-6 sm:p-8`}
                 >
                   {p.popular && (
@@ -323,20 +323,20 @@ export function PricingTable({ onSelectPlan }: PricingTableProps) {
                         {p.name}
                       </h4>
                       {p.badge && !p.popular && (
-                        <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#17323D]/10 text-[#17323D] dark:text-[#AD7B3B]">
+                        <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#17323D]/10 text-[#17323D] dark:bg-[#AD7B3B]/20 dark:text-[#F3C068]">
                           {p.badge}
                         </span>
                       )}
                     </div>
 
-                    <p className="text-xs text-muted-foreground mt-2 min-h-[34px] leading-relaxed">
+                    <p className="text-xs text-[#5B6D74] dark:text-[#A3A098] mt-2 min-h-[34px] leading-relaxed font-medium">
                       {p.description}
                     </p>
 
                     {/* Preço com AnimatePresence no número */}
-                    <div className="my-6 pb-6 border-b border-border">
+                    <div className="my-6 pb-6 border-b border-[#D4D0C8] dark:border-[#2D4A51]">
                       <div className="flex items-baseline gap-1">
-                        <span className="text-sm font-medium text-muted-foreground">R$</span>
+                        <span className="text-sm font-semibold text-[#5B6D74] dark:text-[#A3A098]">R$</span>
                         <AnimatePresence mode="wait">
                           <motion.span
                             key={currentPrice}
@@ -349,11 +349,11 @@ export function PricingTable({ onSelectPlan }: PricingTableProps) {
                             {currentPrice}
                           </motion.span>
                         </AnimatePresence>
-                        <span className="text-xs text-muted-foreground font-normal">
+                        <span className="text-xs text-[#5B6D74] dark:text-[#A3A098] font-normal">
                           / mês
                         </span>
                       </div>
-                      <span className="text-[11px] text-muted-foreground block mt-1">
+                      <span className="text-[11px] text-[#5B6D74] dark:text-[#A3A098] block mt-1">
                         {billingCycle === 'annual'
                           ? 'Cobrado anualmente em 12 parcelas'
                           : 'Cobrança mensal, cancele quando desejar'}
@@ -362,10 +362,10 @@ export function PricingTable({ onSelectPlan }: PricingTableProps) {
 
                     {/* Recursos inclusos */}
                     <div className="space-y-3">
-                      <span className="text-xs font-semibold text-foreground uppercase tracking-wider block">
+                      <span className="text-xs font-semibold text-[#17323D] dark:text-[#EEECE5] uppercase tracking-wider block">
                         O que está incluso:
                       </span>
-                      <ul className="space-y-2.5 text-xs text-muted-foreground">
+                      <ul className="space-y-2.5 text-xs text-[#2D4A51] dark:text-[#D4D0C8]">
                         {p.features.map((feat, fIdx) => (
                           <li key={fIdx} className="flex items-start gap-2.5">
                             <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />

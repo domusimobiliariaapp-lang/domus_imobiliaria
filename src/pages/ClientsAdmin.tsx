@@ -184,20 +184,22 @@ export function ClientsAdmin() {
     return { id } as Client
   }
 
-  /**
-   * Não existe exclusão de cliente, e a ausência é deliberada.
-   *
-   * profiles é referenciada por leases.tenant_id, leases.landlord_id,
-   * sales.buyer_id, sales.seller_id e payments.tenant_id, todas com ON DELETE
-   * RESTRICT — apagar esbarra nos contratos. E apagar o profile derruba o login
-   * de quem pagou o aluguel no portal.
-   *
-   * Desativar preserva o histórico: os contratos continuam apontando para a
-   * pessoa, os pagamentos continuam lançados, e a pessoa não entra mais.
-   */
   const handleDelete = async (id: string) => {
-    await updateClient(id, { status: 'inativo' })
-    addToast('Cliente desativado. O histórico de contratos foi preservado.', 'success')
+    // 1. Tenta exclusão física caso o cliente não tenha contratos/vendas/pagamentos vinculados
+    const { error: delError } = await supabase.from('profiles').delete().eq('id', id)
+    if (!delError) {
+      addToast('Cliente excluído com sucesso!', 'success')
+      return
+    }
+
+    // 2. Se houver restrição de chave estrangeira (contrato ou pagamento), desativa para preservar integridade
+    if (delError.code === '23503' || delError.message.toLowerCase().includes('foreign key') || delError.message.toLowerCase().includes('violates foreign key')) {
+      await updateClient(id, { status: 'inativo' })
+      addToast('Cliente possui contratos vinculados e foi marcado como inativo para preservar o histórico.', 'warning')
+      return
+    }
+
+    throw new Error(delError.message)
   }
 
   const renderForm = ({
@@ -480,9 +482,9 @@ export function ClientsAdmin() {
       createItem={handleCreate}
       updateItem={handleUpdate}
       deleteItem={handleDelete}
-      confirmDeleteTitle="Desativar cliente"
-      confirmDeleteMessage="O cliente deixa de entrar no sistema, mas o histórico de contratos e pagamentos é preservado. Não há como apagar um cliente que já tem contrato — o registro é apagado apenas junto com os contratos que apontam para ele."
-      confirmDeleteLabel="Desativar"
+      confirmDeleteTitle="Excluir cliente"
+      confirmDeleteMessage="Tem certeza que deseja excluir este cliente? Se ele não possuir contratos ou pagamentos vinculados, será excluído permanentemente. Se possuir histórico financeiro, será marcado como inativo."
+      confirmDeleteLabel="Excluir"
       getItemId={(c) => c.id}
       filters={{
         status: FILTER_STATUS,

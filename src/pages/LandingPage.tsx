@@ -49,12 +49,13 @@ export function LandingPage() {
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.35 }}
-        className="sticky top-0 z-50 w-full backdrop-blur-md bg-[#EEECE5]/90 dark:bg-[#0E1E24]/90 border-b border-[#D4D0C8] dark:border-[#2D4A51]"
+        className="sticky top-0 z-50 w-full backdrop-blur-md bg-[#EEECE5]/95 dark:bg-[#0E1E24]/95 border-b border-[#D4D0C8] dark:border-[#2D4A51]"
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
-          {/* Logo Domus Premium */}
-          <Link to="/">
-            <DomusLogo size="md" />
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-18 flex items-center justify-between">
+          {/* Logo Domus Premium responsivo */}
+          <Link to="/" className="shrink-0">
+            <DomusLogo size="sm" className="sm:hidden" />
+            <DomusLogo size="md" className="hidden sm:flex" />
           </Link>
 
           {/* Navegação Desktop */}
@@ -97,27 +98,27 @@ export function LandingPage() {
             </button>
           </nav>
 
-          {/* Ações */}
-          <div className="flex items-center gap-3">
+          {/* Ações Mobile & Desktop */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <Link
               to="/login"
-              className="text-xs sm:text-sm font-medium text-[#17323D] dark:text-[#EEECE5] hover:text-[#AD7B3B] transition-colors px-3 py-2"
+              className="text-xs sm:text-sm font-semibold text-[#17323D] dark:text-[#EEECE5] hover:text-[#AD7B3B] transition-colors px-2.5 py-1.5"
             >
               Entrar
             </Link>
             <Button
               onClick={() => openTrial('Profissional')}
-              className="h-10 px-4 bg-[#17323D] hover:bg-[#17323D]/90 text-white text-xs sm:text-sm font-medium rounded-xl shadow-xs cursor-pointer"
+              className="h-9 sm:h-10 px-3 sm:px-4 bg-[#17323D] hover:bg-[#17323D]/90 text-white text-xs sm:text-sm font-medium rounded-xl shadow-xs cursor-pointer shrink-0"
             >
-              <span>Testar 3 Dias</span>
-              <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+              <span>Testar Grátis</span>
+              <ArrowRight className="w-3.5 h-3.5 ml-1 sm:ml-1.5" />
             </Button>
           </div>
         </div>
       </motion.header>
 
       {/* HERO SECTION HUMANO E DIRETO */}
-      <section className="relative pt-12 pb-16 sm:pt-20 sm:pb-24 overflow-hidden">
+      <section className="relative pt-10 pb-14 sm:pt-20 sm:pb-24 overflow-hidden">
         {/* Fundo Animado Sofisticado com Malha Arquitetônica e Orbes Fluidos */}
         <HeroAnimatedBackground />
 
@@ -127,7 +128,7 @@ export function LandingPage() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium bg-[#17323D]/5 dark:bg-[#EEECE5]/10 text-[#17323D] dark:text-[#AD7B3B] border border-[#17323D]/10 dark:border-[#AD7B3B]/20 mb-6"
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[#AD7B3B]/15 dark:bg-[#AD7B3B]/25 text-[#17323D] dark:text-[#F3C068] border border-[#AD7B3B]/30 mb-6 shadow-xs"
           >
             <Clock className="w-3.5 h-3.5 text-[#AD7B3B]" />
             <span>Feito para a rotina diária de quem administra aluguéis</span>
@@ -143,14 +144,14 @@ export function LandingPage() {
             Gestão de aluguéis, cobrança e repasses aos proprietários sem dor de cabeça no fim do mês.
           </motion.h1>
 
-          {/* Subtítulo claro e concreto */}
+          {/* Subtítulo claro e com alto contraste */}
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.2 }}
-            className="mt-6 text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed"
+            className="mt-6 text-sm sm:text-lg text-[#253E47] dark:text-[#E2DFD7] max-w-2xl mx-auto leading-relaxed font-normal"
           >
-            Você emite a cobrança, o inquilino paga por PIX ou boleto, o Domus desconta sua taxa de administração e o dinheiro do proprietário vai com comprovante pronto. Tudo no link da sua imobiliária (<span className="font-mono text-xs font-semibold text-foreground">suaempresa.gestaodomus.com.br</span>).
+            Você emite a cobrança, o inquilino paga por PIX ou boleto, o Domus desconta sua taxa de administração e o dinheiro do proprietário vai com comprovante pronto. Tudo no link da sua imobiliária (<span className="font-mono text-xs font-semibold text-[#17323D] dark:text-[#AD7B3B]">suaempresa.gestaodomus.com.br</span>).
           </motion.p>
 
           {/* Botões do Hero */}
@@ -454,14 +455,14 @@ export function LandingPage() {
       <section id="features" className="py-16 sm:py-24 bg-card/40 border-t border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-[#17323D]/10 text-[#17323D] dark:text-[#AD7B3B] mb-4">
-              <Zap className="w-3.5 h-3.5" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-[#17323D]/10 text-[#17323D] dark:bg-[#AD7B3B]/20 dark:text-[#F3C068] border border-[#17323D]/20 dark:border-[#AD7B3B]/40 mb-4">
+              <Zap className="w-3.5 h-3.5 text-[#AD7B3B]" />
               <span>O que está incluso no sistema</span>
             </div>
             <h2 className="text-3xl sm:text-4xl font-serif font-bold text-[#17323D] dark:text-[#EEECE5]">
               As ferramentas que resolvem a rotina do aluguel
             </h2>
-            <p className="mt-3 text-sm sm:text-base text-muted-foreground">
+            <p className="mt-3 text-sm sm:text-base text-[#253E47] dark:text-[#E2DFD7] font-normal">
               Tudo integrado para você não precisar de uma ferramenta para contrato, outra para boleto e outra para atender clientes.
             </p>
           </div>

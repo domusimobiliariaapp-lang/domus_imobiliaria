@@ -141,7 +141,7 @@ export function LoginPortal() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
-          className="relative z-10 w-full max-w-md rounded-[2.5rem] p-8 sm:p-10 neumorph-card border border-white/80 dark:border-white/10 shadow-xl"
+          className="relative z-10 w-full max-w-md rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-10 bg-white dark:bg-[#12232B] border border-[#D4D0C8] dark:border-[#2D4A51] shadow-xl"
         >
           {/* Logo Mobile */}
           <div className="lg:hidden flex justify-center mb-6">
@@ -150,12 +150,12 @@ export function LoginPortal() {
 
           {/* Ícone Neumórfico Central em Relevo */}
           <div className="flex justify-center mb-6">
-            <div className="w-20 h-20 rounded-full neumorph-btn flex items-center justify-center text-[#AD7B3B] shadow-md">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#AD7B3B] to-[#C89551] flex items-center justify-center text-white shadow-inner">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#FAF9F5] dark:bg-[#0E1E24] border border-[#D4D0C8] dark:border-[#2D4A51] flex items-center justify-center text-[#AD7B3B] shadow-md">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-tr from-[#AD7B3B] to-[#C89551] flex items-center justify-center text-white shadow-inner">
                 {step === 'verify' ? (
-                  <Mail className="w-6 h-6 stroke-[2.2]" />
+                  <Mail className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.2]" />
                 ) : (
-                  <KeyRound className="w-6 h-6 stroke-[2.2]" />
+                  <KeyRound className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.2]" />
                 )}
               </div>
             </div>
@@ -166,7 +166,7 @@ export function LoginPortal() {
             <h1 className="text-2xl font-serif font-bold tracking-tight text-[#17323D] dark:text-[#EEECE5]">
               {step === 'verify' ? 'Código de Confirmação' : 'Acesse seu Portal'}
             </h1>
-            <p className="text-xs text-[#6B6375] dark:text-muted-foreground mt-1">
+            <p className="text-xs text-[#5B6D74] dark:text-[#A3A098] mt-1.5 font-medium">
               {step === 'verify'
                 ? `Digite o código de 6 dígitos enviado para ${emailMasked}`
                 : 'Identifique-se com seu CPF/CNPJ e celular cadastrado'}
@@ -192,32 +192,32 @@ export function LoginPortal() {
           {/* Passo 1: Informar CPF/CNPJ e Telefone */}
           {step === 'request' && (
             <form onSubmit={handleRequestCode} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-[#17323D] dark:text-[#EEECE5] mb-1.5">
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-[#17323D] dark:text-[#EEECE5] pl-0.5">
                   CPF ou CNPJ
                 </label>
-                <div className="relative">
-                  <FileText className="w-4 h-4 text-[#AD7B3B] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <div className="w-full h-12 rounded-xl bg-[#FAF9F5] dark:bg-[#0E1E24] border-2 border-[#D4D0C8] dark:border-[#2D4A51] flex items-center px-3.5 transition-all focus-within:border-[#AD7B3B] focus-within:bg-white dark:focus-within:bg-[#0E1E24] focus-within:ring-2 focus-within:ring-[#AD7B3B]/30 shadow-xs">
+                  <FileText className="w-4 h-4 text-[#AD7B3B] mr-2.5 shrink-0" />
                   <input
                     type="text"
                     required
-                    placeholder="000.000.000-00 ou 00.000.000/0000-00"
+                    placeholder="000.000.000-00 ou CNPJ"
                     value={cpfCnpj}
                     onChange={(e) => setCpfCnpj(formatCpfCnpj(e.target.value))}
                     disabled={loading}
                     maxLength={18}
                     inputMode="numeric"
-                    className="w-full pl-10 pr-4 py-3 text-sm rounded-xl neumorph-input text-[#17323D] dark:text-white placeholder:text-neutral-400 focus:outline-none transition-all"
+                    className="w-full bg-transparent text-sm text-[#17323D] dark:text-white placeholder:text-[#8D8A82] dark:placeholder:text-[#6A7F88] focus:outline-none font-medium"
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-[#17323D] dark:text-[#EEECE5] mb-1.5">
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-[#17323D] dark:text-[#EEECE5] pl-0.5">
                   Celular / WhatsApp
                 </label>
-                <div className="relative">
-                  <Smartphone className="w-4 h-4 text-[#AD7B3B] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <div className="w-full h-12 rounded-xl bg-[#FAF9F5] dark:bg-[#0E1E24] border-2 border-[#D4D0C8] dark:border-[#2D4A51] flex items-center px-3.5 transition-all focus-within:border-[#AD7B3B] focus-within:bg-white dark:focus-within:bg-[#0E1E24] focus-within:ring-2 focus-within:ring-[#AD7B3B]/30 shadow-xs">
+                  <Smartphone className="w-4 h-4 text-[#AD7B3B] mr-2.5 shrink-0" />
                   <input
                     type="tel"
                     required
@@ -227,7 +227,7 @@ export function LoginPortal() {
                     disabled={loading}
                     maxLength={15}
                     inputMode="tel"
-                    className="w-full pl-10 pr-4 py-3 text-sm rounded-xl neumorph-input text-[#17323D] dark:text-white placeholder:text-neutral-400 focus:outline-none transition-all"
+                    className="w-full bg-transparent text-sm text-[#17323D] dark:text-white placeholder:text-[#8D8A82] dark:placeholder:text-[#6A7F88] focus:outline-none font-medium"
                   />
                 </div>
               </div>
@@ -235,7 +235,7 @@ export function LoginPortal() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full mt-2 py-3.5 px-6 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-[#17323D] to-[#254A59] hover:from-[#1D3E4B] hover:to-[#2F5B6D] transition-all shadow-md flex items-center justify-center gap-2 group disabled:opacity-50"
+                className="w-full mt-2 h-12 rounded-xl font-bold text-sm text-white bg-[#17323D] hover:bg-[#1f4250] transition-all shadow-md flex items-center justify-center gap-2 group disabled:opacity-50 cursor-pointer"
               >
                 {loading ? (
                   <>
@@ -255,27 +255,29 @@ export function LoginPortal() {
           {/* Passo 2: Digitar Código OTP recebido por e-mail */}
           {step === 'verify' && (
             <form onSubmit={handleVerifyCode} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-[#17323D] dark:text-[#EEECE5] mb-1.5">
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-[#17323D] dark:text-[#EEECE5] text-center">
                   Código de 6 Dígitos
                 </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="000000"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  disabled={loading}
-                  maxLength={6}
-                  autoComplete="one-time-code"
-                  className="w-full px-4 py-3.5 text-center tracking-[0.5em] font-mono text-xl font-bold rounded-xl neumorph-input text-[#17323D] dark:text-white placeholder:text-neutral-300 focus:outline-none transition-all"
-                />
+                <div className="w-full h-14 rounded-xl bg-[#FAF9F5] dark:bg-[#0E1E24] border-2 border-[#D4D0C8] dark:border-[#2D4A51] flex items-center justify-center px-4 transition-all focus-within:border-[#AD7B3B] focus-within:bg-white dark:focus-within:bg-[#0E1E24] focus-within:ring-2 focus-within:ring-[#AD7B3B]/30 shadow-xs">
+                  <input
+                    type="text"
+                    required
+                    placeholder="000000"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    disabled={loading}
+                    maxLength={6}
+                    autoComplete="one-time-code"
+                    className="w-full bg-transparent text-center tracking-[0.5em] font-mono text-2xl font-bold text-[#17323D] dark:text-white placeholder:text-[#8D8A82] dark:placeholder:text-[#6A7F88] focus:outline-none"
+                  />
+                </div>
               </div>
 
               <button
                 type="submit"
                 disabled={loading || code.length < 6}
-                className="w-full py-3.5 px-6 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-[#17323D] to-[#254A59] hover:from-[#1D3E4B] hover:to-[#2F5B6D] transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full h-12 rounded-xl font-bold text-sm text-white bg-[#17323D] hover:bg-[#1f4250] transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
               >
                 {loading ? (
                   <>
@@ -294,7 +296,7 @@ export function LoginPortal() {
                 type="button"
                 onClick={() => setStep('request')}
                 disabled={loading}
-                className="w-full py-2.5 text-xs text-[#AD7B3B] hover:underline flex items-center justify-center gap-1.5"
+                className="w-full py-2.5 text-xs text-[#AD7B3B] hover:underline flex items-center justify-center gap-1.5 cursor-pointer font-semibold"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span>Corrigir dados ou reenviar código</span>

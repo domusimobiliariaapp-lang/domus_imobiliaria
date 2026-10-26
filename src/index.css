@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme inline {
   --color-brand-primary: #17323D;
   --color-brand-accent: #AD7B3B;
@@ -351,6 +353,50 @@
 .neumorph-btn:active {
   box-shadow: inset 3px 3px 6px #d6d3cb, inset -3px -3px 6px #ffffff;
   transform: scale(0.98);
+}
+
+.neumorph-input {
+  background: #ffffff;
+  border: 1.5px solid #D4D0C8;
+  color: #17323D;
+  transition: all 0.2s ease;
+}
+
+.neumorph-input:focus {
+  border-color: #AD7B3B;
+  box-shadow: 0 0 0 3px rgba(173, 123, 59, 0.2);
+}
+
+/* Suporte de Alto Contraste no Dark Mode para Neumorph */
+.dark .neumorph-bg {
+  background: #0E1E24;
+}
+
+.dark .neumorph-card {
+  background: #12232B;
+  box-shadow: 12px 12px 24px #071013, -8px -8px 20px #1d3643;
+}
+
+.dark .neumorph-card-sm {
+  background: #12232B;
+  box-shadow: 6px 6px 14px #071013, -4px -4px 12px #1d3643;
+}
+
+.dark .neumorph-inset {
+  background: #0B171C;
+  box-shadow: inset 3px 3px 6px #050b0e, inset -2px -2px 5px #18303a;
+}
+
+.dark .neumorph-input {
+  background: #0B171C;
+  border-color: #2D4A51;
+  color: #EEECE5;
+}
+
+.dark .neumorph-btn {
+  background: #17323D;
+  box-shadow: 5px 5px 12px #071013, -4px -4px 10px #275263;
+  color: #EEECE5;
 }
 
 .neumorph-btn-primary {

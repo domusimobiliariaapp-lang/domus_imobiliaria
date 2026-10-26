@@ -60,7 +60,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="lg:hidden"
+                  className="lg:hidden shrink-0 flex items-center justify-center cursor-pointer"
                   onClick={() => setSidebarOpen(true)}
                   aria-label="Abrir menu"
                 >
@@ -80,15 +80,16 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                   </div>
                 )}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 <Button
                   variant="ghost"
                   size="icon"
                   asChild
+                  className="shrink-0 flex items-center justify-center cursor-pointer text-muted-foreground hover:text-foreground"
                   aria-label="Abrir chamado com o suporte"
                   title="Abrir chamado com o suporte"
                 >
-                  <Link to="/admin/chamados">
+                  <Link to="/admin/chamados" className="flex items-center justify-center w-full h-full">
                     <LifeBuoy className="h-5 w-5" />
                   </Link>
                 </Button>
@@ -96,6 +97,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                   variant="ghost"
                   size="icon"
                   onClick={toggleDarkMode}
+                  className="shrink-0 flex items-center justify-center cursor-pointer text-muted-foreground hover:text-foreground"
                   aria-label={darkMode ? 'Modo claro' : 'Modo escuro'}
                 >
                   {darkMode ? (
