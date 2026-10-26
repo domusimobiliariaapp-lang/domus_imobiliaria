@@ -6,7 +6,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Printer, MessageCircle, FileText, CheckCircle2, Building2 } from 'lucide-react'
+import { Printer, MessageCircle, FileText } from 'lucide-react'
 import { formatBRL, type RepasseLocacao } from '@/lib/repasse'
 import type { Organization, Property, Profile } from '@/types'
 

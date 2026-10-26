@@ -1,6 +1,6 @@
 import { CRUDPage } from '@/components/CRUDPage'
 import { Home, AlertCircle, Share2, Edit2, Trash2, Printer, Globe, FileSpreadsheet, Download } from 'lucide-react'
-import { useProperties, useCreateEntity, useUpdateEntity, useDeleteEntity } from '@/hooks/useSupabase'
+import { useProperties, useCreateEntity, useUpdateEntity } from '@/hooks/useSupabase'
 import { useAuth } from '@/hooks/useAuth'
 import type { Property } from '@/types'
 import { Button } from '@/components/ui/button'

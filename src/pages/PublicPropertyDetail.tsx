@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { Home, MapPin, Bed, Bath, Car, ArrowLeft, Calendar, Square, FileImage, Share2, Check, ShieldCheck, MessageCircle, Copy } from 'lucide-react'
+import { Home, MapPin, Bed, Bath, Car, ArrowLeft, Calendar, Square, FileImage, Share2, Check, ShieldCheck, Copy } from 'lucide-react'
 import { usePublicProperty } from '@/hooks/useSupabase'
 import { useSEO } from '@/hooks/useSEO'
 import { PropertyGallery } from '@/components/PropertyGallery'
@@ -123,20 +123,6 @@ export function PublicPropertyDetail() {
       : undefined,
   })
 
-  const shareOnWhatsApp = () => {
-    const priceText = property?.sale_price
-      ? `R$ ${property.sale_price.toLocaleString('pt-BR')}`
-      : property?.rent_price
-      ? `R$ ${property.rent_price.toLocaleString('pt-BR')}/mês`
-      : ''
-    const text = encodeURIComponent(
-      `Confira este imóvel: *${property?.title || 'Imóvel'}*\n` +
-      (priceText ? `Valor: *${priceText}*\n` : '') +
-      `Local: ${property?.neighborhood || ''}, ${property?.city || ''} - ${property?.state || ''}\n\n` +
-      `Veja fotos e detalhes completos:\n${window.location.href}`
-    )
-    window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank')
-  }
 
   const handleShare = async () => {
     const url = window.location.href

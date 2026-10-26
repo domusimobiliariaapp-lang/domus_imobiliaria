@@ -637,7 +637,7 @@ export function ContractsAdmin() {
               if (!item.signers || (Array.isArray(item.signers) && item.signers.length === 0)) {
                 const prop = (properties || []).find((p) => p.id === item.property_id)
                 const tenant = (profiles || []).find((p) => p.id === item.tenant_id)
-                const landlord = (profiles || []).find((p) => p.id === item.landlord_id)
+                let targetItem = item
                 if (prop && tenant && landlord) {
                   const contract = generateRentalContract({
                     lease: item,
@@ -647,11 +647,14 @@ export function ContractsAdmin() {
                     organization,
                   })
                   void update(item.id, { signers: contract.signers })
-                  item.signers = contract.signers
+                  targetItem = { ...item, signers: contract.signers }
                 }
+                setSelectedLeaseForSignature(targetItem)
+                setSignatureModalOpen(true)
+              } else {
+                setSelectedLeaseForSignature(item)
+                setSignatureModalOpen(true)
               }
-              setSelectedLeaseForSignature(item)
-              setSignatureModalOpen(true)
             }}
             className="text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 transition-transform hover:scale-110 active:scale-95"
             title="Gestão de Assinaturas Eletrônicas"

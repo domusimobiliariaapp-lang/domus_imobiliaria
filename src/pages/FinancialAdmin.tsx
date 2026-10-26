@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { DollarSign, AlertCircle, TrendingUp, TrendingDown, Clock, FileText, Calculator, Wallet, PieChart, MessageSquare } from 'lucide-react'
-import { usePayments, useUpdateEntity, useProperties, useLeases, useSales, useProfiles } from '@/hooks/useSupabase'
+import { usePayments, useProperties, useLeases, useSales, useProfiles } from '@/hooks/useSupabase'
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/integrations/supabase/client'
 import type { Payment, Lease, Profile } from '@/types'
@@ -18,7 +18,7 @@ import {
   type RepasseLocacao,
   type ComissaoVenda,
 } from '@/lib/repasse'
-import { getWhatsAppBillingUrl, getWhatsAppRepasseUrl } from '@/lib/whatsappBilling'
+import { getWhatsAppBillingUrl } from '@/lib/whatsappBilling'
 import { LancamentosTab } from '@/components/LancamentosTab'
 import { FluxoCaixaTab } from '@/components/FluxoCaixaTab'
 import { DreGerencialTab } from '@/components/DreGerencialTab'

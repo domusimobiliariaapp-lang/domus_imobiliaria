@@ -404,8 +404,6 @@ export function TrialModal({ isOpen, onClose, initialPlan = 'Profissional' }: Tr
     onClose()
   }
 
-  const isLifetimeSelected = plan.toLowerCase().includes('vital') || isDirectPurchase
-
   return (
     <Dialog open={isOpen} onOpenChange={(open) => (!open ? handleReset() : undefined)}>
       <DialogContent className="max-w-xl bg-card text-foreground border border-border sm:rounded-2xl p-6 sm:p-8 shadow-2xl max-h-[92vh] overflow-y-auto">

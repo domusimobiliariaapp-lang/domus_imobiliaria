@@ -15,6 +15,15 @@ import { createClient } from '@supabase/supabase-js';
 import * as fs from 'fs';
 import * as path from 'path';
 
+// Carrega .env se não estiver definido
+if (!process.env.VITE_SUPABASE_URL && typeof process.loadEnvFile === 'function') {
+  try {
+    process.loadEnvFile(path.join(process.cwd(), '.env'));
+  } catch {
+    // ignora se .env não existir
+  }
+}
+
 // Configuração do Supabase (usa variáveis de ambiente do projeto)
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
