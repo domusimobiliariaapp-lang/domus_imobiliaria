@@ -14,9 +14,9 @@ export function DomusLogo({
   className,
 }: DomusLogoProps) {
   const iconSizes = {
-    sm: 'w-8 h-8 rounded-lg',
-    md: 'w-10 h-10 rounded-xl',
-    lg: 'w-12 h-12 rounded-2xl',
+    sm: 'w-8 h-8 rounded-lg p-1',
+    md: 'w-10 h-10 rounded-xl p-1.5',
+    lg: 'w-12 h-12 rounded-2xl p-2',
   }
 
   const textSizes = {
@@ -27,60 +27,65 @@ export function DomusLogo({
 
   return (
     <div className={cn('flex items-center gap-3 select-none group', className)}>
-      {/* Símbolo Arquitetônico Monograma Domus em SVG */}
+      {/* Símbolo Arquitetônico Domus */}
       <div
         className={cn(
-          'relative flex items-center justify-center shrink-0 bg-gradient-to-br from-[#17323D] via-[#10242C] to-[#0A171C] border border-[#AD7B3B]/30 shadow-md group-hover:border-[#AD7B3B]/60 group-hover:shadow-[0_0_20px_rgba(173,123,59,0.25)] transition-all duration-300',
+          'relative flex items-center justify-center shrink-0 bg-gradient-to-br from-[#1B3A47] via-[#10242C] to-[#0A171C] border border-[#AD7B3B]/40 shadow-md group-hover:border-[#AD7B3B]/70 group-hover:shadow-[0_0_20px_rgba(173,123,59,0.3)] transition-all duration-300',
           iconSizes[size]
         )}
       >
-        {/* Glow interno suave */}
-        <div className="absolute inset-0 rounded-[inherit] bg-gradient-to-tr from-[#AD7B3B]/20 via-transparent to-white/10 pointer-events-none" />
-
         <svg
-          viewBox="0 0 40 40"
+          viewBox="0 0 512 512"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="w-4/5 h-4/5 relative z-10 transition-transform duration-300 group-hover:scale-105"
+          className="w-full h-full relative z-10 transition-transform duration-300 group-hover:scale-105"
+          aria-hidden="true"
         >
-          <defs>
-            <linearGradient id="logoGold" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#FCE5B0" />
-              <stop offset="50%" stopColor="#D4A359" />
-              <stop offset="100%" stopColor="#966427" />
-            </linearGradient>
-            <linearGradient id="logoPillar" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#FCE5B0" />
-              <stop offset="100%" stopColor="#AD7B3B" />
-            </linearGradient>
-          </defs>
-
-          {/* Telhado / Frontão — traço grosso visível */}
-          <polyline
-            points="20,6 4,19 4,23 20,10 36,23 36,19"
-            fill="url(#logoGold)"
-            stroke="none"
+          {/* Telhado / Frontão clássico — Dourado claro de alto contraste */}
+          <polygon
+            points="256,72 68,226 68,272 256,118 444,272 444,226"
+            fill="#FCE5B0"
           />
 
-          {/* Pilar esquerdo */}
-          <rect x="8" y="21" width="7" height="13" rx="1.5" fill="url(#logoPillar)" />
+          {/* Pilar esquerdo — Dourado arquitetônico */}
+          <rect
+            x="140"
+            y="248"
+            width="60"
+            height="192"
+            rx="6"
+            fill="#D4A359"
+          />
 
-          {/* Pilar direito */}
-          <rect x="25" y="21" width="7" height="13" rx="1.5" fill="url(#logoPillar)" />
+          {/* Pilar direito — Dourado arquitetônico */}
+          <rect
+            x="312"
+            y="248"
+            width="60"
+            height="192"
+            rx="6"
+            fill="#D4A359"
+          />
 
-          {/* Arco central preenchido */}
+          {/* Arco central (porta em arco clássica) */}
           <path
-            d="M15 34 V26 Q15 19 20 19 Q25 19 25 26 V34 Z"
-            fill="url(#logoPillar)"
-          />
-          {/* Abertura do arco (buraco) */}
-          <path
-            d="M17.5 34 V27 Q17.5 22 20 22 Q22.5 22 22.5 27 V34 Z"
-            fill="#0A171C"
+            d="M200 440 V318 Q200 240 256 240 Q312 240 312 318 V440 Z"
+            fill="#E5B869"
           />
 
-          {/* Ponto de luz no vértice do arco */}
-          <circle cx="20" cy="22.5" r="2" fill="#FCE5B0" opacity="0.9" />
+          {/* Abertura do arco (profundidade / sombra interior) */}
+          <path
+            d="M228 440 V326 Q228 272 256 272 Q284 272 284 326 V440 Z"
+            fill="#0E2028"
+          />
+
+          {/* Ponto de luz no ápice da abóbada */}
+          <circle
+            cx="256"
+            cy="286"
+            r="16"
+            fill="#FFF8E7"
+          />
         </svg>
       </div>
 
@@ -109,7 +114,7 @@ export function DomusLogo({
 
         {showTagline && (
           <p className="hidden sm:block text-[10px] tracking-wide text-muted-foreground font-medium mt-1">
-            Gestão Imobiliária & Locações
+            Gestão Imobiliária &amp; Locações
           </p>
         )}
       </div>
