@@ -1,3 +1,10 @@
+<IfModule mod_mime.c>
+  # MIME types explícitos para evitar o erro "Expected JavaScript module but got text/html"
+  AddType application/javascript .js .mjs
+  AddType text/css .css
+  AddType application/wasm .wasm
+</IfModule>
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
@@ -13,7 +20,7 @@
 
   # Se um arquivo estático (assets, JS, CSS, imagens) não existir, retorna 404 real em vez de index.html
   RewriteCond %{REQUEST_URI} ^/assets/ [OR]
-  RewriteCond %{REQUEST_URI} \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ [NC]
+  RewriteCond %{REQUEST_URI} \.(js|mjs|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|wasm)$ [NC]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteRule ^ - [R=404,L]
 
@@ -35,4 +42,13 @@
   ExpiresByType image/png "access plus 1 month"
   ExpiresByType image/jpeg "access plus 1 month"
   ExpiresByType image/webp "access plus 1 month"
+</IfModule>
+
+# Sem cache para index.html e sw.js (sempre busca a versão mais recente do servidor)
+<IfModule mod_headers.c>
+  <FilesMatch "^(index\.html|sw\.js)$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+  </FilesMatch>
 </IfModule>
