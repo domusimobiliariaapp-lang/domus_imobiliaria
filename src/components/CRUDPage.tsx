@@ -243,9 +243,11 @@ export function CRUDPage<T extends Record<string, any>>({
     if (!deleteConfirm) return
     try {
       await deleteItem(getItemId(deleteConfirm))
+      addToast('Registro excluído com sucesso.', 'success')
       loadData()
-    } catch (err) {
+    } catch (err: any) {
       console.error('Erro ao excluir:', err)
+      addToast(err?.message || 'Falha ao excluir o registro. Verifique se existem vínculos dependentes.', 'error')
     }
     setDeleteConfirm(null)
   }

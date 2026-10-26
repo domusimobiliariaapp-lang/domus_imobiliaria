@@ -231,6 +231,9 @@ export function ContractsAdmin() {
     // Guardar o imóvel antes de remover: depois do delete, o contrato não
     // existe mais e não há como saber qual imóvel liberar.
     const alvo = (leases || []).find((l) => l.id === id)
+    // Limpar pagamentos e taxas vinculados antes para evitar bloqueio por foreign key
+    await supabase.from('payments').delete().eq('lease_id', id)
+    await supabase.from('fee_terms').delete().eq('lease_id', id)
     const { error } = await remove(id)
     if (error) throw error
     await syncPropertyStatus(alvo?.property_id)
