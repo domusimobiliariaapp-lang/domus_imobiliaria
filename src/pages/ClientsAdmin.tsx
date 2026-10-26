@@ -185,21 +185,30 @@ export function ClientsAdmin() {
   }
 
   const handleDelete = async (id: string) => {
-    // 1. Tenta exclusão física caso o cliente não tenha contratos/vendas/pagamentos vinculados
-    const { error: delError } = await supabase.from('profiles').delete().eq('id', id)
-    if (!delError) {
-      addToast('Cliente excluído com sucesso!', 'success')
-      return
+    // 1. Tenta exclusão física com select() para confirmar se a linha realmente foi deletada no banco
+    const { data: deletedRows, error: delError } = await supabase
+      .from('profiles')
+      .delete()
+      .eq('id', id)
+      .select()
+
+    if (delError) {
+      // 2. Se houver restrição de chave estrangeira (contrato ou pagamento ativo), desativa para preservar integridade
+      if (
+        delError.code === '23503' ||
+        delError.message.toLowerCase().includes('foreign key') ||
+        delError.message.toLowerCase().includes('violates foreign key')
+      ) {
+        await updateClient(id, { status: 'inativo' })
+        addToast('Cliente possui contratos ou imóveis vinculados e foi marcado como inativo.', 'warning')
+        return
+      }
+      throw new Error(delError.message)
     }
 
-    // 2. Se houver restrição de chave estrangeira (contrato ou pagamento), desativa para preservar integridade
-    if (delError.code === '23503' || delError.message.toLowerCase().includes('foreign key') || delError.message.toLowerCase().includes('violates foreign key')) {
-      await updateClient(id, { status: 'inativo' })
-      addToast('Cliente possui contratos vinculados e foi marcado como inativo para preservar o histórico.', 'warning')
-      return
+    if (!deletedRows || deletedRows.length === 0) {
+      throw new Error('A exclusão foi bloqueada pelo banco de dados (RLS). Execute o script SQL no Supabase para liberar a exclusão.')
     }
-
-    throw new Error(delError.message)
   }
 
   const renderForm = ({

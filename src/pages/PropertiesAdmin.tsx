@@ -136,6 +136,21 @@ export function PropertiesAdmin() {
   }
 
   const handleDelete = async (id: string) => {
+    // Limpar vendas vinculadas a este imóvel para não travar na foreign key sales_property_id_fkey
+    await supabase.from('sales').delete().eq('property_id', id)
+    
+    // Limpar locações vinculadas e seus pagamentos
+    const { data: linkedLeases } = await supabase.from('leases').select('id').eq('property_id', id)
+    if (linkedLeases && linkedLeases.length > 0) {
+      const leaseIds = linkedLeases.map((l) => l.id)
+      await supabase.from('payments').delete().in('lease_id', leaseIds)
+      await supabase.from('fee_terms').delete().in('lease_id', leaseIds)
+      await supabase.from('leases').delete().eq('property_id', id)
+    }
+
+    await supabase.from('fee_terms').delete().eq('property_id', id)
+    await supabase.from('property_inspections').delete().eq('property_id', id)
+
     const result = await remove(id)
     if (result.error) throw result.error
   }
